@@ -1,6 +1,7 @@
 import { AuthenticatedAdminRequest } from "../../middleware/auth.middleware";
 import { Request, Response } from "express";
 import CourseModel, { ICourse } from "../../models/Course.model";
+import { getPlaylistVideos } from "../../utils/youtube.config";
 
 export async function handleFetchCourseByIdFunction(req: Request, res: Response) {
 
@@ -9,11 +10,59 @@ export async function handleFetchCourseByIdFunction(req: Request, res: Response)
   if (!courseId) {
     return res.status(400).json({ success: false, message: "Missing 'courseId' parameter" });
   }
-   
+
   try {
-    let course = await CourseModel.findOne({courseId});
+    let course = await CourseModel.findOne({ courseId });
 
     if (!course) {
+      // If not found in database, check if it's a YouTube playlist
+      if (courseId.startsWith('PL')) {
+        // Try to fetch from YouTube
+        const videos = await getPlaylistVideos(courseId, 100);
+
+        if (!videos || videos.length === 0) {
+          return res.status(404).json({ success: false, message: "YouTube playlist not found" });
+        }
+
+        // Return YouTube playlist data with videos
+        const formattedVideos = videos.map((video: any) => ({
+          videoId: video.contentDetails.videoId,
+          title: video.snippet.title,
+          description: video.snippet.description,
+          thumbnail:
+            video.snippet.thumbnails.high?.url ||
+            video.snippet.thumbnails.medium?.url ||
+            video.snippet.thumbnails.default.url,
+          publishedAt: video.snippet.publishedAt,
+        }));
+
+        return res.status(200).json({
+          success: true,
+          course: {
+            courseName: videos[0]?.snippet?.title || "YouTube Playlist",
+            courseId: courseId,
+            tutorName: videos[0]?.snippet?.channelTitle || "YouTube",
+            courseType: "YOUTUBE",
+            description: "YouTube Playlist Course",
+            currency: "FREE",
+            sellingPrice: 0,
+            originalPrice: 0,
+            thumbnail: videos[0]?.snippet?.thumbnails?.high?.url || "",
+            isVerified: true,
+            uploadedBy: "youtube-integration",
+            ratings: [],
+            ratingCount: 0,
+            likedBy: [],
+            likedCount: 0,
+            markdownContent: "",
+            redirectLink: "",
+            enrolledBy: [],
+            enrolledCount: 0,
+            videos: formattedVideos,
+          },
+        });
+      }
+
       return res.status(404).json({ success: false, message: "Course not found" });
     }
 
@@ -22,27 +71,28 @@ export async function handleFetchCourseByIdFunction(req: Request, res: Response)
       courseId: course.courseId,
       tutorName: course.tutorName,
       courseType: course.courseType,
-      description: course.description ?? '', 
+      description: course.description ?? '',
       currency: course.currency,
       sellingPrice: course.sellingPrice,
       originalPrice: course.originalPrice,
       thumbnail: course.thumbnail,
       isVerified: course.isVerified,
       uploadedBy: course.uploadedBy,
-      ratings: course.ratings ?? [], 
-      ratingCount: course.ratings?.length ?? 0, 
-      likedBy: course.likedBy ?? [], 
-      likedCount: course.likedBy?.length ?? 0,  
-      markdownContent: course.markdownContent ?? '', 
-      redirectLink: course.redirectLink ?? '', 
-      enrolledBy: course.enrolledBy ?? [], 
+      ratings: course.ratings ?? [],
+      ratingCount: course.ratings?.length ?? 0,
+      likedBy: course.likedBy ?? [],
+      likedCount: course.likedBy?.length ?? 0,
+      markdownContent: course.markdownContent ?? '',
+      redirectLink: course.redirectLink ?? '',
+      enrolledBy: course.enrolledBy ?? [],
       enrolledCount: course.enrolledBy?.length ?? 0,
-      videos: course.videos ?? [] 
+      videos: course.videos ?? []
     };
 
     return res.status(200).json({ success: true, course });
-  } 
+  }
   catch (error) {
+    console.error("Error fetching course:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
@@ -54,11 +104,11 @@ export async function handleFetchAllCoursesFunction(req: Request, res: Response)
     const courses: ICourse[] = await CourseModel.find().select(
       "tutorName courseId courseName description ratingCount rating thumbnail sellingPrice currency courseType originalPrice"
     );
-    
+
     if (!courses || courses.length === 0) {
       return res.status(404).json({ success: false, message: "Course not found" });
     }
-    
+
     const coursesData = courses.map((course) => ({
       tutorName: course.tutorName,
       courseId: course.courseId,
@@ -72,13 +122,13 @@ export async function handleFetchAllCoursesFunction(req: Request, res: Response)
       courseType: course.courseType,
       originalPrice: course.originalPrice,
     }));
-    
+
     return res.status(200).json({ success: true, data: coursesData });
-  } 
+  }
   catch (error) {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
-  
+
 }
 
 function buildSortQuery(order?: string): Record<string, 1 | -1> {
@@ -101,8 +151,8 @@ export async function handleFetchAllCoursesAsPerParams(req: Request, res: Respon
     const { order, category } = req.query;
 
     const filter: Record<string, any> = category
-    ? { courseType: { $regex: new RegExp(`^${category}$`, 'i') } }
-    : {};
+      ? { courseType: { $regex: new RegExp(`^${category}$`, 'i') } }
+      : {};
     const sort = buildSortQuery(order as string);
 
     const courses = await CourseModel.find(filter).sort(sort).lean().exec();
@@ -162,7 +212,7 @@ export async function handleGetCourseBySearchParams(req: Request, res: Response)
       ],
     });
 
-    if(!updatedCourseData){
+    if (!updatedCourseData) {
       return res.status(400).json({ success: false, message: "No Course found" });
     }
     const transformedCourses = updatedCourseData.map(course => ({
@@ -170,32 +220,32 @@ export async function handleGetCourseBySearchParams(req: Request, res: Response)
       courseId: course.courseId,
       tutorName: course.tutorName,
       courseType: course.courseType,
-      description: course.description ?? '', 
+      description: course.description ?? '',
       currency: course.currency,
       sellingPrice: course.sellingPrice,
       originalPrice: course.originalPrice,
       thumbnail: course.thumbnail,
       isVerified: course.isVerified,
       uploadedBy: course.uploadedBy,
-      ratings: course.ratings ?? [], 
-      ratingCount: course.ratings?.length ?? 0, 
-      likedBy: course.likedBy ?? [], 
-      likedCount: course.likedBy?.length ?? 0,  
-      markdownContent: course.markdownContent ?? '', 
-      redirectLink: course.redirectLink ?? '', 
-      enrolledBy: course.enrolledBy ?? [], 
+      ratings: course.ratings ?? [],
+      ratingCount: course.ratings?.length ?? 0,
+      likedBy: course.likedBy ?? [],
+      likedCount: course.likedBy?.length ?? 0,
+      markdownContent: course.markdownContent ?? '',
+      redirectLink: course.redirectLink ?? '',
+      enrolledBy: course.enrolledBy ?? [],
       enrolledCount: course.enrolledBy?.length ?? 0,
-      videos: course.videos ?? [] 
+      videos: course.videos ?? []
     }));
 
-    return res.status(200).json({ success: true, data: transformedCourses});
+    return res.status(200).json({ success: true, data: transformedCourses });
   }
-  catch(error){
+  catch (error) {
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
-export async function handleGetCoursesByUserIdFunction (req: AuthenticatedAdminRequest, res: Response) {
+export async function handleGetCoursesByUserIdFunction(req: AuthenticatedAdminRequest, res: Response) {
   const userId = req.userId;
   const uniqueId = req.userUniqueId;
 
@@ -203,13 +253,13 @@ export async function handleGetCoursesByUserIdFunction (req: AuthenticatedAdminR
     return res.status(400).json({ success: false, message: "User ID is required" });
   }
 
-  if(!uniqueId){
+  if (!uniqueId) {
     return res.status(400).json({ success: false, message: "Unique ID is required" });
   }
 
   try {
     const courses = await CourseModel.find({ uploadedBy: uniqueId });
-    
+
     if (courses.length === 0) {
       return res.status(404).json({ success: false, message: "No courses found" });
     }
@@ -219,25 +269,25 @@ export async function handleGetCoursesByUserIdFunction (req: AuthenticatedAdminR
       courseId: course.courseId,
       tutorName: course.tutorName,
       courseType: course.courseType,
-      description: course.description ?? '', 
+      description: course.description ?? '',
       currency: course.currency,
       sellingPrice: course.sellingPrice,
       originalPrice: course.originalPrice,
       thumbnail: course.thumbnail,
       isVerified: course.isVerified,
       uploadedBy: course.uploadedBy,
-      ratings: course.ratings ?? [], 
-      ratingCount: course.ratings?.length ?? 0, 
-      likedBy: course.likedBy ?? [], 
-      likedCount: course.likedBy?.length ?? 0,  
-      markdownContent: course.markdownContent ?? '', 
-      redirectLink: course.redirectLink ?? '', 
-      enrolledBy: course.enrolledBy ?? [], 
+      ratings: course.ratings ?? [],
+      ratingCount: course.ratings?.length ?? 0,
+      likedBy: course.likedBy ?? [],
+      likedCount: course.likedBy?.length ?? 0,
+      markdownContent: course.markdownContent ?? '',
+      redirectLink: course.redirectLink ?? '',
+      enrolledBy: course.enrolledBy ?? [],
       enrolledCount: course.enrolledBy?.length ?? 0,
-      videos: course.videos ?? [] 
+      videos: course.videos ?? []
     }));
 
-    return res.status(200).json({ success: true, data: transformedCourses});
+    return res.status(200).json({ success: true, data: transformedCourses });
 
   } catch (error) {
     return res.status(500).json({ success: false, message: "Internal server error" });

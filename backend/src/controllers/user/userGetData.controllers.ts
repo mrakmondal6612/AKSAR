@@ -3,6 +3,7 @@ import User from "../../models/User.model";
 import { AuthenticatedRequest } from "../../middleware/auth.middleware";
 import VideoModel from "../../models/Video.model";
 import CourseModel from "../../models/Course.model";
+import { getPlaylistDetails } from "../../utils/youtube.config";
 
 export async function handleGetUserDataFunction( req: AuthenticatedRequest, res: Response ) {
   try {
@@ -92,25 +93,73 @@ export async function handleGetUsersBookmarkedVideo(req: AuthenticatedRequest , 
 export async function handleGetUsersBookmarkedCourses(req: AuthenticatedRequest , res: Response) {
    const userId = req.userId;
 
+   console.log("🔵 Get Bookmarked Courses Request:", { userId, body: req.body });
+
    if(!userId){
+    console.log("❌ No userId found");
     return res.status(401).json({success: false , message: "Unauthorized"})
    }
 
    const {courseIds} = req.body;
+
+   console.log("📝 CourseIds received:", courseIds);
  
    if (!Array.isArray(courseIds) || courseIds.length === 0) {
+    console.log("❌ Invalid courseIds format or empty");
     return res.status(400).json({ success: false, message: 'CourseIds are required' });
   }
 
   try {
 
-    const courses = await CourseModel.find({ courseId: { $in: courseIds } })
-    .lean() // Convert to plain objects
-    .exec();
+    const uniqueCourseIds = Array.from(new Set(courseIds));
 
-    if (!courses || courses.length === 0) {
-      return res.status(404).json({success: false, message: 'No courses found for the provided IDs'});
-    }
+    const courses = await CourseModel.find({ courseId: { $in: uniqueCourseIds } })
+      .lean() // Convert to plain objects
+      .exec();
+
+    console.log("✅ Found " + courses.length + " courses in database");
+
+    const foundCourseIds = courses.map((course) => course.courseId);
+    const missingCourseIds = uniqueCourseIds.filter(
+      (id) => !foundCourseIds.includes(id) && id.startsWith("PL")
+    );
+
+    const youtubeCourses = await Promise.all(
+      missingCourseIds.map(async (playlistId) => {
+        const playlist = await getPlaylistDetails(playlistId);
+        if (!playlist) return null;
+        return {
+          courseName: playlist.snippet.title,
+          courseId: playlist.id,
+          tutorName: playlist.snippet.channelTitle,
+          courseType: "YOUTUBE",
+          description: playlist.snippet.description,
+          currency: "FREE",
+          sellingPrice: 0,
+          originalPrice: 0,
+          thumbnail:
+            playlist.snippet.thumbnails.high?.url ||
+            playlist.snippet.thumbnails.medium?.url ||
+            playlist.snippet.thumbnails.default.url,
+          isVerified: true,
+          uploadedBy: "youtube-integration",
+          ratings: [],
+          likedBy: [],
+          enrolledBy: [],
+          ratingCount: 0,
+          rating: 0,
+          likedCount: 0,
+          enrolledCount: 0,
+          markdownContent: "",
+          redirectLink: "",
+          videos: [],
+        };
+      })
+    );
+
+    const filteredYoutubeCourses = youtubeCourses.filter(
+      (course): course is NonNullable<typeof course> => Boolean(course)
+    );
 
     const filteredCourses = courses.map((course) => ({
       courseName: course.courseName,
@@ -136,7 +185,7 @@ export async function handleGetUsersBookmarkedCourses(req: AuthenticatedRequest 
       videos: course.videos ?? [],
     }));
 
-    return res.status(200).json({ success: true, courses : filteredCourses});
+    return res.status(200).json({ success: true, courses: [...filteredCourses, ...filteredYoutubeCourses] });
 
   } catch (error) {
     console.error('Error fetching courses:', error);

@@ -10,38 +10,44 @@ import axios from "axios";
 const SearchInputFilter: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState<string | null>(null);
-  const { coursesData, setCoursesData } = useCourseContext();
+  const { coursesData, setCoursesData, searchYouTubeCourses } = useCourseContext();
   const inputFocus = useRef<HTMLInputElement>(null);
+
   // Fetch courses based on the search term
   async function fetchCoursesData(searchTerm: string) {
-    
     try {
+      // Try database search first
       const response = await axios.get(`${COURSE_API}/get-course-search?searchTerm=${searchTerm}`)
-      if(response && response.data && response.data.success){
+      if (response && response.data && response.data.success && response.data.data.length > 0) {
         setCoursesData(response.data.data);
+        return;
       }
-      else{
-        ErrorToast(response.data.message)
-      }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error) {
+      console.log("Database search failed, trying YouTube search...");
+    }
+
+    // If database search fails or is empty, try YouTube search
+    try {
+      await searchYouTubeCourses(searchTerm);
     } catch (error: any) {
-      ErrorToast(error.response?.data?.message);
+      ErrorToast("No courses found");
     }
   }
-  
+
   async function backAllCourses() {
     try {
       const response = await axios.get(`${COURSE_API}/get-all-courses`);
-  
-      if(response && response.data && response.data.success){
+
+      if (response && response.data && response.data.success) {
         setCoursesData(response.data.data);
       }
-      else{
+      else {
         ErrorToast(response.data.message || "Error in Fetching Courses")
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      ErrorToast(error?.response.data.message)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.log("Database courses not available, trying YouTube courses...");
+      // Try to search for the term on YouTube as fallback
     }
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -51,7 +57,7 @@ const SearchInputFilter: React.FC = () => {
         fetchCoursesData(searchTerm);
       }
     }, 500),
-    [coursesData] 
+    [coursesData]
   );
 
   const handleSearchBar = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,13 +67,13 @@ const SearchInputFilter: React.FC = () => {
     if (value) {
       debouncedFilter(value);
     } else {
-      backAllCourses(); 
+      backAllCourses();
     }
   };
 
   const handleSearchClick = () => {
-    setSearchValue(null); 
-    setIsOpen(!isOpen); 
+    setSearchValue(null);
+    setIsOpen(!isOpen);
     if (!isOpen && inputFocus.current) {
       setTimeout(() => {
         inputFocus.current?.focus();
@@ -77,13 +83,13 @@ const SearchInputFilter: React.FC = () => {
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      handleSearchClick(); 
+      handleSearchClick();
     }
   };
 
   return (
     <div className="flex items-center justify-center gap-4 relative">
-    
+
       <button
         onClick={handleSearchClick}
         className="flex items-center justify-center absolute right-0 w-12 h-12 rounded-full bg-transparent focus:outline-none"
@@ -94,7 +100,7 @@ const SearchInputFilter: React.FC = () => {
       <motion.input
         initial={{ width: "3rem" }}
         ref={inputFocus}
-        animate={{ width: isOpen ? "18rem" : "3rem" }} 
+        animate={{ width: isOpen ? "18rem" : "3rem" }}
         transition={{
           duration: 0.8,
           ease: [0.83, 0, 0.17, 1],
@@ -104,11 +110,11 @@ const SearchInputFilter: React.FC = () => {
         }}
         placeholder={isOpen ? "Search..." : ""}
         onChange={handleSearchBar}
-        value={searchValue || ""} 
+        value={searchValue || ""}
         className="h-12 px-2 py-2 pr-10 border-b-2 border-current text-base font-[Trebuchet MS] placeholder-gray-700 dark:placeholder-gray-400 bg-transparent rounded-lg outline-none dark:text-white text-black"
         name="text"
         type="text"
-        onKeyDown={handleKeyPress} 
+        onKeyDown={handleKeyPress}
       />
     </div>
   );

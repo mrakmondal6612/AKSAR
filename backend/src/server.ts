@@ -8,8 +8,9 @@ import videoRoute from "./routes/video.route";
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 8001;
+const PORT = process.env.PORT || 8081;
 
+//CORS middleware
 app.use(cors({
     origin: process.env.PUBLIC_FRONTEND_DOMAIN || "http://localhost:5173",
     optionsSuccessStatus: 200
@@ -17,7 +18,7 @@ app.use(cors({
 app.use(express.json());
 
 app.get("/", (req: Request, res: Response) => {
-    res.send("Welcome to Course-Yuga");
+    res.send("Welcome to AKSAR Backend on port " + PORT);
 });
 
 app.use("/api/v1/user", userRoute);
