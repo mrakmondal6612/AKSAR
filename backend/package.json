@@ -5,8 +5,9 @@
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node ./dist/server.js",
+    "start": "nodemon --watch 'src/**/*.ts' --exec ts-node src/server.ts",
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/server.ts",
+    "prod": "node ./dist/server.js",
     "vercel-build": "tsc"
   },
   "keywords": [],
