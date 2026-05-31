@@ -1,10 +1,13 @@
 import express, { Response, Request } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import passport from "passport";
 import connectDB from "./utils/db.config";
 import userRoute from "./routes/user.route";
 import courseRoute from "./routes/course.route";
 import videoRoute from "./routes/video.route";
+import { startNotificationScheduler } from "./services/notificationJob.service";
+import { startRecurringTodoScheduler } from "./services/recurringTodoJob.service";
 
 dotenv.config();
 const app = express();
@@ -16,6 +19,7 @@ app.use(cors({
     optionsSuccessStatus: 200
 }));
 app.use(express.json());
+app.use(passport.initialize());
 
 app.get("/", (req: Request, res: Response) => {
     res.send("Welcome to AKSAR Backend on port " + PORT);
@@ -28,6 +32,8 @@ app.use("/api/v1/video", videoRoute);
 async function startServer() {
     try {
         await connectDB();
+        startNotificationScheduler();
+        startRecurringTodoScheduler();
         app.listen(PORT, () => {
             console.log("Server started on port: " + PORT);
         });

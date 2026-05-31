@@ -6,10 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
+const passport_1 = __importDefault(require("passport"));
 const db_config_1 = __importDefault(require("./utils/db.config"));
 const user_route_1 = __importDefault(require("./routes/user.route"));
 const course_route_1 = __importDefault(require("./routes/course.route"));
 const video_route_1 = __importDefault(require("./routes/video.route"));
+const notificationJob_service_1 = require("./services/notificationJob.service");
+const recurringTodoJob_service_1 = require("./services/recurringTodoJob.service");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 8081;
@@ -19,6 +22,7 @@ app.use((0, cors_1.default)({
     optionsSuccessStatus: 200
 }));
 app.use(express_1.default.json());
+app.use(passport_1.default.initialize());
 app.get("/", (req, res) => {
     res.send("Welcome to AKSAR Backend on port " + PORT);
 });
@@ -28,6 +32,8 @@ app.use("/api/v1/video", video_route_1.default);
 async function startServer() {
     try {
         await (0, db_config_1.default)();
+        (0, notificationJob_service_1.startNotificationScheduler)();
+        (0, recurringTodoJob_service_1.startRecurringTodoScheduler)();
         app.listen(PORT, () => {
             console.log("Server started on port: " + PORT);
         });

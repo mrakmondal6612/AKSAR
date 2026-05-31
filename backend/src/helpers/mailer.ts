@@ -403,3 +403,59 @@ export const sendGithubAuthPasswordMail = async (email: string, password: string
       throw new Error("Failed to send email");
   }
 };
+
+export const sendNotificationEmail = async (email: string, subject: string, message: string) => {
+  try {
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${subject}</title>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f2f4f7; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; padding: 0; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); overflow: hidden; }
+          .header { text-align: center; background-color: #2196F3; color: #ffffff; padding: 20px; }
+          .header h1 { margin: 0; font-size: 24px; }
+          .logo { width: 120px; margin: 0 auto; display: block; }
+          .content { padding: 30px; }
+          .content p { font-size: 16px; line-height: 1.6; color: #555555; }
+          .footer { text-align: center; padding: 20px; font-size: 12px; color: #999999; background-color: #f4f4f4; }
+          .footer p { margin: 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <img src="${process.env.PUBLIC_FRONTEND_DOMAIN}/images/course-yuga-logo-light-mode-5.png" alt="Course-Yuga Logo" class="logo" />
+            <h1>${subject}</h1>
+          </div>
+          <div class="content">
+            <p>${message}</p>
+            <p>Log in to your account to view more details and take action.</p>
+          </div>
+          <div class="footer">
+            <p>© 2024 Course-Yuga. All rights reserved.</p>
+            <p><a href="${process.env.PUBLIC_FRONTEND_DOMAIN}">Go to Course-Yuga</a></p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const mailOptions = {
+      from: `"Course Yuga" <${process.env.PUBLIC_GMAIL}>`,
+      to: email,
+      subject: subject,
+      html: htmlContent,
+    };
+
+    const mailResponse = await transporter.sendMail(mailOptions);
+    return mailResponse;
+  } catch (error) {
+    console.error('Error sending notification email:', error);
+    throw new Error('Failed to send notification email');
+  }
+};
+

@@ -15,6 +15,9 @@ const userDataDelete_controllers_1 = require("../controllers/user/userDataDelete
 const userDataUpdate_controllers_1 = require("../controllers/user/userDataUpdate.controllers");
 const userEmailVerification_controllers_1 = require("../controllers/user/userEmailVerification.controllers");
 const userGetData_controllers_1 = require("../controllers/user/userGetData.controllers");
+const todo_controllers_1 = require("../controllers/user/todo.controllers");
+const todo_production_controllers_1 = require("../controllers/user/todo.production.controllers");
+const notification_controllers_1 = require("../controllers/user/notification.controllers");
 const userProfileUpdate_controllers_1 = require("../controllers/user/userProfileUpdate.controllers");
 const userResetPassword_controllers_1 = require("../controllers/user/userResetPassword.controllers");
 const userCourseHandlers_controllers_1 = require("../controllers/user/userCourseHandlers.controllers");
@@ -61,4 +64,36 @@ userRoute.post("/user-course-bookmarks", auth_middleware_1.authenticateToken, us
 userRoute.post("/user-video-bookmarks", auth_middleware_1.authenticateToken, userCourseHandlers_controllers_1.handleUserVideoBookmarkfunction);
 //User added completed Video 
 userRoute.post("/user-video-progress", auth_middleware_1.authenticateToken, userCourseHandlers_controllers_1.handleUserCourseProgress);
+// Todo list routes
+userRoute.get("/todos", auth_middleware_1.authenticateToken, todo_controllers_1.handleGetTodos);
+userRoute.post("/todos", auth_middleware_1.authenticateToken, todo_controllers_1.handleCreateTodo);
+userRoute.put("/todos/:id", auth_middleware_1.authenticateToken, todo_controllers_1.handleUpdateTodo);
+userRoute.delete("/todos/:id", auth_middleware_1.authenticateToken, todo_controllers_1.handleDeleteTodo);
+userRoute.delete("/todos/clear-completed", auth_middleware_1.authenticateToken, todo_controllers_1.handleClearCompletedTodos);
+// Subtask routes
+userRoute.post("/todos/:id/subtasks", auth_middleware_1.authenticateToken, todo_controllers_1.handleAddSubtask);
+userRoute.put("/todos/:id/subtasks/:subtaskId", auth_middleware_1.authenticateToken, todo_controllers_1.handleToggleSubtask);
+userRoute.delete("/todos/:id/subtasks/:subtaskId", auth_middleware_1.authenticateToken, todo_controllers_1.handleDeleteSubtask);
+// Stats route
+userRoute.get("/todos/stats", auth_middleware_1.authenticateToken, todo_controllers_1.handleGetTodoStats);
+// Time tracking routes
+userRoute.post("/todos/:id/time-session/start", auth_middleware_1.authenticateToken, todo_production_controllers_1.handleStartTimeSession);
+userRoute.post("/todos/:id/time-session/stop", auth_middleware_1.authenticateToken, todo_production_controllers_1.handleStopTimeSession);
+// Bulk operations
+userRoute.put("/todos/bulk-update", auth_middleware_1.authenticateToken, todo_production_controllers_1.handleBulkUpdateTodos);
+userRoute.delete("/todos/bulk-delete", auth_middleware_1.authenticateToken, todo_production_controllers_1.handleBulkDeleteTodos);
+userRoute.post("/todos/reorder", auth_middleware_1.authenticateToken, todo_production_controllers_1.handleReorderTodos);
+// Advanced analytics
+userRoute.get("/todos/insights/productivity", auth_middleware_1.authenticateToken, todo_production_controllers_1.handleGetProductivityInsights);
+// Import/Export
+userRoute.get("/todos/export/csv", auth_middleware_1.authenticateToken, todo_production_controllers_1.handleExportTodos);
+userRoute.post("/todos/import", auth_middleware_1.authenticateToken, todo_production_controllers_1.handleImportTodos);
+// Notification routes
+userRoute.get("/notifications", auth_middleware_1.authenticateToken, notification_controllers_1.handleGetNotifications);
+userRoute.put("/notifications/:id/read", auth_middleware_1.authenticateToken, notification_controllers_1.handleMarkAsRead);
+userRoute.put("/notifications/mark-all-read", auth_middleware_1.authenticateToken, notification_controllers_1.handleMarkAllAsRead);
+userRoute.delete("/notifications/:id", auth_middleware_1.authenticateToken, notification_controllers_1.handleDeleteNotification);
+// Course timeline routes
+userRoute.get("/course-timeline", auth_middleware_1.authenticateToken, notification_controllers_1.handleGetCourseTimeline);
+userRoute.post("/course-enrollment", auth_middleware_1.authenticateToken, notification_controllers_1.handleCreateCourseEnrollment);
 exports.default = userRoute;

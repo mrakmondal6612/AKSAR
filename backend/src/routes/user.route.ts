@@ -9,6 +9,19 @@ import { handleDeleteAccountFunction } from "../controllers/user/userDataDelete.
 import { handleUpdateUserFunction } from "../controllers/user/userDataUpdate.controllers";
 import { handleResendVerficationOTPFunction, handleEmailVerificationOTP } from "../controllers/user/userEmailVerification.controllers";
 import { handleGetUserDataFunction, handleGetUserHistoryVideos, handleGetUsersBookmarkedCourses, handleGetUsersBookmarkedVideo } from "../controllers/user/userGetData.controllers";
+import { handleGetTodos, handleCreateTodo, handleUpdateTodo, handleDeleteTodo, handleClearCompletedTodos, handleAddSubtask, handleToggleSubtask, handleDeleteSubtask, handleGetTodoStats } from "../controllers/user/todo.controllers";
+import {
+  handleBulkUpdateTodos,
+  handleBulkDeleteTodos,
+  handleReorderTodos,
+  handleStartTimeSession,
+  handleStopTimeSession,
+  handleGetProductivityInsights,
+  handleExportTodos,
+  handleImportTodos,
+} from "../controllers/user/todo.production.controllers";
+
+import { handleGetNotifications, handleMarkAsRead, handleMarkAllAsRead, handleDeleteNotification, handleGetCourseTimeline, handleCreateCourseEnrollment } from "../controllers/user/notification.controllers";
 import { handleUpdateUserImageFunction } from "../controllers/user/userProfileUpdate.controllers";
 import { handleResetPasswordFunction, handleResetPasswordVerificationOTP } from "../controllers/user/userResetPassword.controllers";
 import { handleRemoveHistoryVideo, handleRemoveUserEntireHistory, handleUserCourseBookmarkfunction , handleUserCourseProgress, handleUserHistoryVideoOrder, handleUserUnenrolledCourseFunction, handleUserVideoBookmarkfunction} from "../controllers/user/userCourseHandlers.controllers";
@@ -68,5 +81,45 @@ userRoute.post("/user-video-bookmarks" , authenticateToken , handleUserVideoBook
 //User added completed Video 
 userRoute.post("/user-video-progress" , authenticateToken , handleUserCourseProgress )
 
+// Todo list routes
+userRoute.get("/todos", authenticateToken, handleGetTodos);
+userRoute.post("/todos", authenticateToken, handleCreateTodo);
+userRoute.put("/todos/:id", authenticateToken, handleUpdateTodo);
+userRoute.delete("/todos/:id", authenticateToken, handleDeleteTodo);
+userRoute.delete("/todos/clear-completed", authenticateToken, handleClearCompletedTodos);
+
+// Subtask routes
+userRoute.post("/todos/:id/subtasks", authenticateToken, handleAddSubtask);
+userRoute.put("/todos/:id/subtasks/:subtaskId", authenticateToken, handleToggleSubtask);
+userRoute.delete("/todos/:id/subtasks/:subtaskId", authenticateToken, handleDeleteSubtask);
+
+// Stats route
+userRoute.get("/todos/stats", authenticateToken, handleGetTodoStats);
+
+// Time tracking routes
+userRoute.post("/todos/:id/time-session/start", authenticateToken, handleStartTimeSession);
+userRoute.post("/todos/:id/time-session/stop", authenticateToken, handleStopTimeSession);
+
+// Bulk operations
+userRoute.put("/todos/bulk-update", authenticateToken, handleBulkUpdateTodos);
+userRoute.delete("/todos/bulk-delete", authenticateToken, handleBulkDeleteTodos);
+userRoute.post("/todos/reorder", authenticateToken, handleReorderTodos);
+
+// Advanced analytics
+userRoute.get("/todos/insights/productivity", authenticateToken, handleGetProductivityInsights);
+
+// Import/Export
+userRoute.get("/todos/export/csv", authenticateToken, handleExportTodos);
+userRoute.post("/todos/import", authenticateToken, handleImportTodos);
+
+// Notification routes
+userRoute.get("/notifications", authenticateToken, handleGetNotifications);
+userRoute.put("/notifications/:id/read", authenticateToken, handleMarkAsRead);
+userRoute.put("/notifications/mark-all-read", authenticateToken, handleMarkAllAsRead);
+userRoute.delete("/notifications/:id", authenticateToken, handleDeleteNotification);
+
+// Course timeline routes
+userRoute.get("/course-timeline", authenticateToken, handleGetCourseTimeline);
+userRoute.post("/course-enrollment", authenticateToken, handleCreateCourseEnrollment);
 
 export default userRoute;

@@ -9,6 +9,8 @@ import RefreshPage from "@/sections/DashBoardSections/RefreshPage";
 import AddCourses from "@/sections/DashBoardSections/AddCourses";
 import AddTests from "@/sections/DashBoardSections/AddTests";
 import AddVideos from "@/sections/DashBoardSections/AddVideos";
+import ModernTodoList from "@/sections/DashBoardSections/ModernTodoList";
+import ProductionTodoList from "@/sections/DashBoardSections/ProductionTodoList";
 import ViewCourse from "@/sections/DashBoardSections/ViewCourse";
 import VideoPlaySection from "./VideoPlaySection";
 import VideoEditPage from "@/components/addVideos/VideoEditPage";
@@ -16,6 +18,7 @@ import UnderMaintenancePage from "@/components/UnderMaintenancePage";
 import PageNotFound from "@/components/PageNotFound";
 import UnauthorizedPage from "@/components/UnauthorizedPage";
 import DashBoardNavbar from "./DashBoardNavbar";
+import CourseTimelinePage from '@/sections/DashBoardSections/CourseTimelinePage';
 import PageTransitionSwipeAnimation from "@/Effects/PageTransitionSwipeAnimation";
 import Subscription from "./Subscription";
 import History from "./History";
@@ -29,8 +32,9 @@ const DashboardRoutes: React.FC = () => {
       { path: "/dashboard", element: <DashBoard /> },
       { path: "/bookmarks", element: <Bookmarks /> },
       { path: "/courses", element: <Courses /> },
+      { path: "/course-timeline", element: <CourseTimelinePage /> },
       { path: "/subscription", element: <Subscription/> },
-      { path: "/todo-list", element: <UnderMaintenancePage pageName="Todo List" /> },
+      { path: "/todo-list", element: <ProductionTodoList /> },
       { path: "/history", element: <History/> },
       { path: "/refresh", element: <RefreshPage /> },
       { path: "/view-course", element: <ViewCourse /> },
