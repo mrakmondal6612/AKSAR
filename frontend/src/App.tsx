@@ -1,25 +1,25 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useTheme } from "@/context/ThemeProvider";
-import HeroSection from "@/sections/HeroSection";
-import Courses from "@/sections/Courses";
-import Community from "@/sections/Community";
-import ContactUs from "@/sections/ContactUs";
-import AboutPage from "@/sections/AboutPage";
-import LogoutModal from "@/components/modals/LogoutModal";
-import EditProfile from "@/sections/EditProfile";
+const HeroSection = lazy(() => import("@/sections/HeroSection"));
+const Courses = lazy(() => import("@/sections/Courses"));
+const Community = lazy(() => import("@/sections/Community"));
+const ContactUs = lazy(() => import("@/sections/ContactUs"));
+const AboutPage = lazy(() => import("@/sections/AboutPage"));
+const LogoutModal = lazy(() => import("@/components/modals/LogoutModal"));
+const EditProfile = lazy(() => import("@/sections/EditProfile"));
 import { ToastContainer } from "react-toastify";
 import styles from "@/sass/Toast.module.scss";
 import "react-toastify/dist/ReactToastify.css";
-import CourseIntroPage from "./components/addCourses/CourseIntroPage";
+const CourseIntroPage = lazy(() => import("./components/addCourses/CourseIntroPage"));
 import { useAuthContext } from "./context/authContext";
-import DashboardRoutes from "./sections/DashBoardSections/DashBoardRoutes";
+const DashboardRoutes = lazy(() => import("./sections/DashBoardSections/DashBoardRoutes"));
 import Navbar from "./sections/Navbar";
-import HelpSection from "./sections/HelpSection";
-import UnauthenticatedPage from "./components/UnauthenticatedPage";
-import PageNotFound from "./components/PageNotFound";
-import ResetPasswordModal from "./components/modals/ResetPasswordModal";
-import VerifyCourses from "./sections/VerifyCourses";
+const HelpSection = lazy(() => import("./sections/HelpSection"));
+const UnauthenticatedPage = lazy(() => import("./components/UnauthenticatedPage"));
+const PageNotFound = lazy(() => import("@/components/PageNotFound"));
+const ResetPasswordModal = lazy(() => import("./components/modals/ResetPasswordModal"));
+const VerifyCourses = lazy(() => import("./sections/VerifyCourses"));
 
 function App() {
   const location = useLocation();
@@ -81,7 +81,9 @@ function App() {
  
       {!isUserRoute && <Navbar isUserLoggedIn={isLoggedIn} />}
 
-      {memoizedRoutes}
+      <Suspense fallback={<div className="p-4 text-center">Loading...</div>}>
+        {memoizedRoutes}
+      </Suspense>
 
       <div className="fixed bottom-0 right-0 p-4">
         <ToastContainer

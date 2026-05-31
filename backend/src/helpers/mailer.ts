@@ -1,6 +1,7 @@
 import User from "../models/User.model";
 import mongoose from "mongoose";
 import dotenv from "dotenv"
+import { transporter } from "../utils/mail.config";
 
 dotenv.config();
 

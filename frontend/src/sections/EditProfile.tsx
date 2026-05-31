@@ -1,18 +1,19 @@
+import { lazy, Suspense } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "@/context/ThemeProvider";
 import { motion } from "framer-motion";
-import  BioForm  from "@/components/editProfile/BioForm";
+const BioForm = lazy(() => import("@/components/editProfile/BioForm"));
 import EditButton from "@/components/editProfile/EditButton";
-import DeleteAccountAndChangePassword from "../components/editProfile/DeleteAccountAndChangePassword";
-import StatusField from "@/components/editProfile/StatusField";
+const DeleteAccountAndChangePassword = lazy(() => import("@/components/editProfile/DeleteAccountAndChangePassword"));
+const StatusField = lazy(() => import("@/components/editProfile/StatusField"));
 import { useAuthContext } from "@/context/authContext";
 import Seperator from "@/components/Seperator";
 import { CountryCodeData } from "@/constants";
-import FirstAndLastNameForm from "@/components/editProfile/FirstAndLastNameForm";
-import DobForm from "@/components/editProfile/DobForm";
-import MobileNumberForm from "@/components/editProfile/MobileNumberForm";
-import SelectAddressForm from "@/components/editProfile/SelectAddressForm";
-import ChangeRoleField from "@/components/editProfile/ChangeRoleField";
+const FirstAndLastNameForm = lazy(() => import("@/components/editProfile/FirstAndLastNameForm"));
+const DobForm = lazy(() => import("@/components/editProfile/DobForm"));
+const MobileNumberForm = lazy(() => import("@/components/editProfile/MobileNumberForm"));
+const SelectAddressForm = lazy(() => import("@/components/editProfile/SelectAddressForm"));
+const ChangeRoleField = lazy(() => import("@/components/editProfile/ChangeRoleField"));
 
 const modalVariants = {
   hidden: { opacity: 0.3, scale: 0.8 },
@@ -60,30 +61,31 @@ const EditProfile = () => {
             </div>
             <div className="w-full rounded-xl flex gap-4 justify-center items-center relative py-1 border-b-[1px] font-ubuntu font-extralight text-center text-medium">
               {` "`}{userData.bio}{`" `}
-              {/* <span className="font-semibold font-ubuntu">Bio</span> */}
             </div>
             <div className="w-full flex flex-col gap-2 justify-start relative">
-              <StatusField
-                inputValue={userData.email}
-                isInputVerified={userData.emailVerificationStatus}
-                type="email"
-              />
-              <StatusField
-                inputValue={userData.phoneNumber.number}
-                isInputVerified={userData.phoneNumberVerificationStatus}
-                countryCode={userData.phoneNumber.code}
-                type="mobile"
-              />
-              <StatusField
-                inputValue={userData.userDob}
-                isInputVerified={userData.userDob !== "" ? true : false}
-                type="dob"
-              />
-              <StatusField
-                inputValue={userData.address}
-                isInputVerified={userData.address !== "" ? true : false}
-                type="address"
-              />
+              <Suspense fallback={<div>Loading status fields...</div>}>
+                <StatusField
+                  inputValue={userData.email}
+                  isInputVerified={userData.emailVerificationStatus}
+                  type="email"
+                />
+                <StatusField
+                  inputValue={userData.phoneNumber.number}
+                  isInputVerified={userData.phoneNumberVerificationStatus}
+                  countryCode={userData.phoneNumber.code}
+                  type="mobile"
+                />
+                <StatusField
+                  inputValue={userData.userDob}
+                  isInputVerified={userData.userDob !== "" ? true : false}
+                  type="dob"
+                />
+                <StatusField
+                  inputValue={userData.address}
+                  isInputVerified={userData.address !== "" ? true : false}
+                  type="address"
+                />
+              </Suspense>
             </div>
           </div>
         </div>
@@ -92,16 +94,22 @@ const EditProfile = () => {
           <div className="w-full flex flex-col justify-between items-start px-2 py-4 gap-3">
             <div className="relative w-full flex sm:flex-row flex-col items-start justify-between gap-5">
               <div className="flex flex-col w-full relative gap-2">
-              <FirstAndLastNameForm  firstName={userData.firstName} lastName={userData.lastName} />
-                <MobileNumberForm CountryCodeData={CountryCodeData} theme={theme} code={userData.phoneNumber.code} number={userData.phoneNumber.number} />
-                <DobForm/>
+                <Suspense fallback={<div>Loading profile forms...</div>}>
+                  <FirstAndLastNameForm firstName={userData.firstName} lastName={userData.lastName} />
+                  <MobileNumberForm CountryCodeData={CountryCodeData} theme={theme} code={userData.phoneNumber.code} number={userData.phoneNumber.number} />
+                  <DobForm />
+                </Suspense>
               </div>
-             <BioForm  />
+              <Suspense fallback={<div>Loading bio editor...</div>}>
+                <BioForm />
+              </Suspense>
             </div>
           </div>
         <Seperator text={"Update your address"}/>
           <div className="w-full flex flex-col justify-between items-start px-2 py-4 gap-3">
-            <SelectAddressForm />
+            <Suspense fallback={<div>Loading address form...</div>}>
+              <SelectAddressForm />
+            </Suspense>
           </div>
         {/* <Seperator text={"Apply Changes"} />
         <div className="w-full flex justify-center">
@@ -110,8 +118,10 @@ const EditProfile = () => {
         </Button>
         </div> */}
         <Seperator text={"Critical Section"} />
-        {userData.role === "STUDENT" && <ChangeRoleField />}
-        <DeleteAccountAndChangePassword />
+        <Suspense fallback={<div>Loading critical account actions...</div>}>
+          {userData.role === "STUDENT" && <ChangeRoleField />}
+          <DeleteAccountAndChangePassword />
+        </Suspense>
       </motion.div>
     </section>
   );

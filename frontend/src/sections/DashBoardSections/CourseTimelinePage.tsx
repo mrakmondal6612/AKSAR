@@ -1,4 +1,3 @@
-import React from 'react';
 import CourseTimeline from '@/components/CourseTimeline';
 
 const CourseTimelinePage = () => {

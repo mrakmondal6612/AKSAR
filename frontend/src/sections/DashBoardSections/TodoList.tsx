@@ -57,7 +57,7 @@ const TodoList = () => {
 
     if (isLoggedIn) {
       try {
-        const resp = await todoService.createTodo(trimmed);
+        const resp = await todoService.createTodo({ text: trimmed });
         if (resp?.success && resp.data) {
           const t = { id: resp.data._id, text: resp.data.text, completed: resp.data.completed };
           setTodos((prev) => [t, ...prev]);

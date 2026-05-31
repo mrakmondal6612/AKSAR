@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendNotificationEmail = exports.sendGithubAuthPasswordMail = exports.sendGoogleAuthPasswordMail = exports.emailVerificationAlert = exports.sendResetPasswordVerification = exports.sendEmailVerification = void 0;
 const User_model_1 = __importDefault(require("../models/User.model"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const mail_config_1 = require("../utils/mail.config");
 dotenv_1.default.config();
 const sendEmailVerification = async (email, userId) => {
     try {

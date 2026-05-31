@@ -1,13 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button, Select, SelectItem } from "@nextui-org/react";
-import { countryStateCitiesData } from "@/constants/CountryStateCitiesData.ts"; // Adjust the import path as needed
 import { ErrorToast, SuccessToast } from "@/lib/toasts";
 import axios from "axios";
 import { getVerifiedToken } from "@/lib/cookieService";
 import { USER_API } from "@/lib/env";
-import { getUserData as fetchUserData} from "@/lib/authService";
+import { getUserData as fetchUserData } from "@/lib/authService";
 import { useAuthContext } from "@/context/authContext";
-import { useCallback } from "react";
 
 interface FormData {
   country: string;
@@ -25,14 +23,47 @@ const SelectAddressForm: React.FC = () => {
     state: "",
     city: "",
   });
+  const [countryStateCitiesData, setCountryStateCitiesData] = useState<{
+    countryName: string;
+    states: { stateName: string; cities: { cityName: string }[] }[];
+  }[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
-  const {setUserData} = useAuthContext();
+  const { setUserData } = useAuthContext();
   const loadUserData = useCallback(async () => {
-    const userData = await fetchUserData(); 
+    const userData = await fetchUserData();
     if (userData) {
       setUserData(userData);
     }
   }, [setUserData]);
+
+  useEffect(() => {
+    let canceled = false;
+
+    const loadLocationData = async () => {
+      try {
+        const response = await fetch("/country-state-cities.json");
+        if (!response.ok) {
+          throw new Error("Failed to load location data");
+        }
+        const data = await response.json();
+        if (!canceled) {
+          setCountryStateCitiesData(data);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (!canceled) {
+          setIsLoadingData(false);
+        }
+      }
+    };
+
+    loadLocationData();
+    return () => {
+      canceled = true;
+    };
+  }, []);
 
   const onSubmit = async () => {
     if (
@@ -75,7 +106,7 @@ const SelectAddressForm: React.FC = () => {
     setCities([]);
     setFormData({
       ...formData,
-      country: countryData.countryName,
+      country: countryData?.countryName || "",
       state: "",
       city: "",
     });
@@ -100,29 +131,30 @@ const SelectAddressForm: React.FC = () => {
 
   return (
     <div className="w-full flex sm:flex-row flex-col justify-between items-start px-2 py-4 gap-3 relative">
-      {/* Country Selection */}
-      <div className="w-full flex flex-col justify-start items-end gap-1">
-        <Select
-          label="Select Country"
-          variant="bordered"
-          onChange={(e) => handleCountryChange(e.target.value)}
-          className="max-w-sm focus-visible:border-none focus-visible:outline-none"
-        >
-          {countryStateCitiesData.map((country, index) => (
-            <SelectItem key={index} value={index.toString()}>
-              {country.countryName}
-            </SelectItem>
-          ))}
-        </Select>
-      </div>
-
+        {/* Country Selection */}
+        <div className="w-full flex flex-col justify-start items-end gap-1">
+          <Select
+            label={isLoadingData ? "Loading countries..." : "Select Country"}
+            variant="bordered"
+            onChange={(e) => handleCountryChange(e.target.value)}
+            className="max-w-sm focus-visible:border-none focus-visible:outline-none"
+            disabled={isLoadingData}
+          >
+            {countryStateCitiesData.map((country, index) => (
+              <SelectItem key={index} value={index.toString()}>
+                {country.countryName}
+              </SelectItem>
+            ))}
+          </Select>
+        </div>
       {/* State Selection */}
       <div className="w-full flex flex-col justify-start items-end gap-1">
         <Select
-          label="Select State"
+          label={isLoadingData ? "Loading states..." : "Select State"}
           variant="bordered"
           onChange={(e) => handleStateChange(e.target.value)}
           className="max-w-sm focus-visible:border-none focus-visible:outline-none"
+          disabled={isLoadingData || !states.length}
         >
           {states.map((state, index) => (
             <SelectItem key={index} value={index.toString()}>
@@ -135,10 +167,11 @@ const SelectAddressForm: React.FC = () => {
       {/* City Selection */}
       <div className="w-full flex flex-col justify-start items-end gap-1">
         <Select
-          label="Select City"
+          label={isLoadingData ? "Loading cities..." : "Select City"}
           variant="bordered"
           onChange={(e) => handleCityChange(e.target.value)}
           className="max-w-sm focus-visible:border-none focus-visible:outline-none"
+          disabled={isLoadingData || !cities.length}
         >
           {cities.map((city, index) => (
             <SelectItem key={index} value={index.toString()}>
@@ -152,8 +185,9 @@ const SelectAddressForm: React.FC = () => {
         type="button"
         onClick={onSubmit}
         className="max-sm:w-full font-medium font-ubuntu"
+        disabled={isLoadingData}
       >
-        Update
+        {isLoadingData ? "Loading…" : "Update"}
       </Button>
     </div>
   );

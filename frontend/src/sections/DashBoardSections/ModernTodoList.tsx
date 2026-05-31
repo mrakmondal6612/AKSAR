@@ -1,4 +1,4 @@
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuthContext } from '@/context/authContext';
 import * as todoService from '@/lib/todoService';
@@ -35,12 +35,6 @@ interface TodoStats {
 
 const STORAGE_KEY = 'aksar_todo_list';
 const CATEGORIES = ['Work', 'Personal', 'Learning', 'Health', 'Shopping', 'Other'];
-const PRIORITY_COLORS = {
-  high: 'bg-red-500/20 border-red-500/50 text-red-600 dark:text-red-400',
-  medium: 'bg-yellow-500/20 border-yellow-500/50 text-yellow-600 dark:text-yellow-400',
-  low: 'bg-green-500/20 border-green-500/50 text-green-600 dark:text-green-400',
-};
-
 const ModernTodoList = () => {
   const { isLoggedIn } = useAuthContext();
   const [todos, setTodos] = useState<TodoItem[]>([]);
@@ -53,9 +47,7 @@ const ModernTodoList = () => {
   const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
   const [selectedCourse, setSelectedCourse] = useState('');
   const [expandedTodo, setExpandedTodo] = useState<string | null>(null);
-  const [editingSubtask, setEditingSubtask] = useState<{ todoId: string; subtaskId: string } | null>(null);
   const [subtaskText, setSubtaskText] = useState('');
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadTodos();
@@ -84,7 +76,6 @@ const ModernTodoList = () => {
   };
 
   const loadTodos = async () => {
-    setLoading(true);
     if (isLoggedIn) {
       try {
         const resp = await todoService.fetchTodos();
@@ -106,8 +97,6 @@ const ModernTodoList = () => {
     } catch (e) {
       // stats error ignored
     }
-
-    setLoading(false);
   };
 
   const loadLocalTodos = () => {
@@ -606,8 +595,10 @@ const ModernTodoList = () => {
   );
 };
 
-const StatCard = ({ label, value, color }: { label: string; value: any; color: string }) => {
-  const colors = {
+type StatColor = 'blue' | 'green' | 'orange' | 'purple' | 'red';
+
+const StatCard = ({ label, value, color }: { label: string; value: any; color: StatColor }) => {
+  const colors: Record<StatColor, string> = {
     blue: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
     green: 'bg-green-500/20 text-green-600 dark:text-green-400',
     orange: 'bg-orange-500/20 text-orange-600 dark:text-orange-400',

@@ -1,5 +1,5 @@
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useAuthContext } from '@/context/authContext';
 import * as todoService from '@/lib/todoService';
 import * as notificationService from '@/lib/notificationService';
@@ -55,18 +55,13 @@ interface Action {
   type: string;
   todoId?: string;
   previousState?: TodoItem[];
-  timestamp: number;
+  timestamp?: number;
 }
 
 // ============ CONSTANTS ============
 
 const STORAGE_KEY = 'aksar_todo_list';
 const CATEGORIES = ['Work', 'Personal', 'Learning', 'Health', 'Shopping', 'Other'];
-const PRIORITY_COLORS = {
-  high: 'bg-red-500/20 border-red-500/50 text-red-600 dark:text-red-400',
-  medium: 'bg-yellow-500/20 border-yellow-500/50 text-yellow-600 dark:text-yellow-400',
-  low: 'bg-green-500/20 border-green-500/50 text-green-600 dark:text-green-400',
-};
 
 // ============ PRODUCTION TODO LIST COMPONENT ============
 
@@ -80,9 +75,6 @@ const ProductionTodoList = () => {
   const [dueDate, setDueDate] = useState('');
   const [courses, setCourses] = useState<{ id: string; title: string }[]>([]);
   const [selectedCourse, setSelectedCourse] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [expandedTodo, setExpandedTodo] = useState<string | null>(null);
-  const [subtaskText, setSubtaskText] = useState('');
 
   // Production features
   const [selectedTodos, setSelectedTodos] = useState<Set<string>>(new Set());
@@ -91,7 +83,6 @@ const ProductionTodoList = () => {
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [stats, setStats] = useState<any>(null);
-  const [insights, setInsights] = useState<any[]>([]);
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'name' | 'timeSpent'>('dueDate');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [activeTimeSession, setActiveTimeSession] = useState<{ todoId: string; startTime: Date } | null>(null);
@@ -103,7 +94,6 @@ const ProductionTodoList = () => {
     loadTodos();
     if (isLoggedIn) {
       loadCourses();
-      loadInsights();
     }
     loadStats();
     setupKeyboardShortcuts();
@@ -114,7 +104,6 @@ const ProductionTodoList = () => {
   }, [isLoggedIn]);
 
   const loadTodos = async () => {
-    setLoading(true);
     if (isLoggedIn) {
       try {
         const resp = await todoService.fetchTodos();
@@ -129,7 +118,6 @@ const ProductionTodoList = () => {
     } else {
       loadLocalTodos();
     }
-    setLoading(false);
   };
 
   const loadLocalTodos = () => {
@@ -167,18 +155,6 @@ const ProductionTodoList = () => {
       const resp = await todoService.fetchTodoStats();
       if (resp?.success) {
         setStats(resp.data);
-      }
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const loadInsights = async () => {
-    if (!isLoggedIn) return;
-    try {
-      const resp = await todoService.fetchProductivityInsights(30);
-      if (resp?.success) {
-        setInsights(resp.data);
       }
     } catch {
       /* ignore */
@@ -1003,7 +979,6 @@ const downloadCSV = (csv: string, filename: string) => {
 
 const parseCSVtoTodos = (csv: string): TodoItem[] => {
   const lines = csv.split('\n');
-  const headers = lines[0].split(',');
   const todos: TodoItem[] = [];
 
   for (let i = 1; i < lines.length; i++) {
