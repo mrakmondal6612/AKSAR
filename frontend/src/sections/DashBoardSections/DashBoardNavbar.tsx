@@ -29,11 +29,11 @@ const DashBoardNavbar: React.FC = () => {
   return (
       <aside
       className={`bg-gray-100 dark:bg-gray-950 dark:text-white text-black 
-        transition-all duration-300 fixed top-0 left-0 z-10 h-screen overflow-hidden
+        transition-all duration-300 fixed top-0 left-0 z-10 h-screen overflow-y-auto
         ${isSideBarOpen ? "sm:w-64 w-full" : "w-16"}`}
       >
         <div
-          className={`flex flex-col h-full ${
+          className={`flex flex-col min-h-full ${
             isSideBarOpen
               ? "py-2 px-5 justify-between"
               : "py-4 justify-between items-center"
