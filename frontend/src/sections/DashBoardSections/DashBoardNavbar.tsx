@@ -42,7 +42,7 @@ const DashBoardNavbar: React.FC = () => {
           <div className="flex flex-col w-full space-y-2 relative">
             <div className="flex justify-between items-center py-2 w-full">
               {isSideBarOpen && (
-                <Logo theme={theme} className="object-cover w-32" />
+                <Logo theme={theme} className="object-contain w-34" />
               )}
               <motion.button
                 whileTap={{ scale: 0.8 }}
