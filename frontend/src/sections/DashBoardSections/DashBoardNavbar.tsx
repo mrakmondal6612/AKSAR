@@ -6,6 +6,7 @@ import {
   DashBoardNavItems,
   DashBoardNavItems2,
   DashBoardNavItems3,
+  DashBoardAdminNavItems,
 } from "@/constants";
 import { useAuthContext } from "@/context/authContext";
 import { useTheme } from "@/context/ThemeProvider";
@@ -30,7 +31,7 @@ const DashBoardNavbar: React.FC = () => {
       <aside
       className={`bg-gray-100 dark:bg-gray-950 dark:text-white text-black 
         transition-all duration-300 fixed top-0 left-0 z-10 h-screen overflow-y-auto
-        ${isSideBarOpen ? "sm:w-64 w-full" : "w-16"}`}
+        ${isSideBarOpen ? "sm:w-72 w-full" : "w-16"}`}
       >
         <div
           className={`flex flex-col min-h-full ${
@@ -85,53 +86,65 @@ const DashBoardNavbar: React.FC = () => {
               ))}
             </nav>
           </div>
-          
 
           {(userData.role === "ADMIN" || userData.role === "MASTER") ? (
-            <div className={`my-0 py-2 flex flex-col items-start`}>
-              {isSideBarOpen && (
-                <Seperator text="Admin section" className="my-2 w-full" />
-              )}
-
-              <div
-                className={`flex items-start gap-2 cursor-pointer group ${
-                  isSideBarOpen ? "px-0" : "px-5"
-                }`}
-                onClick={() => {
-                  if (!isSideBarOpen) setIsSideBarOpen(true);
-                  setIsAccordionOpen((prev) => !prev);
-                }}
-              >
-                <BookAIcon />
-
-                {isSideBarOpen && (
-                  <span className="text-base font-medium font-ubuntu text-center dark:text-white text-black group-hover:text-black/80 group-hover:dark:text-white/80">
-                    Your Content
-                  </span>
-                )}
-              </div>
-
-              {isAccordionOpen && (
-                <div className="mt-2 w-full">
-                  <nav
-                    className={`py-0 my-0 ${isSideBarOpen ? "px-0" : "px-1"}`}
+              <div className="flex flex-col gap-2">
+                <div className={`my-0 py-2 flex flex-col items-start`}>
+                  {isSideBarOpen && (
+                      <Seperator text="Admin section" className="my-2 w-full" />
+                  )}
+                  <div
+                      className={`flex items-start gap-2 cursor-pointer group ${isSideBarOpen ? "px-0" : "px-5"}`}
+                      onClick={() => {
+                        if (!isSideBarOpen) setIsSideBarOpen(true);
+                        setIsAccordionOpen((prev) => !prev);
+                      }}
                   >
-                    {DashBoardNavItems3.map((item, index) => (
-                      <DashboardNavItem
-                        key={index}
-                        index={index}
-                        theme={theme}
-                        Icon={item.Icon}
-                        title={item.title}
-                        link={item.link}
-                        isActive={item.link.split("/")[2] === locName}
-                        isSideBarOpen={isSideBarOpen}
-                      />
+                    <BookAIcon />
+                    {isSideBarOpen && (
+                        <span className="text-base font-medium font-ubuntu text-center dark:text-white text-black group-hover:text-black/80 group-hover:dark:text-white/80">
+                      Your Content
+                    </span>
+                    )}
+                  </div>
+                  {isAccordionOpen && (
+                      <div className="mt-2 w-full">
+                        <nav className={`py-0 my-0 ${isSideBarOpen ? "px-0" : "px-1"}`}>
+                          {DashBoardNavItems3.map((item, index) => (
+                              <DashboardNavItem
+                                  key={index}
+                                  index={index}
+                                  theme={theme}
+                                  Icon={item.Icon}
+                                  title={item.title}
+                                  link={item.link}
+                                  isActive={item.link.split("/")[2] === locName}
+                                  isSideBarOpen={isSideBarOpen}
+                              />
+                          ))}
+                        </nav>
+                      </div>
+                  )}
+                </div>
+
+                {/* New Admin Panel section */}
+                <div className="w-full">
+                  <nav className={`space-y-0 w-full ${isSideBarOpen ? "px-0" : "px-1"}`}>
+                    {DashBoardAdminNavItems.map((item, index) => (
+                        <DashboardNavItem
+                            key={index}
+                            index={index}
+                            theme={theme}
+                            Icon={item.Icon}
+                            title={item.title}
+                            link={item.link}
+                            isActive={item.link.split("/")[3] === location.pathname.split("/")[3]}
+                            isSideBarOpen={isSideBarOpen}
+                        />
                     ))}
                   </nav>
                 </div>
-              )}
-            </div>
+              </div>
           ) : <></>}
 
           <div className="flex justify-around items-start flex-col w-full relative space-y-1">

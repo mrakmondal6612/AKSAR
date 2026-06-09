@@ -12,6 +12,13 @@ import RefreshIcon from "@/Icons/RefreshIcon";
 import SubscriptionIcon from "@/Icons/SubscriptionIcon";
 import TodoIcon from "@/Icons/TodoIcon";
 
+import CourseIcon from "@/Icons/CourseIcon";
+import InterviewIcon from "@/Icons/InterviewIcon";
+import CertificateIcon from "@/Icons/CertificateIcon";
+import CommunityIcon from "@/Icons/CommunityIcon";
+import TeacherIcon from "@/Icons/TeacherIcon";
+import StudentsIcon from "@/Icons/StudentsIcon.tsx";
+
 
 export const NavItemsArray = [
     {
@@ -560,6 +567,16 @@ export const DashBoardNavItems: DashboardNavItemProps[] = [
       title: "Add Tests",
       link: "/user/add-tests",
   },
+]
+
+export const DashBoardAdminNavItems: DashboardNavItemProps[] = [
+    { theme: "dark", Icon: CourseIcon, title: "Courses Management", link: "/user/admin/courses-management" },
+    { theme: "dark", Icon: StudentsIcon, title: "Student Management", link: "/user/admin/student-management" },
+    { theme: "dark", Icon: ExamTestIcon, title: "Tests", link: "/user/admin/tests" },
+    { theme: "dark", Icon: InterviewIcon, title: "Interview", link: "/user/admin/interview" },
+    { theme: "dark", Icon: CertificateIcon, title: "Certificate", link: "/user/admin/certificate" },
+    { theme: "dark", Icon: CommunityIcon, title: "Community Manage", link: "/user/admin/community" },
+    { theme: "dark", Icon: TeacherIcon, title: "Teacher Management", link: "/user/admin/teacher-management" },
 ]
 
   export const defaultUserData: UserDataProps = {
