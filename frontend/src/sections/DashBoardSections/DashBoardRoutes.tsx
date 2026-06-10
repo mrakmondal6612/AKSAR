@@ -48,6 +48,13 @@ const DashboardRoutes: React.FC = () => {
         { path: "/add-tests", element: <AddTests /> },
         { path: "/add-videos", element: <AddVideos /> },
         { path: "/edit-video", element: <VideoEditPage /> },
+        { path: "/admin/courses-management", element: <UnderMaintenancePage pageName="Courses Management" /> },
+        { path: "/admin/student-management", element: <UnderMaintenancePage pageName="Student Management" /> },
+        { path: "/admin/tests", element: <UnderMaintenancePage pageName="Tests" /> },
+        { path: "/admin/interview", element: <UnderMaintenancePage pageName="Interview" /> },
+        { path: "/admin/certificate", element: <UnderMaintenancePage pageName="Certificate" /> },
+        { path: "/admin/community", element: <UnderMaintenancePage pageName="Community Manage" /> },
+        { path: "/admin/teacher-management", element: <UnderMaintenancePage pageName="Teacher Management" /> },
       ];
     } else {
       return [
