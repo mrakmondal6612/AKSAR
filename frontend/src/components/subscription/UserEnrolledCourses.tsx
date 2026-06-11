@@ -122,9 +122,10 @@ const UserEnrolledCourses: React.FC = () => {
             course && course.courseId  && 
             <motion.div
                key={i}
-               className="w-full sm:space-y-2 space-y-1 relative bg-white text-start dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl"
+               className="w-full sm:space-y-2 space-y-1 relative bg-white text-start dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl cursor-pointer"
                custom={i}
                variants={cardVariants}
+               onClick={() => navigate(`/user/view-course?c=${course.courseId}`)}
              >
                <div className="w-full relative bg-transparent">
                  <Image

@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import MDEditor from "@uiw/react-md-editor";
-import { Button } from "@nextui-org/react";
+import { Button, Switch } from "@nextui-org/react";
 import { courseDataTemplate, ICourseData, IUpdateCourse } from "@/constants";
 import rehypeSanitize from "rehype-sanitize";
 import EditPersonalCourseForm from "./EditPersonalCourseForm";
@@ -26,6 +26,8 @@ const CourseIntroPage: React.FC = () => {
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isSavingBookmark, setIsSavingBookmark] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [isUnenrolling, setIsUnenrolling] = useState(false);
   const { userData, setUserData } = useAuthContext();
 
   const fetchCourseData = useCallback(async () => {
@@ -52,6 +54,15 @@ const CourseIntroPage: React.FC = () => {
   useEffect(() => {
     fetchCourseData();
   }, [fetchCourseData]);
+
+  // Check if user is already enrolled
+  useEffect(() => {
+    if (userData?.enrolledIn?.includes(courseId)) {
+      setIsEnrolled(true);
+    } else {
+      setIsEnrolled(false);
+    }
+  }, [userData?.enrolledIn, courseId]);
 
   const handleSave = async () => {
     const jwt = getVerifiedToken();
@@ -155,7 +166,7 @@ const CourseIntroPage: React.FC = () => {
     }
 
     // Check if already enrolled
-    if (userData?.enrolledIn?.includes(courseId)) {
+    if (userData?.enrolledIn?.includes(courseId) || isEnrolled) {
       ErrorToast("You are already enrolled in this course");
       return;
     }
@@ -175,6 +186,7 @@ const CourseIntroPage: React.FC = () => {
       );
 
       if (response.data.success) {
+        setIsEnrolled(true);
         SuccessToast(response.data.message);
         // Refresh user data after enrollment
         setTimeout(async () => {
@@ -191,6 +203,50 @@ const CourseIntroPage: React.FC = () => {
       ErrorToast(error.response?.data?.message || "Failed to enroll in course");
     } finally {
       setIsEnrolling(false);
+    }
+  };
+
+  const handleUnenrollToggle = async () => {
+    const jwt = getVerifiedToken();
+    if (!jwt) {
+      ErrorToast("Login required");
+      return;
+    }
+
+    if (!isEnrolled) {
+      return;
+    }
+
+    setIsUnenrolling(true);
+    try {
+      const response = await axios.post(
+        `${USER_API}/unenrolled-in-course`,
+        { courseId },
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setIsEnrolled(false);
+        SuccessToast(response.data.message);
+        // Refresh user data after unenrollment
+        setTimeout(async () => {
+          const updatedUserData = await getUserData();
+          if (updatedUserData) {
+            setUserData(updatedUserData);
+          }
+        }, 500);
+      } else {
+        ErrorToast(response.data.message);
+      }
+    } catch (error: any) {
+      console.error("Unenrollment error:", error);
+      ErrorToast(error.response?.data?.message || "Failed to unenroll from course");
+    } finally {
+      setIsUnenrolling(false);
     }
   };
 
@@ -420,13 +476,33 @@ const CourseIntroPage: React.FC = () => {
 
                   {/* Action Buttons */}
                   <div className="space-y-3 pt-4">
-                    <Button
-                      onClick={handleEnrollCourse}
-                      disabled={isEnrolling}
-                      className="w-full font-bold text-lg py-6 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-lg transition-all shadow-lg hover:shadow-blue-500/50 disabled:opacity-50"
-                    >
-                      {isEnrolling ? "⏳ Enrolling..." : "✨ Enroll Now"}
-                    </Button>
+                    {isEnrolled ? (
+                      <div className="w-full p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg border-2 border-green-300 dark:border-green-600 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 flex-1">
+                          <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+                          <span className="font-ubuntu font-semibold text-green-700 dark:text-green-300 text-lg">✅ Enrolled Successfully</span>
+                        </div>
+                        <Switch
+                          isSelected={true}
+                          disabled={isUnenrolling}
+                          isDisabled={isUnenrolling}
+                          color="success"
+                          onChange={handleUnenrollToggle}
+                          classNames={{
+                            base: "flex-shrink-0 cursor-pointer",
+                            wrapper: "group-data-[selected=true]:bg-green-500",
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={handleEnrollCourse}
+                        disabled={isEnrolling}
+                        className="w-full font-bold text-lg py-6 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-lg transition-all shadow-lg hover:shadow-blue-500/50 disabled:opacity-50"
+                      >
+                        {isEnrolling ? "⏳ Enrolling..." : "✨ Enroll Now"}
+                      </Button>
+                    )}
                     <Button
                       onClick={handleSaveForLater}
                       disabled={isSavingBookmark}

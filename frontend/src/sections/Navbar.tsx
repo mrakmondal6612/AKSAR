@@ -34,8 +34,8 @@ const Navbar: React.FC<NavbarProps> = ({ isUserLoggedIn }) => {
     <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-lg max-w-7xl mx-auto">
       <div className="max-w-full sm:py-2 ">
         <div className="flex xl:flex-row flex-col justify-between xl:pt-4 xl:pb-1 py-4  items-center font-noto-sans xl:gap-20 md:gap-5 gap-3">
-        <div className="flex justify-start py-2 items-center font-noto-sans">
-          <Logo theme={theme} className="w-40" />
+        <div className="flex justify-start py-2 items-center font-noto-sans relative w-full sm:w-auto pr-16 sm:pr-0">
+          <Logo theme={theme} className="w-52 flex-shrink-0" />
           <button
             onClick={toggleMenu}
             className={`${styles["menu-btn"]} sm:hidden flex ${theme === 'dark' ? 'dark' : 'light'}`} // Apply theme classes

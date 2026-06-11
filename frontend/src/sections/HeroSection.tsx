@@ -1,6 +1,7 @@
 import React from "react";
 import HeroLeftSection from "@/components/homepage/HeroLeftSection";
 import HeroRightSection from "@/components/homepage/HeroRightSection";
+import CommunityStatistics from "@/components/homepage/CommunityStatistics";
 import SignupModal from "@/components/modals/SignupModal";
 import LoginModal from "@/components/modals/LoginModal";
 import ResetPasswordModal from "@/components/modals/ResetPasswordModal";
@@ -33,10 +34,13 @@ const HeroSection: React.FC<heroSectionProps> = ({route , propEmail}) => {
   };
 
   return (
-    <section className="max-w-7xl mx-auto flex-row flex sm:pt-40 pt-28 xl:pt-24 lg:pt-36 gap-5 relative">
-      {getModalComponent()}
-      <HeroRightSection />
-    </section>
+    <>
+      <section className="max-w-7xl mx-auto flex-row flex sm:pt-40 pt-28 xl:pt-24 lg:pt-36 gap-5 relative">
+        {getModalComponent()}
+        <HeroRightSection />
+      </section>
+      {route === "homepage" && <CommunityStatistics />}
+    </>
   );
 };
 

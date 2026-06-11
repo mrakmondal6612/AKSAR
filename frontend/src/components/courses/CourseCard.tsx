@@ -75,10 +75,11 @@ const CourseCard: React.FC = () => {
             return (
               <motion.div
                 key={course.courseId}
-                className="group relative h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+                className="group relative h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
                 custom={i}
                 variants={cardVariants}
                 whileHover={{ y: -8 }}
+                onClick={() => navigate(`/course-intro-page?c=${course.courseId}`)}
               >
                 {/* Background Gradient Overlay */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${gradFrom} ${gradTo} opacity-0 group-hover:opacity-10 transition-all duration-300 z-0`} />

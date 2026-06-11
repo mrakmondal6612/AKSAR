@@ -19,7 +19,7 @@ const Logo: React.FC<LogoProps> = ({theme , className}) => {
             src="/images/course-yuga-logo-dark-mode-5.png"
             alt="cryptoBag"
             // className={cn(`object-cover w-32 ` , className)}
-            className={cn(`object-contain w-38 h-14` , className)}
+            className={cn(`object-contain w-52 h-14` , className)}
           />
         ) : (
           <motion.img
@@ -29,7 +29,7 @@ const Logo: React.FC<LogoProps> = ({theme , className}) => {
             src="/images/course-yuga-logo-light-mode-5.png"
             alt="cryptoBag"
             // className={cn(`object-cover w-32 ` , className)}
-             className={cn(`object-contain w-34 h-14`, className)}
+             className={cn(`object-contain w-52 h-14`, className)}
           />
         )}
       </Link>

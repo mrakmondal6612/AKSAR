@@ -81,9 +81,10 @@ const UserCourseCard: React.FC<CoursesInterface> = ({ courses }) => {
       {courses.map((course, i) => (
         <motion.div
         key={course.courseId}
-        className="w-full space-y-2 relative bg-white text-start dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl"
+        className="w-full space-y-2 relative bg-white text-start dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl cursor-pointer"
           custom={i}
           variants={cardVariants}
+          onClick={() => navigate(course.courseType === "REDIRECT" ? `/course-intro-page?c=${course.courseId}` : `/user/view-course?c=${course.courseId}`)}
         >
           <div className="w-full relative bg-transparent">
             
