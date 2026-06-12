@@ -150,6 +150,24 @@ const PremiumCardsSection: React.FC = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* View All Courses Button */}
+      <motion.div
+        className="flex justify-center mt-12 md:mt-16"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+      >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="px-8 md:px-10 py-3 md:py-4 bg-gradient-to-r from-purple-500 via-blue-500 to-purple-600 text-white font-semibold rounded-full shadow-lg hover:shadow-purple-500/50 transition-all duration-300"
+          onClick={() => window.location.href = '/courses'}
+        >
+          View All Courses →
+        </motion.button>
+      </motion.div>
     </motion.div>
   );
 };
