@@ -1,27 +1,26 @@
-import React, { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { useAuthContext } from "@/context/authContext";
 import { DashboardContextProvider } from "@/context/dashboardContext";
-import DashBoard from "@/sections/DashBoardSections/DashBoard";
-import Bookmarks from "@/sections/DashBoardSections/Bookmarks";
-import Courses from "@/sections/DashBoardSections/Courses";
-import RefreshPage from "@/sections/DashBoardSections/RefreshPage";
-import AddCourses from "@/sections/DashBoardSections/AddCourses";
-import AddTests from "@/sections/DashBoardSections/AddTests";
-import AddVideos from "@/sections/DashBoardSections/AddVideos";
-import ModernTodoList from "@/sections/DashBoardSections/ModernTodoList";
-import ProductionTodoList from "@/sections/DashBoardSections/ProductionTodoList";
-import ViewCourse from "@/sections/DashBoardSections/ViewCourse";
-import VideoPlaySection from "./VideoPlaySection";
-import VideoEditPage from "@/components/addVideos/VideoEditPage";
-import UnderMaintenancePage from "@/components/UnderMaintenancePage";
-import PageNotFound from "@/components/PageNotFound";
-import UnauthorizedPage from "@/components/UnauthorizedPage";
+const DashBoard = lazy(() => import("@/sections/DashBoardSections/DashBoard"));
+const Bookmarks = lazy(() => import("@/sections/DashBoardSections/Bookmarks"));
+const Courses = lazy(() => import("@/sections/DashBoardSections/Courses"));
+const RefreshPage = lazy(() => import("@/sections/DashBoardSections/RefreshPage"));
+const AddCourses = lazy(() => import("@/sections/DashBoardSections/AddCourses"));
+const AddTests = lazy(() => import("@/sections/DashBoardSections/AddTests"));
+const AddVideos = lazy(() => import("@/sections/DashBoardSections/AddVideos"));
+const ProductionTodoList = lazy(() => import("@/sections/DashBoardSections/ProductionTodoList"));
+const ViewCourse = lazy(() => import("@/sections/DashBoardSections/ViewCourse"));
+const VideoPlaySection = lazy(() => import("./VideoPlaySection"));
+const VideoEditPage = lazy(() => import("@/components/addVideos/VideoEditPage"));
+const UnderMaintenancePage = lazy(() => import("@/components/UnderMaintenancePage"));
+const PageNotFound = lazy(() => import("@/components/PageNotFound"));
+const UnauthorizedPage = lazy(() => import("@/components/UnauthorizedPage"));
 import DashBoardNavbar from "./DashBoardNavbar";
-import CourseTimelinePage from '@/sections/DashBoardSections/CourseTimelinePage';
-import PageTransitionSwipeAnimation from "@/Effects/PageTransitionSwipeAnimation";
-import Subscription from "./Subscription";
-import History from "./History";
+const CourseTimelinePage = lazy(() => import("@/sections/DashBoardSections/CourseTimelinePage"));
+const PageTransitionSwipeAnimation = lazy(() => import("@/Effects/PageTransitionSwipeAnimation"));
+const Subscription = lazy(() => import("./Subscription"));
+const History = lazy(() => import("./History"));
 
 const DashboardRoutes: React.FC = () => {
   const { userData } = useAuthContext();
@@ -49,6 +48,13 @@ const DashboardRoutes: React.FC = () => {
         { path: "/add-tests", element: <AddTests /> },
         { path: "/add-videos", element: <AddVideos /> },
         { path: "/edit-video", element: <VideoEditPage /> },
+        { path: "/admin/courses-management", element: <UnderMaintenancePage pageName="Courses Management" /> },
+        { path: "/admin/student-management", element: <UnderMaintenancePage pageName="Student Management" /> },
+        { path: "/admin/tests", element: <UnderMaintenancePage pageName="Tests" /> },
+        { path: "/admin/interview", element: <UnderMaintenancePage pageName="Interview" /> },
+        { path: "/admin/certificate", element: <UnderMaintenancePage pageName="Certificate" /> },
+        { path: "/admin/community", element: <UnderMaintenancePage pageName="Community Manage" /> },
+        { path: "/admin/teacher-management", element: <UnderMaintenancePage pageName="Teacher Management" /> },
       ];
     } else {
       return [
@@ -72,18 +78,19 @@ const DashboardRoutes: React.FC = () => {
         {memoizedNavbar}
 
         <main className="flex-1 overflow-auto p-4 bg-white dark:bg-gray-900 scrollbar-custom">
-     
-          <Routes location={location} key={location.pathname}>
-            {routes.map(({ path, element }) => (
-              <Route key={path} path={path} element={
-                <PageTransitionSwipeAnimation>
-                  {element}
-                </PageTransitionSwipeAnimation>
-              } />
-            ))}
+          <Suspense fallback={<div className="p-4 text-center">Loading...</div>}>
+            <Routes location={location} key={location.pathname}>
+              {routes.map(({ path, element }) => (
+                <Route key={path} path={path} element={
+                  <PageTransitionSwipeAnimation>
+                    {element}
+                  </PageTransitionSwipeAnimation>
+                } />
+              ))}
 
-            <Route path="/*" element={<PageNotFound />}/>
-          </Routes>
+              <Route path="/*" element={<PageNotFound />}/>
+            </Routes>
+          </Suspense>
         </main>
       </div>
     </DashboardContextProvider>

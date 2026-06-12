@@ -15,7 +15,7 @@ const notificationJob_service_1 = require("./services/notificationJob.service");
 const recurringTodoJob_service_1 = require("./services/recurringTodoJob.service");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const PORT = process.env.PORT || 8081;
+const PORT = process.env.PORT || 8080;
 //CORS middleware
 app.use((0, cors_1.default)({
     origin: process.env.PUBLIC_FRONTEND_DOMAIN || "http://localhost:5173",

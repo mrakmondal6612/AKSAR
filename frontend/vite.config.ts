@@ -10,4 +10,35 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'), 
     },
   },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+
+          const match = id.match(/node_modules\/(?:@[^/]+\/[^^/]+|[^/]+)/);
+          const pkg = match?.[0].replace('node_modules/', '');
+          if (!pkg) return 'vendor-other';
+
+          const packageName = pkg.startsWith('@') ? pkg.split('/').slice(0, 2).join('/') : pkg.split('/')[0];
+          const coreVendors = new Set(['react', 'react-dom', 'react-router-dom']);
+          const uiVendors = new Set(['@nextui-org/react', '@radix-ui/react-alert-dialog', '@radix-ui/react-avatar', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-hover-card', '@radix-ui/react-label', '@radix-ui/react-popover', '@radix-ui/react-slot', '@radix-ui/react-toast', 'react-toastify']);
+          const motionVendors = new Set(['framer-motion', 'gsap', '@gsap/react', 'leva']);
+          const mediaVendors = new Set(['three', '@react-three/fiber', '@react-three/drei', 'video.js', '@videojs/themes']);
+          const utilVendors = new Set(['axios', 'date-fns', 'libphonenumber-js', 'js-cookie', 'jsonwebtoken', 'jwt-decode', 'clsx', 'tailwind-merge', 'react-hook-form']);
+          const iconVendors = new Set(['lucide-react', 'react-icons', '@heroicons/react']);
+
+          if (coreVendors.has(packageName)) return 'vendor-react';
+          if (uiVendors.has(packageName)) return 'vendor-ui';
+          if (motionVendors.has(packageName)) return 'vendor-motion';
+          if (mediaVendors.has(packageName)) return 'vendor-media';
+          if (utilVendors.has(packageName)) return `vendor-${packageName.replace('@', '').replace(/\//g, '-')}`;
+          if (iconVendors.has(packageName)) return 'vendor-icons';
+
+          return `vendor-${packageName.replace('@', '').replace(/\//g, '-')}`;
+        },
+      },
+    },
+  },
 });

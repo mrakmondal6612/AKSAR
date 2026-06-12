@@ -2,6 +2,8 @@ import React from "react";
 import HeroLeftSection from "@/components/homepage/HeroLeftSection";
 import HeroRightSection from "@/components/homepage/HeroRightSection";
 import CommunityStatistics from "@/components/homepage/CommunityStatistics";
+import PremiumCardsSection from "@/components/homepage/PremiumCardsSection";
+import WhyAksarCarousel from "@/components/homepage/WhyAksarCarousel";
 import SignupModal from "@/components/modals/SignupModal";
 import LoginModal from "@/components/modals/LoginModal";
 import ResetPasswordModal from "@/components/modals/ResetPasswordModal";
@@ -39,7 +41,13 @@ const HeroSection: React.FC<heroSectionProps> = ({route , propEmail}) => {
         {getModalComponent()}
         <HeroRightSection />
       </section>
-      {route === "homepage" && <CommunityStatistics />}
+      {route === "homepage" && (
+        <>
+          <CommunityStatistics />
+          <PremiumCardsSection />
+          <WhyAksarCarousel />
+        </>
+      )}
     </>
   );
 };

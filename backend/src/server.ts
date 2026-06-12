@@ -11,7 +11,7 @@ import { startRecurringTodoScheduler } from "./services/recurringTodoJob.service
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 8081;
+const PORT = process.env.PORT || 8080;
 
 //CORS middleware
 app.use(cors({
@@ -32,11 +32,32 @@ app.use("/api/v1/video", videoRoute);
 async function startServer() {
     try {
         await connectDB();
-        startNotificationScheduler();
-        startRecurringTodoScheduler();
-        app.listen(PORT, () => {
+
+        const server = app.listen(PORT, () => {
             console.log("Server started on port: " + PORT);
+            startNotificationScheduler();
+            startRecurringTodoScheduler();
         });
+
+        server.on("error", (error: NodeJS.ErrnoException) => {
+            if (error.code === "EADDRINUSE") {
+                console.error(
+                    `Port ${PORT} is already in use. Stop the process using it ` +
+                    `or set a different PORT in your environment, then restart.`
+                );
+            } else {
+                console.error("Server error:", error);
+            }
+            process.exit(1);
+        });
+
+        const shutdown = (signal: string) => {
+            console.log(`${signal} received, server is shutting down...`);
+            server.close(() => process.exit(0));
+        };
+
+        process.on("SIGINT", () => shutdown("SIGINT"));
+        process.on("SIGTERM", () => shutdown("SIGTERM"));
     } catch (error) {
         console.error("Failed to connect to the database:", error);
         process.exit(1);
@@ -44,10 +65,5 @@ async function startServer() {
 }
 
 startServer();
-
-process.on("SIGINT", () => {
-    console.log("Server is shutting down...");
-    process.exit();
-});
 
 export default app;

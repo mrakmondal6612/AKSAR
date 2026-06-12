@@ -228,6 +228,8 @@ const Community: React.FC = () => {
       </div>
 
       <Spacer y={4} />
+
+      <Divider className="max-w-6xl w-full my-8" />
     </div>
   );
 };

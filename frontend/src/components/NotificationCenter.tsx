@@ -16,7 +16,6 @@ export const NotificationCenter = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showPanel, setShowPanel] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadNotifications();
