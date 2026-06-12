@@ -6,16 +6,19 @@ import App from './App.tsx'
 import './index.css'
 import { AuthContextProvider } from './context/authContext.tsx'
 import { ThemeProvider } from './context/ThemeProvider.tsx'
+import { CourseContextProvider } from './context/courseContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
   <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
     <AuthContextProvider>
-      <BrowserRouter>
-        <NextUIProvider>
-          <App />
-        </NextUIProvider>
-      </BrowserRouter>
+      <CourseContextProvider>
+        <BrowserRouter>
+          <NextUIProvider>
+            <App />
+          </NextUIProvider>
+        </BrowserRouter>
+      </CourseContextProvider>
     </AuthContextProvider>
   </ThemeProvider>
   </StrictMode>,

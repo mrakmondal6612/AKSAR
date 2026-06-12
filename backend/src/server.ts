@@ -15,7 +15,21 @@ const PORT = process.env.PORT || 8080;
 
 //CORS middleware
 app.use(cors({
-    origin: process.env.PUBLIC_FRONTEND_DOMAIN || "http://localhost:5173",
+    origin: (origin, callback) => {
+        const allowedOrigins = [
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:5175",
+            "http://localhost:5176",
+            process.env.PUBLIC_FRONTEND_DOMAIN || ""
+        ].filter(Boolean);
+        
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     optionsSuccessStatus: 200
 }));
 app.use(express.json());
