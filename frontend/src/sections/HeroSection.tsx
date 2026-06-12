@@ -4,7 +4,7 @@ import HeroRightSection from "@/components/homepage/HeroRightSection";
 import CommunityStatistics from "@/components/homepage/CommunityStatistics";
 import PremiumCardsSection from "@/components/homepage/PremiumCardsSection";
 import WhyAksarCarousel from "@/components/homepage/WhyAksarCarousel";
-import AksarFeaturesSection from "@/components/homepage/AksarFeaturesSection";
+import AksarPresentsSection from "@/components/homepage/AksarPresentsSection";
 import SignupModal from "@/components/modals/SignupModal";
 import LoginModal from "@/components/modals/LoginModal";
 import ResetPasswordModal from "@/components/modals/ResetPasswordModal";
@@ -47,7 +47,7 @@ const HeroSection: React.FC<heroSectionProps> = ({route , propEmail}) => {
           <CommunityStatistics />
           <PremiumCardsSection />
           <WhyAksarCarousel />
-          <AksarFeaturesSection />
+          <AksarPresentsSection />
         </>
       )}
     </>
