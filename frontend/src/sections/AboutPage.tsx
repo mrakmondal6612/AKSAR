@@ -33,7 +33,7 @@ const AboutPage: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.6 }}
         >
-          Course-Yuga is your gateway to mastering new skills and achieving your
+          AKSAR is your gateway to mastering new skills and achieving your
           goals. Whether you’re an aspiring professional or a curious learner, we provide the resources you need to
           unlock your potential and embrace lifelong learning.
         </motion.p>

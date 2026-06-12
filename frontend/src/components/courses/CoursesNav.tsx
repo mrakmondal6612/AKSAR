@@ -15,7 +15,7 @@ import { throttle } from "@/lib/throttling";
 
 const CoursesNavbar: React.FC = () => {
   const { theme } = useTheme();
-  const { setCoursesData } = useCourseContext();
+  const { setCoursesData, fetchCourseData } = useCourseContext();
 
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [selectedOrder, setSelectedOrder] = useState<string>("");
@@ -24,8 +24,8 @@ const CoursesNavbar: React.FC = () => {
   // Centralized function to handle course fetching
   const fetchCourses = async (order = "", category = "") => {
     try {
-      const endpoint = order || category 
-        ? `${COURSE_API}/get-course-filter` 
+      const endpoint = order || category
+        ? `${COURSE_API}/get-course-filter`
         : `${COURSE_API}/get-all-courses`;
 
       const { data } = await axios.get(endpoint, { params: { order, category } });
@@ -43,7 +43,7 @@ const CoursesNavbar: React.FC = () => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const throttledFetchCourses = useCallback(
-    throttle(fetchCourses, 1500), 
+    throttle(fetchCourses, 1500),
     []
   );
 
@@ -53,13 +53,18 @@ const CoursesNavbar: React.FC = () => {
     if (order !== undefined) setSelectedOrder(order);
     if (categoryValue !== undefined) setSelectedCategory(categoryValue);
 
-    throttledFetchCourses(order ?? selectedOrder, categoryValue ?? selectedCategory);
+    // Use context fetchCourseData for category filtering
+    if (categoryValue === "SEMESTER" || categoryValue === "TECH" || categoryValue === "ALL") {
+      fetchCourseData(categoryValue);
+    } else {
+      throttledFetchCourses(order ?? selectedOrder, categoryValue ?? selectedCategory);
+    }
   };
 
 
   const handleFilterToggle = () => {
     setIsFilterOpen((prev) => !prev);
-    if (!isFilterOpen) throttledFetchCourses();
+    if (!isFilterOpen) fetchCourseData();
   };
 
   return (

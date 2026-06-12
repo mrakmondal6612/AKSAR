@@ -7,6 +7,7 @@ import { handleUpdatePersonalCourseFunction, handleUpdateRedirectCourseFunction,
 import { handleGetAllCoursesEnrolledByUser, handleUserEnrolledCourseFunction } from "../controllers/course/enrolledCourses.controllers";
 import { handleDeleteCourseFunction } from "../controllers/course/deleteCourse.controllers";
 import { handleFetchYouTubeCoursesFunction, handleFetchYouTubePlaylistVideosFunction, handleSearchYouTubeCoursesFunction } from "../controllers/course/youtubeSync.controllers";
+import { handleCreateOrderFunction, handleVerifyPaymentFunction } from "../controllers/payment/razorpay.controllers";
 import multer from "multer";
 
 const courseRoute = express.Router();
@@ -23,6 +24,10 @@ courseRoute.get("/get-admin-courses", authenticateAdminToken, handleGetCoursesBy
 
 courseRoute.get("/get-user-enrolled-courses", authenticateToken, handleGetAllCoursesEnrolledByUser);
 courseRoute.post("/enroll-in-course", authenticateToken, handleUserEnrolledCourseFunction);
+
+// Razorpay Payment Routes
+courseRoute.post("/payment/create-order", authenticateToken, handleCreateOrderFunction);
+courseRoute.post("/payment/verify", authenticateToken, handleVerifyPaymentFunction);
 
 courseRoute.post("/add-course/youtube", authenticateAdminToken, upload.single("youtubeCourseImage"), handleAddNewYoutubeCourseFunction);
 courseRoute.post("/add-course/personal", authenticateAdminToken, upload.single("personalCourseImage"), handleAddNewPersonalCourseFunction);

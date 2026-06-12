@@ -25,6 +25,7 @@ const HeroRightSection = () => {
       <motion.img
         src="images/hero-section-right-image.png"
         alt="Girl Studying Image"
+        loading="eager"
         className="w-[90%] max-w-xl rounded-xl shadow-lg object-cover dark:shadow-white-500/60"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

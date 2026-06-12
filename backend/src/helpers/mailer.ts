@@ -115,7 +115,7 @@ export const sendNotificationEmail = async (email: string, subject: string, mess
       <body>
         <div class="container">
           <div class="header">
-            <img src="${process.env.PUBLIC_FRONTEND_DOMAIN}/images/course-yuga-logo-light-mode-5.png" alt="Course-Yuga Logo" class="logo" />
+            <img src="${process.env.PUBLIC_FRONTEND_DOMAIN}/images/course-yuga-logo-light-mode-5.png" alt="AKSAR Logo" class="logo" />
             <h1>${subject}</h1>
           </div>
           <div class="content">
@@ -123,8 +123,8 @@ export const sendNotificationEmail = async (email: string, subject: string, mess
             <p>Log in to your account to view more details and take action.</p>
           </div>
           <div class="footer">
-            <p>© 2024 Course-Yuga. All rights reserved.</p>
-            <p><a href="${process.env.PUBLIC_FRONTEND_DOMAIN}">Go to Course-Yuga</a></p>
+            <p>© 2024 AKSAR. All rights reserved.</p>
+            <p><a href="${process.env.PUBLIC_FRONTEND_DOMAIN}">Go to AKSAR</a></p>
           </div>
         </div>
       </body>
@@ -132,7 +132,7 @@ export const sendNotificationEmail = async (email: string, subject: string, mess
     `;
 
     const mailOptions = {
-      from: `"Course Yuga" <${process.env.PUBLIC_GMAIL}>`,
+      from: `"AKSAR" <${process.env.PUBLIC_GMAIL}>`,
       to: email,
       subject: subject,
       html: htmlContent,

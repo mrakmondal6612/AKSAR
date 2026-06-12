@@ -282,14 +282,22 @@ export async function handleUserCourseProgress(req: AuthenticatedRequest, res: R
     }
    
     let updateCount = user.progress.find((p: any) => p.courseId === courseId);
- 
+
     updateCount.count = await calculateProgress(courseId , userId);
+    
+    // Check if course is completed (100% progress)
+    if (updateCount.count === 100 && !updateCount.completedAt) {
+      updateCount.completedAt = new Date();
+      console.log("🎉 Course completed:", courseId);
+    }
+    
     await user.save();
-   
     
     return res.status(200).json({
       success: true,
       message: courseProgress ? 'Progress updated' : 'Marked as complete',
+      progress: updateCount.count,
+      isCompleted: updateCount.count === 100,
     });
 
   } catch (error) {

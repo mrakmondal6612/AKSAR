@@ -49,6 +49,19 @@ export async function handleUserEnrolledCourseFunction(req: AuthenticatedRequest
 
         if (course) {
             console.log("✅ Database course found:", course.courseName);
+            
+            // Check if course is paid and requires payment
+            if (course.sellingPrice > 0) {
+                console.log("💰 Course is paid - payment required");
+                return res.status(403).json({
+                    success: false,
+                    message: "Payment required for this course. Please complete payment to enroll.",
+                    requiresPayment: true,
+                    amount: course.sellingPrice,
+                    currency: course.currency || "INR"
+                });
+            }
+
             // Database course
             const alreadyEnrolledInCourse = course.enrolledBy.includes(uniqueId);
 
@@ -66,13 +79,19 @@ export async function handleUserEnrolledCourseFunction(req: AuthenticatedRequest
         } else {
             console.log("📌 No database course found - treating as YouTube course (courseId: " + courseId + ")");
         }
+        
         // If courseId starts with 'PL', it's a YouTube course - just add to user's enrolledIn without database course
 
         user.enrolledIn.push(courseId);
         await user.save();
         console.log("✅ User enrollment saved successfully");
 
-        return res.status(200).json({ success: true, message: 'User enrolled in course successfully' });
+        return res.status(200).json({ 
+            success: true, 
+            message: 'User enrolled in course successfully',
+            courseId: courseId,
+            courseName: course?.courseName || 'Course'
+        });
     } catch (error) {
         console.error('Error enrolling user in course:', error);
         return res.status(500).json({ success: false, message: 'Internal server error' });

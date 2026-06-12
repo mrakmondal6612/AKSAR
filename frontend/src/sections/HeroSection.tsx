@@ -1,9 +1,9 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import HeroLeftSection from "@/components/homepage/HeroLeftSection";
 import HeroRightSection from "@/components/homepage/HeroRightSection";
-import CommunityStatistics from "@/components/homepage/CommunityStatistics";
-import PremiumCardsSection from "@/components/homepage/PremiumCardsSection";
-import WhyAksarCarousel from "@/components/homepage/WhyAksarCarousel";
+const CommunityStatistics = lazy(() => import("@/components/homepage/CommunityStatistics"));
+const PremiumCardsSection = lazy(() => import("@/components/homepage/PremiumCardsSection"));
+const WhyAksarCarousel = lazy(() => import("@/components/homepage/WhyAksarCarousel"));
 import SignupModal from "@/components/modals/SignupModal";
 import LoginModal from "@/components/modals/LoginModal";
 import ResetPasswordModal from "@/components/modals/ResetPasswordModal";
@@ -42,11 +42,11 @@ const HeroSection: React.FC<heroSectionProps> = ({route , propEmail}) => {
         <HeroRightSection />
       </section>
       {route === "homepage" && (
-        <>
+        <Suspense fallback={<div className="h-20" />}>
           <CommunityStatistics />
           <PremiumCardsSection />
           <WhyAksarCarousel />
-        </>
+        </Suspense>
       )}
     </>
   );

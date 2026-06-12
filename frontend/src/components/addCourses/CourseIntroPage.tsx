@@ -57,7 +57,7 @@ const CourseIntroPage: React.FC = () => {
 
   // Check if user is already enrolled
   useEffect(() => {
-    if (userData?.enrolledIn?.includes(courseId)) {
+    if (courseId && userData?.enrolledIn?.includes(courseId)) {
       setIsEnrolled(true);
     } else {
       setIsEnrolled(false);
@@ -196,13 +196,112 @@ const CourseIntroPage: React.FC = () => {
           }
         }, 500);
       } else {
-        ErrorToast(response.data.message);
+        // Check if payment is required
+        if (response.data.requiresPayment) {
+          handlePayment(response.data.amount, response.data.currency);
+        } else {
+          ErrorToast(response.data.message);
+        }
       }
     } catch (error: any) {
       console.error("Enrollment error:", error);
-      ErrorToast(error.response?.data?.message || "Failed to enroll in course");
+      // Check if payment is required (403 error)
+      if (error.response?.status === 403 && error.response?.data?.requiresPayment) {
+        handlePayment(error.response.data.amount, error.response.data.currency);
+      } else {
+        ErrorToast(error.response?.data?.message || "Failed to enroll in course");
+      }
     } finally {
       setIsEnrolling(false);
+    }
+  };
+
+  const handlePayment = async (_amount: number, _currency: string) => {
+    try {
+      const jwt = getVerifiedToken();
+      console.log("Creating payment order for course:", courseId);
+      const response = await axios.post(
+        `${COURSE_API}/payment/create-order`,
+        { courseId },
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        const { order, courseName } = response.data;
+        const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+        console.log("Razorpay key:", razorpayKey);
+        
+        if (!razorpayKey) {
+          ErrorToast("Razorpay key not configured. Please check environment variables.");
+          return;
+        }
+
+        const options = {
+          key: razorpayKey,
+          amount: order.amount,
+          currency: order.currency,
+          name: "AKSAR",
+          description: `Payment for ${courseName}`,
+          order_id: order.id,
+          handler: async function (response: any) {
+            console.log("Payment successful, verifying...");
+            const verifyResponse = await axios.post(
+              `${COURSE_API}/payment/verify`,
+              {
+                orderId: order.id,
+                paymentId: response.razorpay_payment_id,
+                signature: response.razorpay_signature,
+                courseId: courseId,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${jwt}`,
+                },
+              }
+            );
+
+            if (verifyResponse.data.success) {
+              setIsEnrolled(true);
+              SuccessToast("Payment successful! You are now enrolled.");
+              // Refresh user data after enrollment
+              setTimeout(async () => {
+                const updatedUserData = await getUserData();
+                if (updatedUserData) {
+                  setUserData(updatedUserData);
+                }
+              }, 500);
+            } else {
+              ErrorToast("Payment verification failed");
+            }
+          },
+          prefill: {
+            name: userData?.fullName || "",
+            email: userData?.email || "",
+          },
+          theme: {
+            color: "#6366f1",
+          },
+          modal: {
+            ondismiss: function() {
+              console.log("Payment modal dismissed");
+            }
+          }
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on('payment.failed', function (response: any) {
+          console.error("Payment failed:", response);
+          ErrorToast("Payment failed. Please try again.");
+        });
+        rzp.open();
+      }
+    } catch (error: any) {
+      console.error("Payment error:", error);
+      ErrorToast(error.response?.data?.message || "Failed to initiate payment");
     }
   };
 

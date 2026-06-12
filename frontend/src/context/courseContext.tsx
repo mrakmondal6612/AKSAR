@@ -11,6 +11,7 @@ interface CourseContextType {
   updatedCourseData: ICourseData[];
   setupdatedCourseData: React.Dispatch<React.SetStateAction<ICourseData[]>>;
   searchYouTubeCourses: (query: string) => Promise<void>;
+  fetchCourseData: (category?: string) => Promise<void>;
 }
 
 export const CourseContext = createContext<CourseContextType | undefined>(undefined);
@@ -28,7 +29,7 @@ export const CourseContextProvider: React.FC<{ children: ReactNode }> = ({ child
   const [coursesData, setCoursesData] = useState<ICourseData[]>([]);
   const [updatedCourseData, setupdatedCourseData] = useState<ICourseData[]>([]);
 
-  const fetchCourseData = React.useCallback(async () => {
+  const fetchCourseData = React.useCallback(async (category = "") => {
     try {
       let allCourses: ICourseData[] = [];
 
@@ -50,6 +51,19 @@ export const CourseContextProvider: React.FC<{ children: ReactNode }> = ({ child
         }
       } catch (error) {
         console.log("YouTube courses not available");
+      }
+
+      // Filter by category if specified
+      if (category && category !== "ALL") {
+        allCourses = allCourses.filter((course: any) => {
+          if (category === "SEMESTER") {
+            return course.category === "SEMESTER" || course.courseType === "SEMESTER";
+          }
+          if (category === "TECH") {
+            return course.category === "TECH" || course.courseType === "TECH";
+          }
+          return course.courseType === category;
+        });
       }
 
       if (allCourses && allCourses.length > 0) {
@@ -101,7 +115,8 @@ export const CourseContextProvider: React.FC<{ children: ReactNode }> = ({ child
         setCoursesData,
         updatedCourseData,
         setupdatedCourseData,
-        searchYouTubeCourses
+        searchYouTubeCourses,
+        fetchCourseData
       }}
     >
       {children}
