@@ -84,8 +84,7 @@ export default {
   		}
   	}
   },
-    plugins: [require("tailwindcss-animate") , require('@tailwindcss/typography')],
-	plugins: [nextui()],
+	plugins: [require("tailwindcss-animate"), require('@tailwindcss/typography'), nextui()],
     // plugins: [require("@tailwindcss/forms")],
 	// plugins: [require('tailwind-scrollbar')],
 
