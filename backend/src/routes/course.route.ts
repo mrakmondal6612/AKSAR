@@ -3,7 +3,7 @@ import { authenticateAdminToken, authenticateToken } from "../middleware/auth.mi
 import { handleAddNewPersonalCourseFunction, handleAddNewRedirectCourseFunction, handleAddNewYoutubeCourseFunction } from "../controllers/course/uploadCourse.controllers";
 // import { upload } from "../middleware/multer.middleware";
 import { handleFetchAllCoursesAsPerParams, handleFetchAllCoursesFunction, handleFetchCourseByIdFunction, handleGetCourseBySearchParams, handleGetCoursesByUserIdFunction } from "../controllers/course/getCourses.controllers";
-import { handleUpdatePersonalCourseFunction, handleUpdateRedirectCourseFunction, handleUpdateYoutubeCourseFunction } from "../controllers/course/updateCourse.controllers";
+import { handleUpdatePersonalCourseFunction, handleUpdateRedirectCourseFunction, handleUpdateYoutubeCourseFunction, handleToggleCourseStatusFunction } from "../controllers/course/updateCourse.controllers";
 import { handleGetAllCoursesEnrolledByUser, handleUserEnrolledCourseFunction } from "../controllers/course/enrolledCourses.controllers";
 import { handleDeleteCourseFunction } from "../controllers/course/deleteCourse.controllers";
 import { handleFetchYouTubeCoursesFunction, handleFetchYouTubePlaylistVideosFunction, handleSearchYouTubeCoursesFunction } from "../controllers/course/youtubeSync.controllers";
@@ -36,6 +36,8 @@ courseRoute.post("/add-course/redirect", authenticateAdminToken, upload.single("
 courseRoute.put("/update-course/youtube", authenticateAdminToken, upload.single("youtubeCourseImage"), handleUpdateYoutubeCourseFunction);
 courseRoute.put("/update-course/personal", authenticateAdminToken, upload.single("personalCourseImage"), handleUpdatePersonalCourseFunction);
 courseRoute.put("/update-course/redirect", authenticateAdminToken, upload.single("redirectCourseImage"), handleUpdateRedirectCourseFunction);
+
+courseRoute.patch("/toggle-course-status", authenticateAdminToken, handleToggleCourseStatusFunction);
 
 courseRoute.post("/delete-course", authenticateAdminToken, handleDeleteCourseFunction);
 

@@ -101,7 +101,7 @@ export async function handleFetchCourseByIdFunction(req: Request, res: Response)
 export async function handleFetchAllCoursesFunction(req: Request, res: Response) {
 
   try {
-    const courses: ICourse[] = await CourseModel.find().select(
+    const courses: ICourse[] = await CourseModel.find({ isVerified: true }).select(
       "tutorName courseId courseName description ratingCount rating thumbnail sellingPrice currency courseType originalPrice"
     );
 

@@ -22,6 +22,8 @@ const PageTransitionSwipeAnimation = lazy(() => import("@/Effects/PageTransition
 const Subscription = lazy(() => import("./Subscription"));
 const History = lazy(() => import("./History"));
 
+const CoursesManagement = lazy(() => import("@/sections/DashBoardSections/CoursesManagement"));
+
 const DashboardRoutes: React.FC = () => {
   const { userData } = useAuthContext();
   const location = useLocation();
@@ -48,7 +50,7 @@ const DashboardRoutes: React.FC = () => {
         { path: "/add-tests", element: <AddTests /> },
         { path: "/add-videos", element: <AddVideos /> },
         { path: "/edit-video", element: <VideoEditPage /> },
-        { path: "/admin/courses-management", element: <UnderMaintenancePage pageName="Courses Management" /> },
+        { path: "/admin/courses-management", element: <CoursesManagement /> },
         { path: "/admin/student-management", element: <UnderMaintenancePage pageName="Student Management" /> },
         { path: "/admin/tests", element: <UnderMaintenancePage pageName="Tests" /> },
         { path: "/admin/interview", element: <UnderMaintenancePage pageName="Interview" /> },
