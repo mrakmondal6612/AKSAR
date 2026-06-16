@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, ReactNode, useEffect, useCallback, useLayoutEffect } from "react";
+import { createContext, useState, useContext, ReactNode, useEffect, useCallback } from "react";
 import { getVerifiedToken, setTokenCookie } from "@/lib/cookieService";
 import { SuccessToast, WarningToast } from "@/lib/toasts";
 import { getUserData as fetchUserData } from "@/lib/authService"; // Import the utility function
@@ -66,19 +66,24 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [userData, setUserData] = useState<UserDataProps>(defaultUserData);
 
   const loadUserData = useCallback(async () => {
-    const userData = await fetchUserData(); 
     const verifiedToken = getVerifiedToken();
 
-    if (verifiedToken && userData) {
-      setIsLoggedIn(!!verifiedToken); 
-      setUserData(userData);
-    }
+    // Set login state immediately based on token presence
+    setIsLoggedIn(!!verifiedToken);
 
+    // Load user data asynchronously without blocking
+    if (verifiedToken) {
+      // Load immediately without delay to ensure enrollment works
+      const userData = await fetchUserData();
+      if (userData) {
+        setUserData(userData);
+      }
+    }
   }, []);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     loadUserData();
-  }, [loadUserData , isLoggedIn])
+  }, [loadUserData])
 
 
   useEffect(() => {

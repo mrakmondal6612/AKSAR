@@ -7,7 +7,6 @@ import { useCourseContext } from "@/context/courseContext";
 import { useNavigate } from "react-router-dom";
 import YoutubeIcon from "@/Icons/YoutubeIcon";
 import RedirectLinkIcon from "@/Icons/RedirectLinkIcon";
-import SkeletonCard from "../SkeletonCard";
 
 const cardVariants = {
   hidden: (_i: number) => ({
@@ -75,23 +74,23 @@ const CourseCard: React.FC = () => {
             return (
               <motion.div
                 key={course.courseId}
-                className="group relative h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                className="group relative h-full bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 cursor-pointer border border-gray-700/50 hover:border-purple-500/50"
                 custom={i}
                 variants={cardVariants}
-                whileHover={{ y: -8 }}
+                whileHover={{ y: -8, scale: 1.02 }}
                 onClick={() => navigate(`/course-intro-page?c=${course.courseId}`)}
               >
                 {/* Background Gradient Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradFrom} ${gradTo} opacity-0 group-hover:opacity-10 transition-all duration-300 z-0`} />
+                <div className={`absolute inset-0 bg-gradient-to-br ${gradFrom} ${gradTo} opacity-0 group-hover:opacity-5 transition-all duration-300 z-0`} />
 
                 {/* Course Image Container */}
-                <div className="relative w-full h-48 overflow-hidden">
+                <div className="relative w-full h-52 overflow-hidden">
                   <Image
                     src={course.thumbnail}
                     alt="course-img"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent opacity-80" />
 
                   {/* Favorite Button */}
                   <label
@@ -113,19 +112,19 @@ const CourseCard: React.FC = () => {
 
                   {/* Type Badge */}
                   <div className="absolute top-3 left-3 z-10">
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${gradFrom} ${gradTo}`}>
-                      {course.courseType === "YOUTUBE" ? "YouTube" : course.courseType === "REDIRECT" ? "External" : "Premium"}
+                    <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r ${gradFrom} ${gradTo} shadow-lg`}>
+                      {course.courseType === "YOUTUBE" ? "📺 YouTube" : course.courseType === "REDIRECT" ? "🔗 External" : "🎓 Premium"}
                     </span>
                   </div>
 
                   {/* Price Badge */}
                   <div className="absolute bottom-3 right-3 z-10">
                     {course.sellingPrice === 0 ? (
-                      <span className="inline-block px-3 py-1 rounded-full text-sm font-bold text-white bg-gradient-to-r from-green-500 to-teal-500">
+                      <span className="inline-block px-4 py-1.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg animate-pulse">
                         FREE
                       </span>
                     ) : (
-                      <div className="inline-block px-3 py-1 rounded-full text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600">
+                      <div className="inline-block px-4 py-1.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg">
                         {course.currency} {course.sellingPrice}
                       </div>
                     )}
@@ -133,24 +132,27 @@ const CourseCard: React.FC = () => {
                 </div>
 
                 {/* Content Container */}
-                <div className="p-4 space-y-3 flex flex-col justify-between relative z-5 flex-grow">
+                <div className="p-5 space-y-4 flex flex-col justify-between relative z-5 flex-grow">
                   {/* Title */}
                   <div>
-                    <h2 className="text-lg font-bold text-white line-clamp-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-blue-400 transition-all">
+                    <h2 className="text-xl font-bold text-white line-clamp-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-blue-400 transition-all duration-300">
                       {course.courseName}
                     </h2>
                   </div>
 
                   {/* Tutor Info */}
-                  <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${gradFrom} ${gradTo} flex items-center justify-center text-white text-xs font-bold`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradFrom} ${gradTo} flex items-center justify-center text-white text-sm font-bold shadow-lg`}>
                       {getTutorInitial(course.tutorName)}
                     </div>
-                    <p className="text-sm text-gray-300 font-medium">{course.tutorName}</p>
+                    <div>
+                      <p className="text-sm text-gray-300 font-semibold">{course.tutorName}</p>
+                      <p className="text-xs text-gray-500">Instructor</p>
+                    </div>
                   </div>
 
                   {/* Stats Grid */}
-                  <div className="grid grid-cols-3 gap-2 py-2 px-2 bg-gray-700/30 rounded-lg">
+                  <div className="grid grid-cols-3 gap-2 py-3 px-3 bg-gradient-to-br from-gray-700/30 to-gray-800/30 rounded-xl border border-gray-700/50">
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1">
                         <RatingComponent rating={course.rating ?? 0} />
@@ -162,7 +164,7 @@ const CourseCard: React.FC = () => {
                       <p className="text-xs text-gray-400">Reviews</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-teal-400">
+                      <p className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400">
                         {discount}%
                       </p>
                       <p className="text-xs text-gray-400">Off</p>
@@ -170,20 +172,20 @@ const CourseCard: React.FC = () => {
                   </div>
 
                   {/* Description */}
-                  <p className="text-xs text-gray-400 line-clamp-2 italic">
+                  <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed">
                     {course.description}
                   </p>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-2 mt-auto pt-2">
+                  <div className="flex gap-3 mt-auto pt-2">
                     <Button
-                      className="flex-1 font-medium bg-gradient-to-r from-gray-700 to-gray-600 text-white hover:from-gray-600 hover:to-gray-500 text-sm"
+                      className="flex-1 font-semibold bg-gradient-to-r from-gray-700 to-gray-600 text-white hover:from-gray-600 hover:to-gray-500 text-sm py-2.5 rounded-lg shadow-lg"
                       onClick={() => navigate(`/course-intro-page?c=${course.courseId}`)}
                     >
                       Details
                     </Button>
                     <Button
-                      className={`flex-1 font-medium text-white text-sm flex items-center justify-center gap-1 ${course.courseType === "YOUTUBE"
+                      className={`flex-1 font-semibold text-white text-sm flex items-center justify-center gap-2 py-2.5 rounded-lg shadow-lg ${course.courseType === "YOUTUBE"
                           ? "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400"
                           : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400"
                         }`}
@@ -204,16 +206,15 @@ const CourseCard: React.FC = () => {
             );
           })
         ) : (
-          [1, 2, 3].map((_, i) => (
-            <motion.div
-              key={i}
-              className="w-full"
-              custom={i}
-              variants={cardVariants}
-            >
-              <SkeletonCard />
-            </motion.div>
-          ))
+          <motion.div
+            className="col-span-full text-center py-20"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <div className="text-6xl mb-4">📚</div>
+            <h3 className="text-2xl font-bold text-gray-400 mb-2">No Courses Found</h3>
+            <p className="text-gray-500">Try adjusting your filters or search terms</p>
+          </motion.div>
         )}
       </motion.div>
     </>

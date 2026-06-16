@@ -4,6 +4,8 @@ export enum CourseType {
   PERSONAL = "PERSONAL",
   REDIRECT = "REDIRECT",
   YOUTUBE = "YOUTUBE",
+  SEMESTER = "SEMESTER",
+  TECH = "TECH",
 }
 
 export interface IRating {

@@ -10,6 +10,17 @@ export const getUserData = async (): Promise<UserDataProps | null> => {
     return null;
   }
 
+  // Check cache first
+  const cachedData = localStorage.getItem('cachedUserData');
+  const cacheTime = localStorage.getItem('userDataCacheTime');
+  if (cachedData && cacheTime) {
+    const cacheAge = Date.now() - parseInt(cacheTime);
+    // Use cached data if less than 5 minutes old
+    if (cacheAge < 5 * 60 * 1000) {
+      return JSON.parse(cachedData) as UserDataProps;
+    }
+  }
+
   try {
     const response = await axios.get(`${USER_API}/get-user`, {
       headers: {
@@ -46,6 +57,10 @@ export const getUserData = async (): Promise<UserDataProps | null> => {
         progress : responseData.progress,
         history : responseData.history,
       };
+
+      // Cache the data
+      localStorage.setItem('cachedUserData', JSON.stringify(userData));
+      localStorage.setItem('userDataCacheTime', Date.now().toString());
 
       return userData;
     } else {

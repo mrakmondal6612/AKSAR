@@ -14,12 +14,13 @@ import "react-toastify/dist/ReactToastify.css";
 const CourseIntroPage = lazy(() => import("./components/addCourses/CourseIntroPage"));
 import { useAuthContext } from "./context/authContext";
 const DashboardRoutes = lazy(() => import("./sections/DashBoardSections/DashBoardRoutes"));
-import Navbar from "./sections/Navbar";
+const Navbar = lazy(() => import("./sections/Navbar"));
 const HelpSection = lazy(() => import("./sections/HelpSection"));
 const UnauthenticatedPage = lazy(() => import("./components/UnauthenticatedPage"));
 const PageNotFound = lazy(() => import("@/components/PageNotFound"));
 const ResetPasswordModal = lazy(() => import("./components/modals/ResetPasswordModal"));
 const VerifyCourses = lazy(() => import("./sections/VerifyCourses"));
+import LoadingScreen from "@/components/LoadingScreen";
 
 function App() {
   const location = useLocation();
@@ -78,10 +79,14 @@ function App() {
 
   return (
     <main className="max-w-full mx-auto relative dark:bg-black bg-white scrollbar-custom">
- 
-      {!isUserRoute && <Navbar isUserLoggedIn={isLoggedIn} />}
 
-      <Suspense fallback={<div className="p-4 text-center">Loading...</div>}>
+      {!isUserRoute && (
+        <Suspense fallback={<div className="h-16" />}>
+          <Navbar isUserLoggedIn={isLoggedIn} />
+        </Suspense>
+      )}
+
+      <Suspense fallback={<LoadingScreen />}>
         {memoizedRoutes}
       </Suspense>
 

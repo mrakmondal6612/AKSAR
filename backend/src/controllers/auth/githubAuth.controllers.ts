@@ -37,7 +37,7 @@ passport.use(
           const response = await fetch("https://api.github.com/user/emails", {
             headers: {
               Authorization: `Bearer ${accessToken}`,
-              "User-Agent": "Course-Yuga",
+              "User-Agent": "AKSAR",
             },
           });
 
