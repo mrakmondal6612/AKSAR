@@ -12,6 +12,7 @@ const updateCourse_controllers_1 = require("../controllers/course/updateCourse.c
 const enrolledCourses_controllers_1 = require("../controllers/course/enrolledCourses.controllers");
 const deleteCourse_controllers_1 = require("../controllers/course/deleteCourse.controllers");
 const youtubeSync_controllers_1 = require("../controllers/course/youtubeSync.controllers");
+const razorpay_controllers_1 = require("../controllers/payment/razorpay.controllers");
 const multer_1 = __importDefault(require("multer"));
 const courseRoute = express_1.default.Router();
 const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage() });
@@ -24,6 +25,9 @@ courseRoute.get("/get-all-courses", getCourses_controllers_1.handleFetchAllCours
 courseRoute.get("/get-admin-courses", auth_middleware_1.authenticateAdminToken, getCourses_controllers_1.handleGetCoursesByUserIdFunction);
 courseRoute.get("/get-user-enrolled-courses", auth_middleware_1.authenticateToken, enrolledCourses_controllers_1.handleGetAllCoursesEnrolledByUser);
 courseRoute.post("/enroll-in-course", auth_middleware_1.authenticateToken, enrolledCourses_controllers_1.handleUserEnrolledCourseFunction);
+// Razorpay Payment Routes
+courseRoute.post("/payment/create-order", auth_middleware_1.authenticateToken, razorpay_controllers_1.handleCreateOrderFunction);
+courseRoute.post("/payment/verify", auth_middleware_1.authenticateToken, razorpay_controllers_1.handleVerifyPaymentFunction);
 courseRoute.post("/add-course/youtube", auth_middleware_1.authenticateAdminToken, upload.single("youtubeCourseImage"), uploadCourse_controllers_1.handleAddNewYoutubeCourseFunction);
 courseRoute.post("/add-course/personal", auth_middleware_1.authenticateAdminToken, upload.single("personalCourseImage"), uploadCourse_controllers_1.handleAddNewPersonalCourseFunction);
 courseRoute.post("/add-course/redirect", auth_middleware_1.authenticateAdminToken, upload.single("redirectCourseImage"), uploadCourse_controllers_1.handleAddNewRedirectCourseFunction);

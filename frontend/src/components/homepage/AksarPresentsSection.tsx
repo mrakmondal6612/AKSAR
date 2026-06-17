@@ -91,7 +91,7 @@ const AksarPresentsSection: React.FC = () => {
 
       {/* Courses Grid */}
       <motion.div
-        className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+        className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -125,7 +125,7 @@ const AksarPresentsSection: React.FC = () => {
                 />
 
                 {/* Course Image Container */}
-                <div className="relative w-full h-48 overflow-hidden">
+                <div className="relative w-full h-40 overflow-hidden">
                   <Image
                     src={course.thumbnail}
                     alt={course.courseName}
@@ -142,19 +142,26 @@ const AksarPresentsSection: React.FC = () => {
                 </div>
 
                 {/* Course Info */}
-                <div className="relative z-10 p-4 md:p-5">
+                <div className="relative z-10 p-3 md:p-4">
                   {/* Title */}
-                  <h3 className="text-lg md:text-xl font-bold text-white mb-2 line-clamp-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-sky-400 group-hover:to-blue-500 group-hover:bg-clip-text transition-all duration-300">
+                  <h3 className="text-base md:text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-sky-400 group-hover:to-blue-500 group-hover:bg-clip-text transition-all duration-300">
                     {course.courseName}
                   </h3>
 
                   {/* Price Section */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="text-xl md:text-2xl font-extrabold text-white">
+                  {/* Description */}
+                  {course.description && (
+                    <p className="text-xs md:text-sm text-gray-400 mb-3 line-clamp-2">
+                      {course.description}
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg md:text-xl font-extrabold text-white">
                       ₹{course.sellingPrice}
                     </span>
                     {discount > 0 && (
-                      <span className="text-sm md:text-base text-gray-400 line-through">
+                      <span className="text-xs md:text-sm text-gray-400 line-through">
                         ₹{course.originalPrice}
                       </span>
                     )}
@@ -162,12 +169,12 @@ const AksarPresentsSection: React.FC = () => {
 
                   {/* Rating (if available) */}
                   {course.rating && (
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-2 mb-3">
                       <div className="flex items-center">
                         {[...Array(5)].map((_, i) => (
                           <span
                             key={i}
-                            className={`text-lg ${
+                            className={`text-base ${
                               i < Math.floor(course.rating || 0)
                                 ? "text-yellow-400"
                                 : "text-gray-600"
@@ -177,14 +184,14 @@ const AksarPresentsSection: React.FC = () => {
                           </span>
                         ))}
                       </div>
-                      <span className="text-sm text-gray-300">
+                      <span className="text-xs text-gray-300">
                         {course.rating.toFixed(1)}
                       </span>
                     </div>
                   )}
 
                   {/* CTA Button */}
-                  <button className="w-full py-2 md:py-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0">
+                  <button className="w-full py-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold text-sm rounded-lg hover:shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0">
                     Explore Course →
                   </button>
                 </div>

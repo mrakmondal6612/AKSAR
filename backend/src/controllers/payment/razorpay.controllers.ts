@@ -5,10 +5,23 @@ import crypto from "crypto";
 import CourseModel from "../../models/Course.model";
 import User from "../../models/User.model";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || "",
-  key_secret: process.env.RAZORPAY_KEY_SECRET || "",
-});
+// Initialize Razorpay lazily to avoid errors if keys are not set
+let razorpay: Razorpay | null = null;
+
+const getRazorpayInstance = (): Razorpay => {
+  if (!razorpay) {
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      throw new Error(
+        "Razorpay keys not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables."
+      );
+    }
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+  return razorpay;
+};
 
 export async function handleCreateOrderFunction(req: AuthenticatedRequest, res: Response) {
   const { courseId } = req.body;
@@ -20,6 +33,8 @@ export async function handleCreateOrderFunction(req: AuthenticatedRequest, res: 
   }
 
   try {
+    const razorpayInstance = getRazorpayInstance();
+
     const course = await CourseModel.findOne({ courseId });
     if (!course) {
       return res.status(404).json({ success: false, message: "Course not found" });
@@ -50,7 +65,7 @@ export async function handleCreateOrderFunction(req: AuthenticatedRequest, res: 
       },
     };
 
-    const order = await razorpay.orders.create(options);
+    const order = await razorpayInstance.orders.create(options);
 
     return res.status(200).json({
       success: true,
@@ -75,8 +90,13 @@ export async function handleVerifyPaymentFunction(req: AuthenticatedRequest, res
   }
 
   try {
+    // Get the Razorpay key secret
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      throw new Error("Razorpay key secret not configured");
+    }
+
     const generatedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "")
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(orderId + "|" + paymentId)
       .digest("hex");
 

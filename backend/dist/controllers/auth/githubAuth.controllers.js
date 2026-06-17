@@ -65,7 +65,7 @@ passport_1.default.use(new passport_github2_1.Strategy({
             const response = await fetch("https://api.github.com/user/emails", {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
-                    "User-Agent": "Course-Yuga",
+                    "User-Agent": "AKSAR",
                 },
             });
             const emails = await response.json();

@@ -40,6 +40,8 @@ var CourseType;
     CourseType["PERSONAL"] = "PERSONAL";
     CourseType["REDIRECT"] = "REDIRECT";
     CourseType["YOUTUBE"] = "YOUTUBE";
+    CourseType["SEMESTER"] = "SEMESTER";
+    CourseType["TECH"] = "TECH";
 })(CourseType || (exports.CourseType = CourseType = {}));
 const ratingSchema = new mongoose_1.Schema({
     by: { type: String, ref: "User", required: true },
