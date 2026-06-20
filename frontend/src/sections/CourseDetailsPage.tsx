@@ -1,0 +1,480 @@
+import React, { useEffect, useState, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Button, Image } from "@nextui-org/react";
+import { COURSE_API, VIDEO_API } from "@/lib/env";
+import { ErrorToast, SuccessToast } from "@/lib/toasts";
+import { useAuthContext } from "@/context/authContext";
+import { getVerifiedToken } from "@/lib/cookieService";
+import { getUserData } from "@/lib/authService";
+import RatingComponent from "@/components/RatingComponent";
+import { Clock, Users, BarChart, Lock, Play, Star, Trophy, Calendar, Award } from "lucide-react";
+
+const CourseDetailsPage: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
+  const courseId = queryParams.get("c");
+  const [courseData, setCourseData] = useState<any>(null);
+  const [videos, setVideos] = useState<any[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(true);
+  const [isEnrolling, setIsEnrolling] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [isUnenrolling, setIsUnenrolling] = useState(false);
+  const { userData, setUserData } = useAuthContext();
+
+  const fetchCourseData = useCallback(async () => {
+    if (!courseId) return;
+
+    try {
+      const response = await axios.post(`${COURSE_API}/get-course`, {
+        courseId,
+      });
+
+      if (!response.data.success) {
+        ErrorToast(response.data.message);
+      }
+      const fetchedCourseData = response.data.course;
+      setCourseData(fetchedCourseData);
+    } catch (error: any) {
+      ErrorToast(error.response?.data?.message || "Something went wrong");
+    }
+  }, [courseId]);
+
+  const fetchVideos = useCallback(async () => {
+    if (!courseId) return;
+    setLoadingVideos(true);
+    try {
+      const response = await axios.get(`${VIDEO_API}/get-videos?courseId=${courseId}`);
+      if (response && response.data && response.data.success) {
+        setVideos(response.data.videos || []);
+      }
+    } catch (error) {
+      console.error("Error fetching videos:", error);
+    } finally {
+      setLoadingVideos(false);
+    }
+  }, [courseId]);
+
+  useEffect(() => {
+    fetchCourseData();
+    fetchVideos();
+  }, [fetchCourseData, fetchVideos]);
+
+  useEffect(() => {
+    if (courseId && userData?.enrolledIn?.includes(courseId)) {
+      setIsEnrolled(true);
+    } else {
+      setIsEnrolled(false);
+    }
+  }, [userData?.enrolledIn, courseId]);
+
+  const handleEnrollCourse = async () => {
+    if (!userData?.id) {
+      ErrorToast("Please log in to enroll in this course");
+      return;
+    }
+
+    if (!courseId) {
+      ErrorToast("Course ID not found");
+      return;
+    }
+
+    if (userData?.enrolledIn?.includes(courseId) || isEnrolled) {
+      ErrorToast("You are already enrolled in this course");
+      return;
+    }
+
+    setIsEnrolling(true);
+    try {
+      const jwt = getVerifiedToken();
+      const response = await axios.post(
+        `${COURSE_API}/enroll-in-course`,
+        { courseId },
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setIsEnrolled(true);
+        SuccessToast(response.data.message);
+        setTimeout(async () => {
+          const updatedUserData = await getUserData();
+          if (updatedUserData) {
+            setUserData(updatedUserData);
+          }
+        }, 500);
+      } else {
+        if (response.data.requiresPayment) {
+          handlePayment(response.data.amount, response.data.currency);
+        } else {
+          ErrorToast(response.data.message);
+        }
+      }
+    } catch (error: any) {
+      if (error.response?.status === 403 && error.response?.data?.requiresPayment) {
+        handlePayment(error.response.data.amount, error.response.data.currency);
+      } else {
+        ErrorToast(error.response?.data?.message || "Failed to enroll in course");
+      }
+    } finally {
+      setIsEnrolling(false);
+    }
+  };
+
+  const handlePayment = async (amount: number, currency: string) => {
+    try {
+      const jwt = getVerifiedToken();
+      const response = await axios.post(
+        `${COURSE_API}/payment/create-order`,
+        { courseId },
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        const { order, courseName } = response.data;
+        const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+        
+        if (!razorpayKey) {
+          ErrorToast("Razorpay key not configured");
+          return;
+        }
+
+        const options = {
+          key: razorpayKey,
+          amount: order.amount,
+          currency: order.currency,
+          name: "AKSAR",
+          description: `Payment for ${courseName}`,
+          order_id: order.id,
+          handler: async function (response: any) {
+            const verifyResponse = await axios.post(
+              `${COURSE_API}/payment/verify`,
+              {
+                orderId: order.id,
+                paymentId: response.razorpay_payment_id,
+                signature: response.razorpay_signature,
+                courseId: courseId,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${jwt}`,
+                },
+              }
+            );
+
+            if (verifyResponse.data.success) {
+              setIsEnrolled(true);
+              SuccessToast("Payment successful!");
+              setTimeout(async () => {
+                const updatedUserData = await getUserData();
+                if (updatedUserData) {
+                  setUserData(updatedUserData);
+                }
+              }, 500);
+            } else {
+              ErrorToast("Payment verification failed");
+            }
+          },
+          prefill: {
+            name: userData?.fullName || "",
+            email: userData?.email || "",
+          },
+          theme: {
+            color: "#6366f1",
+          },
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      }
+    } catch (error: any) {
+      ErrorToast(error.response?.data?.message || "Failed to initiate payment");
+    }
+  };
+
+  const handleUnenrollToggle = async () => {
+    const jwt = getVerifiedToken();
+    if (!jwt) {
+      ErrorToast("Login required");
+      return;
+    }
+
+    if (!isEnrolled) {
+      return;
+    }
+
+    setIsUnenrolling(true);
+    try {
+      const response = await axios.post(
+        `${COURSE_API}/unenroll-in-course`,
+        { courseId },
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setIsEnrolled(false);
+        SuccessToast(response.data.message);
+        setTimeout(async () => {
+          const updatedUserData = await getUserData();
+          if (updatedUserData) {
+            setUserData(updatedUserData);
+          }
+        }, 500);
+      } else {
+        ErrorToast(response.data.message);
+      }
+    } catch (error: any) {
+      ErrorToast(error.response?.data?.message || "Failed to unenroll");
+    } finally {
+      setIsUnenrolling(false);
+    }
+  };
+
+  if (!courseData) return <div className="min-h-screen bg-[#0b0f19] text-white flex items-center justify-center">Loading...</div>;
+
+  const discount = courseData.originalPrice === courseData.sellingPrice
+    ? 0
+    : Math.round(((courseData.originalPrice - courseData.sellingPrice) / courseData.originalPrice) * 100);
+
+  const courseContent = courseData.courseContent || videos.map((v: any) => v.videoName || v.title);
+  const lectureCount = courseContent.length;
+
+  return (
+    <div className="w-full min-h-screen bg-[#0b0f19] text-white">
+      {/* Course Top Section */}
+      <div className="w-full bg-[#0d1321] border-b border-gray-800/80 pt-24 sm:pt-28 md:pt-36 pb-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-4">
+          {/* Course Name */}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+            {courseData.courseName}
+          </h1>
+
+          {/* Course Tagline */}
+          <p className="text-base sm:text-lg text-gray-300 max-w-4xl leading-relaxed">
+            {courseData.description || "Learn from scratch"}
+          </p>
+
+          {/* Course Creator */}
+          <div className="text-sm sm:text-base text-gray-400">
+            Created By <span className="text-blue-400 hover:underline cursor-pointer font-semibold">{courseData.tutorName}</span>
+          </div>
+
+          {/* Metadata Row */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-400 pt-2">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <span>Last updated {courseData.lastUpdated ? new Date(courseData.lastUpdated).toLocaleDateString('en-GB') : new Date(courseData.createdAt || Date.now()).toLocaleDateString('en-GB')}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-gray-500" />
+              <span>{courseData.enrolledCount ?? 3} students enrolled</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <BarChart className="w-4 h-4 text-gray-500" />
+              <span>Level: {courseData.courseLevel || "Medium"}</span>
+            </div>
+            {courseData.courseDuration && (
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-gray-500" />
+                <span>Duration: {courseData.courseDuration}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Reviews and Ranking Badge */}
+          <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex items-center gap-2">
+              <RatingComponent rating={courseData.rating || 4.5} />
+              <span className="text-yellow-500 font-bold text-base">{courseData.rating || 4.5}</span>
+              <span className="text-gray-400 text-sm">({courseData.ratingCount || 15} reviews)</span>
+            </div>
+            {courseData.ranking && (
+              <div className="bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-bold px-3 py-1 rounded-md flex items-center gap-1">
+                <Trophy className="w-3 h-3" />
+                #{courseData.ranking} Ranking
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Two Column Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          
+          {/* Left Column: Description & Course Content */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Description Card */}
+            <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-6 shadow-md">
+              <h2 className="text-xl font-bold text-white mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
+                <span>📝</span> Description
+              </h2>
+              <div className="text-gray-300 leading-relaxed text-sm sm:text-base whitespace-pre-line">
+                {courseData.description || "No description available"}
+              </div>
+            </div>
+
+            {/* Course Content / Lectures List */}
+            <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-6 shadow-md">
+              <div className="flex items-center justify-between mb-4 border-b border-gray-800 pb-2">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span>📖</span> Course Content
+                </h2>
+                <span className="text-sm text-gray-400 font-medium">
+                  {lectureCount} {lectureCount === 1 ? 'lecture' : 'lectures'}
+                </span>
+              </div>
+
+              {loadingVideos ? (
+                <div className="space-y-3 py-4">
+                  <div className="h-10 bg-gray-800/50 animate-pulse rounded border border-gray-800"></div>
+                  <div className="h-10 bg-gray-800/50 animate-pulse rounded border border-gray-800"></div>
+                  <div className="h-10 bg-gray-800/50 animate-pulse rounded border border-gray-800"></div>
+                </div>
+              ) : courseContent.length === 0 ? (
+                <p className="text-gray-400 text-sm py-4 italic">No lectures uploaded yet for this course.</p>
+              ) : (
+                <div className="divide-y divide-gray-800/80">
+                  {courseContent.map((lecture: string, idx: number) => {
+                    const isUnlocked = idx === 0 || isEnrolled;
+                    return (
+                      <div key={idx} className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0 group">
+                        <div className="flex items-center gap-3">
+                          {isUnlocked ? (
+                            <Play className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                          ) : (
+                            <Lock className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                          )}
+                          <span className={`text-sm ${isUnlocked ? 'text-emerald-400 font-medium' : 'text-gray-400'} group-hover:text-white transition-colors`}>
+                            {lecture}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500 uppercase tracking-wider bg-gray-800/30 px-2 py-0.5 rounded">
+                          Video
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Tech Stack */}
+            {courseData.courseTechStack && courseData.courseTechStack.length > 0 && (
+              <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-6 shadow-md">
+                <h2 className="text-xl font-bold text-white mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
+                  <span>🛠️</span> Tech Stack
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {courseData.courseTechStack.map((tech: string, idx: number) => (
+                    <span key={idx} className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Sticky Course Card */}
+          <div className="lg:col-span-1">
+            <div className="bg-[#111827]/80 backdrop-blur border border-gray-800 rounded-xl overflow-hidden shadow-xl sticky top-24">
+              {/* Course Thumbnail */}
+              <div className="relative aspect-video w-full overflow-hidden bg-gray-900 border-b border-gray-800">
+                <Image
+                  src={courseData.thumbnail}
+                  alt={courseData.courseName}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent pointer-events-none" />
+              </div>
+
+              {/* Card Content */}
+              <div className="p-6 space-y-6">
+                {/* Price Block */}
+                <div className="space-y-1">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Course Price</span>
+                  {courseData.sellingPrice === 0 ? (
+                    <div className="text-3xl font-black text-emerald-400">FREE</div>
+                  ) : (
+                    <div className="flex items-baseline gap-2.5">
+                      <span className="text-3xl font-black text-white">
+                        {courseData.currency === "$" || !courseData.currency ? "₹" : courseData.currency}{courseData.sellingPrice}
+                      </span>
+                      {discount > 0 && (
+                        <span className="text-base line-through text-gray-500 font-semibold">
+                          {courseData.currency === "$" || !courseData.currency ? "₹" : courseData.currency}{courseData.originalPrice}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="space-y-3">
+                  {isEnrolled ? (
+                    <button
+                      onClick={handleUnenrollToggle}
+                      disabled={isUnenrolling}
+                      className="w-full font-bold text-base py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all shadow-md disabled:opacity-50"
+                    >
+                      {isUnenrolling ? "⏳ Unenrolling..." : "✓ Enrolled - Click to Unenroll"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleEnrollCourse}
+                      disabled={isEnrolling}
+                      className="w-full font-bold text-base py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all shadow-md disabled:opacity-50"
+                    >
+                      {isEnrolling ? "⏳ Enrolling..." : "Purchase Course"}
+                    </button>
+                  )}
+                </div>
+
+                {/* Meta/Category Info */}
+                <div className="pt-4 border-t border-gray-800/80 text-xs text-gray-400 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Category:</span>
+                    <span className="text-gray-300 font-semibold">{courseData.category || courseData.courseType}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Creator:</span>
+                    <span className="text-gray-300 font-semibold">{courseData.tutorName}</span>
+                  </div>
+                  {courseData.startingDate && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500 font-medium">Start Date:</span>
+                      <span className="text-gray-300 font-semibold">{new Date(courseData.startingDate).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                  {courseData.endingDate && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500 font-medium">End Date:</span>
+                      <span className="text-gray-300 font-semibold">{new Date(courseData.endingDate).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CourseDetailsPage;

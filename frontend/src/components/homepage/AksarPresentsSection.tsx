@@ -13,6 +13,12 @@ interface Course {
   rating?: number;
   description?: string;
   instructor?: string;
+  tutorName?: string;
+  ratingCount?: number;
+  courseLevel?: string;
+  category?: string;
+  courseType?: string;
+  currency?: string;
 }
 
 const AksarPresentsSection: React.FC = () => {
@@ -50,16 +56,8 @@ const AksarPresentsSection: React.FC = () => {
     },
   };
 
-  const getGradientColors = (index: number): [string, string] => {
-    const gradients: [string, string][] = [
-      ["from-blue-600", "to-cyan-600"],
-      ["from-purple-600", "to-pink-600"],
-      ["from-orange-600", "to-red-600"],
-      ["from-green-600", "to-teal-600"],
-      ["from-indigo-600", "to-blue-600"],
-      ["from-rose-600", "to-pink-600"],
-    ];
-    return gradients[index % gradients.length];
+  const getTutorInitial = (name: string): string => {
+    return name?.charAt(0).toUpperCase() || "T";
   };
 
   return (
@@ -91,109 +89,101 @@ const AksarPresentsSection: React.FC = () => {
 
       {/* Courses Grid */}
       <motion.div
-        className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
+        className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
       >
         {displayCourses.length > 0 ? (
-          displayCourses.map((course, index) => {
-            const discount =
-              course.originalPrice === course.sellingPrice
-                ? 0
-                : Math.round(
-                    ((course.originalPrice - course.sellingPrice) /
-                      course.originalPrice) *
-                      100
-                  );
-            const [gradFrom, gradTo] = getGradientColors(index);
-
+          displayCourses.map((course) => {
             return (
               <motion.div
                 key={course.courseId}
                 variants={cardVariants}
-                className="group relative h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
-                whileHover={{ y: -8 }}
-                onClick={() =>
-                  navigate(`/course-intro-page?c=${course.courseId}`)
-                }
+                className="group relative h-full flex flex-col bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-800"
+                whileHover={{ y: -4 }}
+                onClick={() => navigate(`/course-details?c=${course.courseId}`)}
               >
-                {/* Background Gradient Overlay */}
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${gradFrom} ${gradTo} opacity-0 group-hover:opacity-10 transition-all duration-300 z-0`}
-                />
-
                 {/* Course Image Container */}
-                <div className="relative w-full h-40 overflow-hidden">
+                <div className="relative w-full h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
                   <Image
                     src={course.thumbnail}
-                    alt={course.courseName}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    alt="course-img"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60" />
-
-                  {/* Discount Badge */}
-                  {discount > 0 && (
-                    <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      -{discount}%
-                    </div>
-                  )}
-                </div>
-
-                {/* Course Info */}
-                <div className="relative z-10 p-3 md:p-4">
-                  {/* Title */}
-                  <h3 className="text-base md:text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-sky-400 group-hover:to-blue-500 group-hover:bg-clip-text transition-all duration-300">
-                    {course.courseName}
-                  </h3>
-
-                  {/* Price Section */}
-                  {/* Description */}
-                  {course.description && (
-                    <p className="text-xs md:text-sm text-gray-400 mb-3 line-clamp-2">
-                      {course.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg md:text-xl font-extrabold text-white">
-                      ₹{course.sellingPrice}
+                  
+                  {/* Text Overlays on Image */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  
+                  <div className="absolute top-4 left-4 space-y-1">
+                    <span className="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded">
+                      {course.category || course.courseType}
                     </span>
-                    {discount > 0 && (
-                      <span className="text-xs md:text-sm text-gray-400 line-through">
-                        ₹{course.originalPrice}
-                      </span>
-                    )}
                   </div>
 
-                  {/* Rating (if available) */}
-                  {course.rating && (
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <span
-                            key={i}
-                            className={`text-base ${
-                              i < Math.floor(course.rating || 0)
-                                ? "text-yellow-400"
-                                : "text-gray-600"
-                            }`}
-                          >
-                            ★
-                          </span>
-                        ))}
-                      </div>
-                      <span className="text-xs text-gray-300">
-                        {course.rating.toFixed(1)}
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="text-white text-lg font-bold drop-shadow-lg">
+                      {course.courseName?.split(' ')[0] || 'WEB'} DEV
+                    </div>
+                    <div className="text-white/90 text-sm font-medium drop-shadow-md">
+                      FULL ROADMAP
+                    </div>
+                    <div className="text-white/80 text-xs drop-shadow-sm">
+                      {new Date().getFullYear()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content Container */}
+                <div className="p-4 space-y-3 flex flex-col flex-grow">
+                  {/* Title */}
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-1">
+                    {course.courseName}
+                  </h2>
+
+                  {/* Description */}
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                    {course.description}
+                  </p>
+
+                  {/* Creator Info */}
+                  <div className="flex items-center gap-3 pt-2">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                      {getTutorInitial(course.tutorName || "")}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{course.tutorName || "Instructor"}</p>
+                    </div>
+                  </div>
+
+                  {/* Course Level Badge */}
+                  {course.courseLevel && (
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-full">
+                        {course.courseLevel}
                       </span>
                     </div>
                   )}
 
-                  {/* CTA Button */}
-                  <button className="w-full py-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold text-sm rounded-lg hover:shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0">
-                    Explore Course →
-                  </button>
+                  {/* Price Section */}
+                  <div className="pt-3 mt-auto border-t border-gray-200 dark:border-gray-800">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Course Price</p>
+                    {course.sellingPrice === 0 ? (
+                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">FREE</p>
+                    ) : (
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {course.currency === "$" || !course.currency ? "₹" : course.currency}{course.sellingPrice}
+                        </p>
+                        {course.originalPrice > course.sellingPrice && (
+                          <p className="text-sm text-gray-500 line-through">
+                            {course.currency === "$" || !course.currency ? "₹" : course.currency}{course.originalPrice}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             );

@@ -2,11 +2,8 @@ import FavoriteIcon from "@/Icons/FavoriteIcon";
 import { Button, Image } from "@nextui-org/react";
 import { motion } from "framer-motion";
 import React from "react";
-import RatingComponent from "../RatingComponent";
 import { useCourseContext } from "@/context/courseContext";
 import { useNavigate } from "react-router-dom";
-import YoutubeIcon from "@/Icons/YoutubeIcon";
-import RedirectLinkIcon from "@/Icons/RedirectLinkIcon";
 
 const cardVariants = {
   hidden: (_i: number) => ({
@@ -44,67 +41,59 @@ const CourseCard: React.FC = () => {
     return tutorName.charAt(0).toUpperCase();
   };
 
-  const getGradientColors = (index: number): string[] => {
-    const gradients = [
-      ["from-blue-600", "to-cyan-600"],
-      ["from-purple-600", "to-pink-600"],
-      ["from-orange-600", "to-red-600"],
-      ["from-green-600", "to-teal-600"],
-      ["from-indigo-600", "to-blue-600"],
-    ];
-    return gradients[index % gradients.length];
-  };
-
   const navigate = useNavigate();
 
   return (
     <>
       <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 py-4"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 py-4"
         initial="hidden"
         animate="visible"
       >
         {coursesData.length !== 0 ? (
           coursesData.map((course: any, i: number) => {
-            const [gradFrom, gradTo] = getGradientColors(i);
-            const courseRating = course.rating ?? 0;
-            const courseRatingCount = course.ratingCount ?? 0;
-            const sellingPrice = course.sellingPrice ?? 0;
-            const discount = course.originalPrice === sellingPrice
-              ? 0
-              : Math.round(((course.originalPrice - sellingPrice) / course.originalPrice) * 100);
-            const showRating = courseRating > 0;
-            const showReviews = courseRatingCount > 0;
-            const showDiscount = discount > 0;
-            const statsCount = [showRating, showReviews, showDiscount].filter(Boolean).length;
-            const statsCols = statsCount === 3 ? 'grid-cols-3' : statsCount === 2 ? 'grid-cols-2' : 'grid-cols-1';
-            const hasStats = statsCount > 0;
-
             return (
               <motion.div
                 key={course.courseId}
-                className="group relative h-full flex flex-col bg-gradient-to-br from-gray-900/70 to-gray-950/80 backdrop-blur rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-purple-500/15 transition-all duration-300 cursor-pointer border border-gray-700/40 hover:border-purple-500/40"
+                className="group relative h-full flex flex-col bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-800"
                 custom={i}
                 variants={cardVariants}
-                whileHover={{ y: -8, scale: 1.02 }}
-                onClick={() => navigate(`/course-intro-page?c=${course.courseId}`)}
+                whileHover={{ y: -4 }}
+                onClick={() => navigate(`/course-details?c=${course.courseId}`)}
               >
-                {/* Background Gradient Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradFrom} ${gradTo} opacity-0 group-hover:opacity-5 transition-all duration-300 z-0`} />
-
                 {/* Course Image Container */}
-                <div className="relative w-full h-36 overflow-hidden">
+                <div className="relative w-full h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
                   <Image
                     src={course.thumbnail}
                     alt="course-img"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent opacity-80" />
+                  
+                  {/* Text Overlays on Image */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  
+                  <div className="absolute top-4 left-4 space-y-1">
+                    <span className="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded">
+                      {course.category || course.courseType}
+                    </span>
+                  </div>
+
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="text-white text-lg font-bold drop-shadow-lg">
+                      {course.courseName?.split(' ')[0] || 'WEB'} DEV
+                    </div>
+                    <div className="text-white/90 text-sm font-medium drop-shadow-md">
+                      FULL ROADMAP
+                    </div>
+                    <div className="text-white/80 text-xs drop-shadow-sm">
+                      {new Date().getFullYear()}
+                    </div>
+                  </div>
 
                   {/* Favorite Button */}
                   <label
                     htmlFor={`favourite-${course.courseId}`}
-                    className="absolute top-3 right-3 cursor-pointer z-10 hover:scale-110 transition-transform"
+                    className="absolute top-4 right-4 cursor-pointer z-10 hover:scale-110 transition-transform"
                   >
                     <input
                       type="checkbox"
@@ -115,107 +104,59 @@ const CourseCard: React.FC = () => {
                       checked={checkedItems[course.courseId] || false}
                     />
                     <FavoriteIcon
-                      fillColor={checkedItems[course.courseId] ? "rgb(239 68 68)" : "none"}
+                      fillColor={checkedItems[course.courseId] ? "rgb(239 68 68)" : "white"}
                     />
                   </label>
-
-                  {/* Type Badge */}
-                  <div className="absolute top-3 left-3 z-10">
-                    <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r ${gradFrom} ${gradTo} shadow-lg`}>
-                      {course.courseType === "YOUTUBE" ? "📺 YouTube" : course.courseType === "REDIRECT" ? "🔗 External" : "🎓 Premium"}
-                    </span>
-                  </div>
-
-                  {/* Price Badge */}
-                  <div className="absolute bottom-3 right-3 z-10">
-                    {course.sellingPrice === 0 ? (
-                      <span className="inline-block px-4 py-1.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg animate-pulse">
-                        FREE
-                      </span>
-                    ) : (
-                      <div className="inline-block px-4 py-1.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg">
-                        {course.currency} {course.sellingPrice}
-                      </div>
-                    )}
-                  </div>
                 </div>
 
                 {/* Content Container */}
-                <div className="p-2.5 space-y-3 flex flex-col justify-between relative z-5 flex-grow min-h-[340px]">
+                <div className="p-4 space-y-3 flex flex-col flex-grow">
                   {/* Title */}
-                  <div>
-                    <h2 className="text-sm md:text-base font-bold text-white line-clamp-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-blue-400 transition-all duration-300">
-                      {course.courseName}
-                    </h2>
-                  </div>
-
-                  {/* Tutor Info */}
-                  <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${gradFrom} ${gradTo} flex items-center justify-center text-white text-sm font-bold shadow-lg`}>
-                      {getTutorInitial(course.tutorName)}
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-300 font-semibold">{course.tutorName}</p>
-                      <p className="text-[10px] text-gray-500">Instructor</p>
-                    </div>
-                  </div>
-
-                  {/* Stats Grid */}
-                  {hasStats && (
-                    <div className={`grid ${statsCols} gap-2 py-2 px-2 bg-gradient-to-br from-gray-700/30 to-gray-800/30 rounded-xl border border-gray-700/50 text-[11px]`}>
-                      {showRating && (
-                        <div className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <RatingComponent rating={courseRating} />
-                          </div>
-                          <p className="text-[11px] text-gray-400 mt-1">Rating</p>
-                        </div>
-                      )}
-                      {showReviews && (
-                        <div className={`text-center ${showRating ? 'border-l border-r border-gray-600' : ''}`}>
-                          <p className="text-sm font-bold text-blue-400">{courseRatingCount}</p>
-                          <p className="text-[11px] text-gray-400">Reviews</p>
-                        </div>
-                      )}
-                      {showDiscount && (
-                        <div className="text-center">
-                          <p className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400">
-                            {discount}%
-                          </p>
-                          <p className="text-[11px] text-gray-400">Off</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-1">
+                    {course.courseName}
+                  </h2>
 
                   {/* Description */}
-                  <p className="text-[11px] text-gray-400 line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                     {course.description}
                   </p>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 mt-auto pt-2">                    <Button
-                      className="flex-1 font-semibold bg-gradient-to-r from-gray-700 to-gray-600 text-white hover:from-gray-600 hover:to-gray-500 text-[11px] py-2 rounded-lg shadow-lg"
-                      onClick={() => navigate(`/course-intro-page?c=${course.courseId}`)}
-                    >
-                      Details
-                    </Button>
-                    <Button
-                      className={`flex-1 font-semibold text-white text-[11px] flex items-center justify-center gap-2 py-2 rounded-lg shadow-lg ${course.courseType === "YOUTUBE"
-                          ? "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400"
-                          : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400"
-                        }`}
-                      onClick={() => navigate(`/course-intro-page?c=${course.courseId}`)}
-                    >
-                      {course.courseType === "YOUTUBE" ? (
-                        <YoutubeIcon fillColor="white" size={18} />
-                      ) : course.courseType === "REDIRECT" ? (
-                        <RedirectLinkIcon fillColor="white" />
-                      ) : (
-                        <Image src="/logo/logo.png" className="aspect-square size-4" />
-                      )}
-                      Enroll
-                    </Button>
+                  {/* Creator Info */}
+                  <div className="flex items-center gap-3 pt-2">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                      {getTutorInitial(course.tutorName)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{course.tutorName}</p>
+                    </div>
+                  </div>
+
+                  {/* Course Level Badge */}
+                  {course.courseLevel && (
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-full">
+                        {course.courseLevel}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Price Section */}
+                  <div className="pt-3 mt-auto border-t border-gray-200 dark:border-gray-800">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Course Price</p>
+                    {course.sellingPrice === 0 ? (
+                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">FREE</p>
+                    ) : (
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {course.currency === "$" || !course.currency ? "₹" : course.currency}{course.sellingPrice}
+                        </p>
+                        {course.originalPrice > course.sellingPrice && (
+                          <p className="text-sm text-gray-500 line-through">
+                            {course.currency === "$" || !course.currency ? "₹" : course.currency}{course.originalPrice}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>

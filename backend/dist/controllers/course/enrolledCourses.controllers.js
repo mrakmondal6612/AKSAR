@@ -42,8 +42,11 @@ async function handleUserEnrolledCourseFunction(req, res) {
         const course = await Course_model_1.default.findOne({ courseId });
         if (course) {
             console.log("✅ Database course found:", course.courseName);
-            // Check if course is paid and requires payment
-            if (course.sellingPrice > 0) {
+            // Check if course is paid and requires payment (only if Razorpay is configured)
+            const isRazorpayConfigured = process.env.RAZORPAY_KEY_ID &&
+                !process.env.RAZORPAY_KEY_ID.includes("your_razorpay_key_id") &&
+                process.env.RAZORPAY_KEY_ID.trim() !== "";
+            if (course.sellingPrice > 0 && isRazorpayConfigured) {
                 console.log("💰 Course is paid - payment required");
                 return res.status(403).json({
                     success: false,

@@ -194,7 +194,9 @@ export interface ICourseData {
   thumbnail: string;
   markdownContent?: string;
   redirectLink?: string;
-  uploadedBy?: string
+  uploadedBy?: string;
+  enrolledBy?: string[];
+  enrolledCount?: number;
 }
 
 export interface IUserCourseData {

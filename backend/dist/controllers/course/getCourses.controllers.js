@@ -94,7 +94,7 @@ async function handleFetchCourseByIdFunction(req, res) {
 }
 async function handleFetchAllCoursesFunction(req, res) {
     try {
-        const courses = await Course_model_1.default.find().select("tutorName courseId courseName description ratingCount rating thumbnail sellingPrice currency courseType originalPrice");
+        const courses = await Course_model_1.default.find({ isVerified: true }).select("tutorName courseId courseName description ratingCount rating thumbnail sellingPrice currency courseType originalPrice");
         if (!courses || courses.length === 0) {
             return res.status(404).json({ success: false, message: "Course not found" });
         }

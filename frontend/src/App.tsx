@@ -12,6 +12,7 @@ import { ToastContainer } from "react-toastify";
 import styles from "@/sass/Toast.module.scss";
 import "react-toastify/dist/ReactToastify.css";
 const CourseIntroPage = lazy(() => import("./components/addCourses/CourseIntroPage"));
+const CourseDetailsPage = lazy(() => import("./sections/CourseDetailsPage"));
 import { useAuthContext } from "./context/authContext";
 const DashboardRoutes = lazy(() => import("./sections/DashBoardSections/DashBoardRoutes"));
 const Navbar = lazy(() => import("./sections/Navbar"));
@@ -37,6 +38,7 @@ function App() {
         <Route path="/" element={<HeroSection route="homepage" />} />
         <Route path="/logout" element={<LogoutModal />} />
         <Route path="/course-intro-page" element={<CourseIntroPage />} />
+        <Route path="/course-details" element={<CourseDetailsPage />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/help" element={<HelpSection />} />
         <Route path="/edit-profile" element={<EditProfile />} />
@@ -57,6 +59,7 @@ function App() {
         <Route path="/login" element={<HeroSection route="login" />} />
         <Route path="/verify-email" element={email && <HeroSection route="verify-email" propEmail={email} />} />
         <Route path="/course-intro-page" element={<CourseIntroPage />} />
+        <Route path="/course-details" element={<CourseDetailsPage />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/help" element={<HelpSection />} />
         <Route path="/community" element={<Community />} />

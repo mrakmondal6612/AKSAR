@@ -9,17 +9,21 @@ import rehypeSanitize from "rehype-sanitize";
 import EditPersonalCourseForm from "./EditPersonalCourseForm";
 import EditYoutubeCourseForm from "./EditYoutubeCourseForm";
 import EditRedirectingCourseForm from "./EditRedirectingCourseForm";
-import { COURSE_API, USER_API } from "@/lib/env";
+import { COURSE_API, USER_API, VIDEO_API } from "@/lib/env";
 import { ErrorToast, SuccessToast } from "@/lib/toasts";
 import { useAuthContext } from "@/context/authContext";
 import { getVerifiedToken } from "@/lib/cookieService";
 import { getUserData } from "@/lib/authService";
+import RatingComponent from "../RatingComponent";
+import { Clock, Users, BarChart, Lock, Play } from "lucide-react";
 
 const CourseIntroPage: React.FC = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const courseId = queryParams.get("c");
   const [courseData, setCourseData] = useState<ICourseData>(courseDataTemplate);
+  const [videos, setVideos] = useState<any[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(true);
   const [activeEditor, setActiveEditor] = useState("markdown");
   const [markdown, setMarkdown] = useState<string>("");
   const [preview, setPreview] = useState<string>(courseData?.thumbnail);
@@ -51,9 +55,25 @@ const CourseIntroPage: React.FC = () => {
     }
   }, [courseId]);
 
+  const fetchVideos = useCallback(async () => {
+    if (!courseId) return;
+    setLoadingVideos(true);
+    try {
+      const response = await axios.get(`${VIDEO_API}/get-videos?courseId=${courseId}`);
+      if (response && response.data && response.data.success) {
+        setVideos(response.data.videos || []);
+      }
+    } catch (error) {
+      console.error("Error fetching videos:", error);
+    } finally {
+      setLoadingVideos(false);
+    }
+  }, [courseId]);
+
   useEffect(() => {
     fetchCourseData();
-  }, [fetchCourseData]);
+    fetchVideos();
+  }, [fetchCourseData, fetchVideos]);
 
   // Check if user is already enrolled
   useEffect(() => {
@@ -414,215 +434,246 @@ const CourseIntroPage: React.FC = () => {
     : Math.round(((courseData.originalPrice - courseData.sellingPrice) / courseData.originalPrice) * 100);
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="w-full min-h-screen bg-[#0b0f19] text-white">
       {!isOwner ? (
         // ==================== VIEW MODE ====================
-        <div className="pt-20 sm:pt-24 md:pt-32 pb-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            {/* Hero Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-              {/* Main Content - Left Side */}
-              <div className="lg:col-span-2 space-y-8">
-                {/* Course Header */}
-                <div className="space-y-4">
-                  {/* Type Badge */}
-                  <div className="flex items-center gap-3">
-                    <span className={`inline-block px-4 py-2 rounded-full text-xs font-bold text-white whitespace-nowrap ${courseData.courseType === "YOUTUBE"
-                        ? "bg-gradient-to-r from-red-600 to-red-500"
-                        : courseData.courseType === "REDIRECT"
-                          ? "bg-gradient-to-r from-blue-600 to-blue-500"
-                          : "bg-gradient-to-r from-purple-600 to-pink-600"
-                      }`}>
-                      {courseData.courseType === "YOUTUBE" ? "📺 YouTube Course" : courseData.courseType === "REDIRECT" ? "🔗 External Link" : "🎓 Premium Course"}
-                    </span>
-                    {discount > 0 && (
-                      <span className="inline-block px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-green-600 to-teal-500">
-                        🎉 {discount}% OFF
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Title */}
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 leading-tight">
-                    {courseData.courseName}
-                  </h1>
-
-                  {/* Tutor Info */}
-                  <div className="flex items-center gap-4 pt-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-xl font-bold">
-                      {courseData.tutorName.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Instructor</p>
-                      <p className="font-semibold text-lg">{courseData.tutorName}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Description Card */}
-                <div className="bg-gray-800/40 backdrop-blur border border-gray-700/50 rounded-2xl p-6 hover:border-gray-600/50 transition-all">
-                  <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                    <span>📝</span> About This Course
-                  </h3>
-                  <p className="text-gray-300 leading-relaxed text-lg">
-                    {courseData.description || "No description available"}
-                  </p>
-                </div>
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-gradient-to-br from-blue-900/40 to-blue-900/10 border border-blue-700/30 rounded-xl p-6 hover:border-blue-600/50 transition-all">
-                    <p className="text-gray-400 text-sm font-medium mb-2">📊 Course Type</p>
-                    <p className="text-2xl font-bold">{courseData.courseType}</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-900/40 to-purple-900/10 border border-purple-700/30 rounded-xl p-6 hover:border-purple-600/50 transition-all">
-                    <p className="text-gray-400 text-sm font-medium mb-2">✨ Status</p>
-                    <p className="text-2xl font-bold text-green-400">Active</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-900/40 to-green-900/10 border border-green-700/30 rounded-xl p-6 hover:border-green-600/50 transition-all">
-                    <p className="text-gray-400 text-sm font-medium mb-2">💰 Discount</p>
-                    <p className="text-2xl font-bold text-green-400">{discount}%</p>
-                  </div>
-                </div>
-
-                {/* Content Sections */}
-                {courseData.courseType === "YOUTUBE" && (
-                  <div className="bg-gray-800/40 backdrop-blur border border-gray-700/50 rounded-2xl p-6">
-                    <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                      <span>🎬</span> Video Playlist
-                    </h3>
-                    <p className="text-gray-300 mb-4">
-                      This curated YouTube playlist contains comprehensive video lessons on this topic, covering all essential concepts from basics to advanced level.
-                    </p>
-                    <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
-                      <p className="text-sm text-gray-400">
-                        ✓ Access to all playlist videos<br />
-                        ✓ Learn at your own pace<br />
-                        ✓ No time limits<br />
-                        ✓ Lifetime access
-                      </p>
-                    </div>
-                  </div>
+        <div className="w-full">
+          {/* Top Header Banner */}
+          <div className="w-full bg-[#0d1321] border-b border-gray-800/80 pt-24 sm:pt-28 md:pt-36 pb-10 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto space-y-4">
+              {/* Type Badge */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold text-white whitespace-nowrap ${
+                  courseData.courseType === "YOUTUBE"
+                    ? "bg-gradient-to-r from-red-600 to-red-500"
+                    : courseData.courseType === "REDIRECT"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-500"
+                      : "bg-gradient-to-r from-purple-600 to-pink-600"
+                }`}>
+                  {courseData.courseType === "YOUTUBE" ? "📺 YouTube Course" : courseData.courseType === "REDIRECT" ? "🔗 External Link" : "🎓 Premium Course"}
+                </span>
+                {discount > 0 && (
+                  <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-green-600 to-teal-500">
+                    🎉 {discount}% OFF
+                  </span>
                 )}
+              </div>
 
-                {/* Markdown Content */}
-                {markdown && (
-                  <div className="bg-gray-800/40 backdrop-blur border border-gray-700/50 rounded-2xl p-6 overflow-hidden">
-                    <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              {/* Title */}
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                {courseData.courseName}
+              </h1>
+
+              {/* Short Subtitle */}
+              <p className="text-base sm:text-lg text-gray-300 max-w-4xl leading-relaxed">
+                {courseData.description ? (courseData.description.length > 200 ? courseData.description.substring(0, 200) + "..." : courseData.description) : "Learn frontend development and master the concepts from scratch"}
+              </p>
+
+              {/* Creator Name */}
+              <div className="text-sm sm:text-base text-gray-400">
+                Created By <span className="text-blue-400 hover:underline cursor-pointer font-semibold">{courseData.tutorName}</span>
+              </div>
+
+              {/* Metadata Row */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-400 pt-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  <span>Last updated {new Date(courseData.createdAt || Date.now()).toLocaleDateString('en-GB')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-gray-500" />
+                  <span>{courseData.enrolledCount ?? 3} students enrolled</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <BarChart className="w-4 h-4 text-gray-500" />
+                  <span>Level: Medium</span>
+                </div>
+              </div>
+
+              {/* Reviews and Ranking Badge */}
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <div className="flex items-center gap-2">
+                  <RatingComponent rating={courseData.rating || 4.5} />
+                  <span className="text-yellow-500 font-bold text-base">{courseData.rating || 4.5}</span>
+                  <span className="text-gray-400 text-sm">({courseData.ratingCount || 15} reviews)</span>
+                </div>
+                <div className="bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-bold px-3 py-1 rounded-md">
+                  🏆 #1 Bestseller
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Two Column Grid */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+              
+              {/* Left Column: Description & Course Content */}
+              <div className="lg:col-span-2 space-y-6">
+                
+                {/* Description Card */}
+                <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-6 shadow-md">
+                  <h2 className="text-xl font-bold text-white mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
+                    <span>📝</span> Description
+                  </h2>
+                  <div className="text-gray-300 leading-relaxed text-sm sm:text-base whitespace-pre-line">
+                    {courseData.description || "No description available"}
+                  </div>
+                </div>
+
+                {/* Course Content / Lectures List */}
+                <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-6 shadow-md">
+                  <div className="flex items-center justify-between mb-4 border-b border-gray-800 pb-2">
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
                       <span>📖</span> Course Content
-                    </h3>
-                    <div className="prose prose-invert max-w-none [&_h1]:text-3xl [&_h2]:text-2xl [&_h3]:text-xl [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-bold [&_p]:text-gray-300 [&_li]:text-gray-300 [&_a]:text-blue-400 hover:[&_a]:text-blue-300">
+                    </h2>
+                    <span className="text-sm text-gray-400 font-medium">
+                      {videos.length} {videos.length === 1 ? 'lecture' : 'lectures'}
+                    </span>
+                  </div>
+
+                  {loadingVideos ? (
+                    <div className="space-y-3 py-4">
+                      <div className="h-10 bg-gray-800/50 animate-pulse rounded border border-gray-800"></div>
+                      <div className="h-10 bg-gray-800/50 animate-pulse rounded border border-gray-800"></div>
+                      <div className="h-10 bg-gray-800/50 animate-pulse rounded border border-gray-800"></div>
+                    </div>
+                  ) : videos.length === 0 ? (
+                    <p className="text-gray-400 text-sm py-4 italic">No lectures uploaded yet for this course.</p>
+                  ) : (
+                    <div className="divide-y divide-gray-800/80">
+                      {videos.map((video, idx) => {
+                        // First lecture is previewable (unlocked), others locked unless enrolled or owner
+                        const isUnlocked = idx === 0 || isEnrolled || isOwner;
+                        return (
+                          <div key={video.videoId || idx} className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0 group">
+                            <div className="flex items-center gap-3">
+                              {isUnlocked ? (
+                                <Play className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                              ) : (
+                                <Lock className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                              )}
+                              <span className={`text-sm ${isUnlocked ? 'text-emerald-400 font-medium' : 'text-gray-400'} group-hover:text-white transition-colors`}>
+                                {video.videoName || video.title}
+                              </span>
+                            </div>
+                            <span className="text-xs text-gray-500 uppercase tracking-wider bg-gray-800/30 px-2 py-0.5 rounded">
+                              {video.videoType || "Video"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Markdown Syllabus Content */}
+                {markdown && (
+                  <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-6 shadow-md overflow-hidden">
+                    <h2 className="text-xl font-bold text-white mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
+                      <span>📖</span> Syllabus
+                    </h2>
+                    <div className="prose prose-invert max-w-none [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-bold [&_p]:text-gray-300 [&_li]:text-gray-300 [&_a]:text-blue-400 hover:[&_a]:text-blue-300">
                       <MDEditor.Markdown
                         source={markdown}
-                        className="font-ubuntu text-white"
+                        className="font-ubuntu text-white bg-transparent"
                       />
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Sidebar - Right Side */}
-              <div className="lg:col-span-1 space-y-6">
-                {/* Course Thumbnail Card */}
-                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden border border-gray-700 shadow-2xl hover:shadow-pink-500/20 transition-shadow">
-                  <div className="relative">
+              {/* Right Column: Sticky Course Card */}
+              <div className="lg:col-span-1">
+                <div className="bg-[#111827]/80 backdrop-blur border border-gray-800 rounded-xl overflow-hidden shadow-xl sticky top-24">
+                  {/* Course Thumbnail */}
+                  <div className="relative aspect-video w-full overflow-hidden bg-gray-900 border-b border-gray-800">
                     <img
-                      src={preview}
+                      src={preview || courseData.thumbnail}
                       alt={courseData.courseName}
-                      className="w-full aspect-video object-cover"
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent pointer-events-none" />
                   </div>
-                  <div className="p-4 space-y-2 bg-gradient-to-b from-gray-800 to-gray-900">
-                    <p className="text-sm text-gray-400">Course by</p>
-                    <p className="font-bold text-lg">{courseData.tutorName}</p>
-                  </div>
-                </div>
 
-                {/* Pricing Card - Sticky */}
-                <div className="sticky top-24 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-gray-700 space-y-6 shadow-2xl">
-                  <div>
-                    <p className="text-gray-400 text-sm mb-2">💰 Pricing Details</p>
-
-                    {courseData.sellingPrice === 0 ? (
-                      <div className="space-y-2">
-                        <p className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-400">
-                          FREE
-                        </p>
-                        <p className="text-sm text-gray-400">No payment required. Access immediately!</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm text-gray-400 mb-1">Original Price</p>
-                          <p className="text-2xl line-through text-gray-500">{courseData.currency}{courseData.originalPrice}</p>
+                  {/* Card Content */}
+                  <div className="p-6 space-y-6">
+                    {/* Price Block */}
+                    <div className="space-y-1">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Course Price</span>
+                      {courseData.sellingPrice === 0 ? (
+                        <div className="text-3xl font-black text-emerald-400">FREE</div>
+                      ) : (
+                        <div className="flex items-baseline gap-2.5">
+                          <span className="text-3xl font-black text-white">
+                            {courseData.currency === "$" || !courseData.currency ? "₹" : courseData.currency}{courseData.sellingPrice}
+                          </span>
+                          {discount > 0 && (
+                            <span className="text-base line-through text-gray-500 font-semibold">
+                              {courseData.currency === "$" || !courseData.currency ? "₹" : courseData.currency}{courseData.originalPrice}
+                            </span>
+                          )}
                         </div>
-                        {discount > 0 && (
-                          <div>
-                            <p className="text-sm text-gray-400 mb-1">Discount</p>
-                            <p className="text-2xl font-bold text-green-400">-{courseData.currency}{Math.round(courseData.originalPrice - courseData.sellingPrice)}</p>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="space-y-3">
+                      {isEnrolled ? (
+                        <div className="w-full p-4 bg-emerald-950/20 rounded-lg border-2 border-emerald-500/30 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 flex-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                            <span className="font-semibold text-emerald-400 text-sm">Enrolled Successfully</span>
                           </div>
-                        )}
-                        <div className="border-t border-gray-700 pt-4">
-                          <p className="text-sm text-gray-400 mb-2">Final Price</p>
-                          <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-400">
-                            {courseData.currency}{courseData.sellingPrice}
-                          </p>
+                          <Switch
+                            isSelected={true}
+                            disabled={isUnenrolling}
+                            isDisabled={isUnenrolling}
+                            color="success"
+                            onChange={handleUnenrollToggle}
+                            classNames={{
+                              base: "flex-shrink-0 cursor-pointer",
+                              wrapper: "group-data-[selected=true]:bg-emerald-500",
+                            }}
+                          />
                         </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="space-y-3 pt-4">
-                    {isEnrolled ? (
-                      <div className="w-full p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg border-2 border-green-300 dark:border-green-600 flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2 flex-1">
-                          <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-                          <span className="font-ubuntu font-semibold text-green-700 dark:text-green-300 text-lg">✅ Enrolled Successfully</span>
-                        </div>
-                        <Switch
-                          isSelected={true}
-                          disabled={isUnenrolling}
-                          isDisabled={isUnenrolling}
-                          color="success"
-                          onChange={handleUnenrollToggle}
-                          classNames={{
-                            base: "flex-shrink-0 cursor-pointer",
-                            wrapper: "group-data-[selected=true]:bg-green-500",
-                          }}
-                        />
-                      </div>
-                    ) : (
+                      ) : (
+                        <Button
+                          onClick={handleEnrollCourse}
+                          disabled={isEnrolling}
+                          className="w-full font-bold text-base py-6 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all shadow-md disabled:opacity-50"
+                        >
+                          {isEnrolling ? "⏳ Enrolling..." : "Purchase Course"}
+                        </Button>
+                      )}
                       <Button
-                        onClick={handleEnrollCourse}
-                        disabled={isEnrolling}
-                        className="w-full font-bold text-lg py-6 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-lg transition-all shadow-lg hover:shadow-blue-500/50 disabled:opacity-50"
-                      >
-                        {isEnrolling ? "⏳ Enrolling..." : "✨ Enroll Now"}
-                      </Button>
-                    )}
-                    <Button
-                      onClick={handleSaveForLater}
-                      disabled={isSavingBookmark}
-                      className={`w-full font-bold text-white py-6 rounded-lg transition-all disabled:opacity-50 ${isBookmarked
-                          ? "bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500"
-                          : "bg-gray-700 hover:bg-gray-600"
+                        onClick={handleSaveForLater}
+                        disabled={isSavingBookmark}
+                        className={`w-full font-bold py-6 rounded-lg transition-all border border-gray-800 disabled:opacity-50 ${
+                          isBookmarked
+                            ? "bg-emerald-950/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-950/30"
+                            : "bg-gray-900 hover:bg-gray-800 text-white"
                         }`}
-                    >
-                      {isSavingBookmark ? "⏳ Saving..." : isBookmarked ? "✅ Saved to Bookmark" : "📌 Save for Later"}
-                    </Button>
-                  </div>
+                      >
+                        {isSavingBookmark ? "⏳ Saving..." : isBookmarked ? "✅ Saved to Bookmarks" : "📌 Save for Later"}
+                      </Button>
+                    </div>
 
-                  {/* Info Badge */}
-                  <div className="text-center pt-4 border-t border-gray-700">
-                    <p className="text-xs text-gray-400">
-                      ✓ Lifetime Access<br />
-                      ✓ Money-back Guarantee
-                    </p>
+                    {/* Meta/Category Info */}
+                    <div className="pt-4 border-t border-gray-800/80 text-xs text-gray-400 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 font-medium">Category:</span>
+                        <span className="text-gray-300 font-semibold">{courseData.courseType}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 font-medium">Creator:</span>
+                        <span className="text-gray-300 font-semibold">{courseData.tutorName}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>

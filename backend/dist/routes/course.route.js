@@ -34,6 +34,7 @@ courseRoute.post("/add-course/redirect", auth_middleware_1.authenticateAdminToke
 courseRoute.put("/update-course/youtube", auth_middleware_1.authenticateAdminToken, upload.single("youtubeCourseImage"), updateCourse_controllers_1.handleUpdateYoutubeCourseFunction);
 courseRoute.put("/update-course/personal", auth_middleware_1.authenticateAdminToken, upload.single("personalCourseImage"), updateCourse_controllers_1.handleUpdatePersonalCourseFunction);
 courseRoute.put("/update-course/redirect", auth_middleware_1.authenticateAdminToken, upload.single("redirectCourseImage"), updateCourse_controllers_1.handleUpdateRedirectCourseFunction);
+courseRoute.patch("/toggle-course-status", auth_middleware_1.authenticateAdminToken, updateCourse_controllers_1.handleToggleCourseStatusFunction);
 courseRoute.post("/delete-course", auth_middleware_1.authenticateAdminToken, deleteCourse_controllers_1.handleDeleteCourseFunction);
 // YouTube Integration Routes
 courseRoute.get("/youtube/all-courses", youtubeSync_controllers_1.handleFetchYouTubeCoursesFunction);

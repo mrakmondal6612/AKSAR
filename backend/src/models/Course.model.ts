@@ -35,6 +35,15 @@ export interface ICourse extends Document {
   enrolledBy?: string[];
   enrolledCount?: number;
   videos?: string[];
+  courseLevel?: string;
+  courseDuration?: string;
+  courseTechStack?: string[];
+  courseContent?: string[];
+  ranking?: number;
+  category?: string;
+  lastUpdated?: Date;
+  startingDate?: Date;
+  endingDate?: Date;
 }
 
 const ratingSchema = new Schema<IRating>(
@@ -68,6 +77,15 @@ const courseSchema = new Schema<ICourse>(
     redirectLink: { type: String, trim: true },
     enrolledBy: [{ type: String, ref: "User" }],
     videos: [{ type: String, ref: "Video" }],
+    courseLevel: { type: String, trim: true },
+    courseDuration: { type: String, trim: true },
+    courseTechStack: [{ type: String }],
+    courseContent: [{ type: String }],
+    ranking: { type: Number },
+    category: { type: String, trim: true },
+    lastUpdated: { type: Date },
+    startingDate: { type: Date },
+    endingDate: { type: Date },
   },
   {
     toJSON: { virtuals: true },

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleUpdateYoutubeCourseFunction = handleUpdateYoutubeCourseFunction;
 exports.handleUpdatePersonalCourseFunction = handleUpdatePersonalCourseFunction;
 exports.handleUpdateRedirectCourseFunction = handleUpdateRedirectCourseFunction;
+exports.handleToggleCourseStatusFunction = handleToggleCourseStatusFunction;
 const cloudinary_config_1 = require("../../utils/cloudinary.config");
 const Course_model_1 = __importDefault(require("../../models/Course.model"));
 // import fs from "fs"
@@ -170,5 +171,27 @@ async function handleUpdateRedirectCourseFunction(req, res) {
     catch (error) {
         console.error("Error updating course:", error);
         res.status(500).json({ success: false, message: "An error occurred while updating the course." });
+    }
+}
+async function handleToggleCourseStatusFunction(req, res) {
+    const { courseId, isVerified } = req.body;
+    if (!courseId) {
+        return res.status(400).json({ success: false, message: "Course ID is required" });
+    }
+    try {
+        const course = await Course_model_1.default.findOne({ courseId });
+        if (!course) {
+            return res.status(404).json({ success: false, message: "Course not found" });
+        }
+        course.isVerified = isVerified;
+        await course.save();
+        return res.status(200).json({
+            success: true,
+            message: `Course ${isVerified ? "activated" : "deactivated"} successfully`,
+        });
+    }
+    catch (error) {
+        console.error("Error toggling course status:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }

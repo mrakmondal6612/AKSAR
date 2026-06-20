@@ -9,10 +9,20 @@ const razorpay_1 = __importDefault(require("razorpay"));
 const crypto_1 = __importDefault(require("crypto"));
 const Course_model_1 = __importDefault(require("../../models/Course.model"));
 const User_model_1 = __importDefault(require("../../models/User.model"));
-const razorpay = new razorpay_1.default({
-    key_id: process.env.RAZORPAY_KEY_ID || "",
-    key_secret: process.env.RAZORPAY_KEY_SECRET || "",
-});
+// Initialize Razorpay lazily to avoid errors if keys are not set
+let razorpay = null;
+const getRazorpayInstance = () => {
+    if (!razorpay) {
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            throw new Error("Razorpay keys not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.");
+        }
+        razorpay = new razorpay_1.default({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET,
+        });
+    }
+    return razorpay;
+};
 async function handleCreateOrderFunction(req, res) {
     const { courseId } = req.body;
     const userId = req.userId;
@@ -21,6 +31,7 @@ async function handleCreateOrderFunction(req, res) {
         return res.status(400).json({ success: false, message: "Missing required fields" });
     }
     try {
+        const razorpayInstance = getRazorpayInstance();
         const course = await Course_model_1.default.findOne({ courseId });
         if (!course) {
             return res.status(404).json({ success: false, message: "Course not found" });
@@ -46,7 +57,7 @@ async function handleCreateOrderFunction(req, res) {
                 userUniqueId: userUniqueId,
             },
         };
-        const order = await razorpay.orders.create(options);
+        const order = await razorpayInstance.orders.create(options);
         return res.status(200).json({
             success: true,
             order,
@@ -68,8 +79,12 @@ async function handleVerifyPaymentFunction(req, res) {
         return res.status(400).json({ success: false, message: "Missing required fields" });
     }
     try {
+        // Get the Razorpay key secret
+        if (!process.env.RAZORPAY_KEY_SECRET) {
+            throw new Error("Razorpay key secret not configured");
+        }
         const generatedSignature = crypto_1.default
-            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "")
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
             .update(orderId + "|" + paymentId)
             .digest("hex");
         if (generatedSignature !== signature) {
