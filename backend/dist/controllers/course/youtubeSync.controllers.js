@@ -20,9 +20,11 @@ async function handleFetchYouTubeCoursesFunction(req, res) {
         const channelHandle = "@BengaliCoder";
         const channelId = await (0, youtube_config_1.getChannelIdFromHandle)(channelHandle);
         if (!channelId) {
-            return res.status(404).json({
-                success: false,
-                message: `Could not find YouTube channel: ${channelHandle}`,
+            return res.status(200).json({
+                success: true,
+                data: [],
+                totalPlaylists: 0,
+                message: `No YouTube playlists found for channel: ${channelHandle}`,
             });
         }
         // Step 2: Get all playlists from the channel
@@ -67,8 +69,11 @@ async function handleFetchYouTubePlaylistVideosFunction(req, res) {
         // Fetch videos from playlist
         const videos = await (0, youtube_config_1.getPlaylistVideos)(playlistId);
         if (!videos || videos.length === 0) {
-            return res.status(404).json({
-                success: false,
+            return res.status(200).json({
+                success: true,
+                playlistId,
+                data: [],
+                totalVideos: 0,
                 message: "No videos found in this playlist",
             });
         }
