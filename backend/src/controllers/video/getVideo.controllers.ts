@@ -17,7 +17,11 @@ export async function handleGetAllVideosOfCourse(req: Request, res: Response) {
         const playlistVideos = await getPlaylistVideos(courseId, 100);
 
         if (!playlistVideos || playlistVideos.length === 0) {
-          return res.status(404).json({ success: false, message: "No videos found for the given course" });
+          return res.status(200).json({
+            success: true,
+            message: "No videos found for the given course",
+            videos: [],
+          });
         }
 
         const transformedPlaylistVideos = playlistVideos.map((video: any) => ({
@@ -48,7 +52,11 @@ export async function handleGetAllVideosOfCourse(req: Request, res: Response) {
         });
       }
 
-      return res.status(404).json({ success: false, message: "No videos found for the given course" });
+      return res.status(200).json({
+        success: true,
+        message: "No videos found for the given course",
+        videos: [],
+      });
     }
 
     // Transform videos based on their type

@@ -18,23 +18,12 @@ const app = (0, express_1.default)();
 const PORT = process.env.PORT || 8080;
 //CORS middleware
 app.use((0, cors_1.default)({
-    origin: (origin, callback) => {
-        const allowedOrigins = [
-            "http://localhost:5173",
-            "http://localhost:5174",
-            "http://localhost:5175",
-            "http://localhost:5176",
-            process.env.PUBLIC_FRONTEND_DOMAIN || ""
-        ].filter(Boolean);
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        }
-        else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
-    optionsSuccessStatus: 200
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    optionsSuccessStatus: 200,
 }));
+app.options("*", (0, cors_1.default)());
 app.use(express_1.default.json());
 app.use(passport_1.default.initialize());
 app.get("/", (req, res) => {

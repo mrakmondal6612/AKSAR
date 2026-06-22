@@ -18,7 +18,11 @@ async function handleGetAllVideosOfCourse(req, res) {
             if (courseId.startsWith("PL")) {
                 const playlistVideos = await (0, youtube_config_1.getPlaylistVideos)(courseId, 100);
                 if (!playlistVideos || playlistVideos.length === 0) {
-                    return res.status(404).json({ success: false, message: "No videos found for the given course" });
+                    return res.status(200).json({
+                        success: true,
+                        message: "No videos found for the given course",
+                        videos: [],
+                    });
                 }
                 const transformedPlaylistVideos = playlistVideos.map((video) => ({
                     videoName: video.snippet.title,
@@ -45,7 +49,11 @@ async function handleGetAllVideosOfCourse(req, res) {
                     videos: transformedPlaylistVideos,
                 });
             }
-            return res.status(404).json({ success: false, message: "No videos found for the given course" });
+            return res.status(200).json({
+                success: true,
+                message: "No videos found for the given course",
+                videos: [],
+            });
         }
         // Transform videos based on their type
         const transformedVideos = videos.map((video) => {

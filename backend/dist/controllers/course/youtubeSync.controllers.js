@@ -20,16 +20,20 @@ async function handleFetchYouTubeCoursesFunction(req, res) {
         const channelHandle = "@BengaliCoder";
         const channelId = await (0, youtube_config_1.getChannelIdFromHandle)(channelHandle);
         if (!channelId) {
-            return res.status(404).json({
-                success: false,
-                message: `Could not find YouTube channel: ${channelHandle}`,
+            return res.status(200).json({
+                success: true,
+                data: [],
+                totalPlaylists: 0,
+                message: `No YouTube playlists found for channel: ${channelHandle}`,
             });
         }
         // Step 2: Get all playlists from the channel
         const playlists = await (0, youtube_config_1.getChannelPlaylists)(channelId);
         if (!playlists || playlists.length === 0) {
-            return res.status(404).json({
-                success: false,
+            return res.status(200).json({
+                success: true,
+                data: [],
+                totalPlaylists: 0,
                 message: "No playlists found in this channel",
             });
         }
@@ -65,8 +69,11 @@ async function handleFetchYouTubePlaylistVideosFunction(req, res) {
         // Fetch videos from playlist
         const videos = await (0, youtube_config_1.getPlaylistVideos)(playlistId);
         if (!videos || videos.length === 0) {
-            return res.status(404).json({
-                success: false,
+            return res.status(200).json({
+                success: true,
+                playlistId,
+                data: [],
+                totalVideos: 0,
                 message: "No videos found in this playlist",
             });
         }
@@ -117,8 +124,11 @@ async function handleSearchYouTubeCoursesFunction(req, res) {
         // Search YouTube for playlists matching the query
         const playlists = await (0, youtube_config_1.searchYouTubePlaylists)(searchQuery, Math.min(parseInt(maxResults) || 20, 50));
         if (!playlists || playlists.length === 0) {
-            return res.status(404).json({
-                success: false,
+            return res.status(200).json({
+                success: true,
+                data: [],
+                searchQuery,
+                totalResults: 0,
                 message: `No playlists found for search: "${searchQuery}"`,
             });
         }
