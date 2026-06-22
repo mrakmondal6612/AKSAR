@@ -23,6 +23,7 @@ app.use((0, cors_1.default)({
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     optionsSuccessStatus: 200,
 }));
+app.options("*", (0, cors_1.default)());
 app.use(express_1.default.json());
 app.use(passport_1.default.initialize());
 app.get("/", (req, res) => {
