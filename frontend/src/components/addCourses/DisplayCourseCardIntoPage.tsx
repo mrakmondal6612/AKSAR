@@ -146,7 +146,7 @@ const DisplayCourseCardIntoPage: React.FC<DisplayCourseCardIntoPageProps> = ({
             ) : (
               <>
                 <span className="text-xl font-libre font-semibold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
-                  {courseData.currency}
+                  {courseData.currency && (courseData.currency.includes("INR") || courseData.currency.includes("₹")) ? "₹" : (courseData.currency === "$" ? "$" : "₹")}
                 </span>
                 <span className="dark:text-violet-100  text-gray-950">
                   {courseData.sellingPrice}

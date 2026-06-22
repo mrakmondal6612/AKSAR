@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Image } from "@nextui-org/react";
 import { COURSE_API, VIDEO_API } from "@/lib/env";
@@ -12,7 +12,7 @@ import { Clock, Users, BarChart, Lock, Play, Trophy, Calendar } from "lucide-rea
 
 const CourseDetailsPage: React.FC = () => {
   const location = useLocation();
-  // navigation not used here; remove to avoid unused variable warnings
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const courseId = queryParams.get("c");
   const [courseData, setCourseData] = useState<any>(null);
@@ -72,6 +72,7 @@ const CourseDetailsPage: React.FC = () => {
   const handleEnrollCourse = async () => {
     if (!userData?.id) {
       ErrorToast("Please log in to enroll in this course");
+      navigate("/login");
       return;
     }
 
@@ -406,22 +407,40 @@ const CourseDetailsPage: React.FC = () => {
               {/* Card Content */}
               <div className="p-6 space-y-6">
                 {/* Price Block */}
-                <div className="space-y-1">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Course Price</span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <span>💰</span> Pricing Details
+                  </div>
                   {courseData.sellingPrice === 0 ? (
                     <div className="text-3xl font-black text-emerald-400">FREE</div>
-                  ) : (
-                    <div className="flex items-baseline gap-2.5">
-                      <span className="text-3xl font-black text-white">
-                        {courseData.currency === "$" || !courseData.currency ? "₹" : courseData.currency}{courseData.sellingPrice}
-                      </span>
-                      {discount > 0 && (
-                        <span className="text-base line-through text-gray-500 font-semibold">
-                          {courseData.currency === "$" || !courseData.currency ? "₹" : courseData.currency}{courseData.originalPrice}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  ) : (() => {
+                    const currencySymbol = courseData.currency && (courseData.currency.includes("INR") || courseData.currency.includes("₹")) ? "₹" : (courseData.currency === "$" ? "$" : "₹");
+                    const savings = courseData.originalPrice - courseData.sellingPrice;
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex items-baseline gap-2.5">
+                          <span className="text-3xl font-black text-white">
+                            {currencySymbol}{courseData.sellingPrice}
+                          </span>
+                          {discount > 0 && (
+                            <span className="text-base line-through text-gray-500 font-semibold">
+                              {currencySymbol}{courseData.originalPrice}
+                            </span>
+                          )}
+                        </div>
+                        {discount > 0 && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="inline-block px-2 py-0.5 rounded-md text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-500">
+                              {discount}% OFF
+                            </span>
+                            <span className="text-sm font-semibold text-emerald-400">
+                              Save {currencySymbol}{savings}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Action Buttons */}
@@ -430,9 +449,9 @@ const CourseDetailsPage: React.FC = () => {
                     <button
                       onClick={handleUnenrollToggle}
                       disabled={isUnenrolling}
-                      className="w-full font-bold text-base py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all shadow-md disabled:opacity-50"
+                      className="w-full font-bold text-base py-4 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-all shadow-md disabled:opacity-50"
                     >
-                      {isUnenrolling ? "⏳ Unenrolling..." : "✓ Enrolled - Click to Unenroll"}
+                      {isUnenrolling ? "⏳ Unenrolling..." : "Already Enrolled"}
                     </button>
                   ) : (
                     <button

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useCallback } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import MDEditor from "@uiw/react-md-editor";
 import { Button, Switch } from "@nextui-org/react";
@@ -19,6 +19,7 @@ import { Clock, Users, BarChart, Lock, Play } from "lucide-react";
 
 const CourseIntroPage: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const courseId = queryParams.get("c");
   const [courseData, setCourseData] = useState<ICourseData>(courseDataTemplate);
@@ -176,6 +177,7 @@ const CourseIntroPage: React.FC = () => {
   const handleEnrollCourse = async () => {
     if (!userData?.id) {
       ErrorToast("Please log in to enroll in this course");
+      navigate("/login");
       return;
     }
 
@@ -599,22 +601,40 @@ const CourseIntroPage: React.FC = () => {
                   {/* Card Content */}
                   <div className="p-6 space-y-6">
                     {/* Price Block */}
-                    <div className="space-y-1">
-                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Course Price</span>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <span>💰</span> Pricing Details
+                      </div>
                       {courseData.sellingPrice === 0 ? (
                         <div className="text-3xl font-black text-emerald-400">FREE</div>
-                      ) : (
-                        <div className="flex items-baseline gap-2.5">
-                          <span className="text-3xl font-black text-white">
-                            {courseData.currency === "$" || !courseData.currency ? "₹" : courseData.currency}{courseData.sellingPrice}
-                          </span>
-                          {discount > 0 && (
-                            <span className="text-base line-through text-gray-500 font-semibold">
-                              {courseData.currency === "$" || !courseData.currency ? "₹" : courseData.currency}{courseData.originalPrice}
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      ) : (() => {
+                        const currencySymbol = courseData.currency && (courseData.currency.includes("INR") || courseData.currency.includes("₹")) ? "₹" : (courseData.currency === "$" ? "$" : "₹");
+                        const savings = courseData.originalPrice - courseData.sellingPrice;
+                        return (
+                          <div className="space-y-2">
+                            <div className="flex items-baseline gap-2.5">
+                              <span className="text-3xl font-black text-white">
+                                {currencySymbol}{courseData.sellingPrice}
+                              </span>
+                              {discount > 0 && (
+                                <span className="text-base line-through text-gray-500 font-semibold">
+                                  {currencySymbol}{courseData.originalPrice}
+                                </span>
+                              )}
+                            </div>
+                            {discount > 0 && (
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="inline-block px-2.5 py-1 rounded-md text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-500">
+                                  {discount}% OFF
+                                </span>
+                                <span className="text-sm font-semibold text-emerald-400">
+                                  Save {currencySymbol}{savings}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Action Buttons */}
