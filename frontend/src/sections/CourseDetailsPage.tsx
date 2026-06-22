@@ -1,18 +1,18 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
-import { Button, Image } from "@nextui-org/react";
+import { Image } from "@nextui-org/react";
 import { COURSE_API, VIDEO_API } from "@/lib/env";
 import { ErrorToast, SuccessToast } from "@/lib/toasts";
 import { useAuthContext } from "@/context/authContext";
 import { getVerifiedToken } from "@/lib/cookieService";
 import { getUserData } from "@/lib/authService";
 import RatingComponent from "@/components/RatingComponent";
-import { Clock, Users, BarChart, Lock, Play, Star, Trophy, Calendar, Award } from "lucide-react";
+import { Clock, Users, BarChart, Lock, Play, Trophy, Calendar } from "lucide-react";
 
 const CourseDetailsPage: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
+  // navigation not used here; remove to avoid unused variable warnings
   const queryParams = new URLSearchParams(location.search);
   const courseId = queryParams.get("c");
   const [courseData, setCourseData] = useState<any>(null);
@@ -125,7 +125,7 @@ const CourseDetailsPage: React.FC = () => {
     }
   };
 
-  const handlePayment = async (amount: number, currency: string) => {
+  const handlePayment = async (_amount: number, _currency: string) => {
     try {
       const jwt = getVerifiedToken();
       const response = await axios.post(

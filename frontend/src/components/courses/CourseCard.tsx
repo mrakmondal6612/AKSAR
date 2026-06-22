@@ -1,5 +1,5 @@
 import FavoriteIcon from "@/Icons/FavoriteIcon";
-import { Button, Image } from "@nextui-org/react";
+import { Image } from "@nextui-org/react";
 import { motion } from "framer-motion";
 import React from "react";
 import { useCourseContext } from "@/context/courseContext";
@@ -43,6 +43,8 @@ const CourseCard: React.FC = () => {
 
   const navigate = useNavigate();
 
+  const dataToRender = (updatedCourseData && updatedCourseData.length > 0) ? updatedCourseData : coursesData;
+
   return (
     <>
       <motion.div
@@ -50,20 +52,8 @@ const CourseCard: React.FC = () => {
         initial="hidden"
         animate="visible"
       >
-<<<<<<< Updated upstream
-        {(() => {
-          const dataToRender = (updatedCourseData && updatedCourseData.length > 0) ? updatedCourseData : coursesData;
-          return dataToRender.length !== 0 ? (
+        {dataToRender.length !== 0 ? (
             dataToRender.map((course: any, i: number) => {
-=======
-        {(updatedCourseData && updatedCourseData.length > 0 ? updatedCourseData : coursesData).length !== 0 ? (
-          (updatedCourseData && updatedCourseData.length > 0 ? updatedCourseData : coursesData).map((course: any, i: number) => {
-            const [gradFrom, gradTo] = getGradientColors(i);
-            const discount = course.originalPrice === course.sellingPrice
-              ? 0
-              : Math.round(((course.originalPrice - course.sellingPrice) / course.originalPrice) * 100);
-
->>>>>>> Stashed changes
             return (
               <motion.div
                 key={course.courseId}
@@ -152,7 +142,6 @@ const CourseCard: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Price Section */}
                   <div className="pt-3 mt-auto border-t border-gray-200 dark:border-gray-800">
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Course Price</p>
                     {course.sellingPrice === 0 ? (
