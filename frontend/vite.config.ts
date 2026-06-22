@@ -22,7 +22,7 @@ export default defineConfig({
           if (!pkg) return 'vendor-other';
 
           const packageName = pkg.startsWith('@') ? pkg.split('/').slice(0, 2).join('/') : pkg.split('/')[0];
-          const coreVendors = new Set(['react', 'react-dom', 'react-router-dom']);
+          const coreVendors = new Set(['react', 'react-dom', 'react-router', 'react-router-dom', '@remix-run/router']);
           const uiVendors = new Set(['@nextui-org/react', '@radix-ui/react-alert-dialog', '@radix-ui/react-avatar', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-hover-card', '@radix-ui/react-label', '@radix-ui/react-popover', '@radix-ui/react-slot', '@radix-ui/react-toast', 'react-toastify']);
           const motionVendors = new Set(['framer-motion', 'gsap', '@gsap/react', 'leva']);
           const threeVendors = new Set(['three', '@react-three/fiber', '@react-three/drei']);
