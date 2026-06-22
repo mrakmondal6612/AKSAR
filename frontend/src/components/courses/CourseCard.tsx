@@ -142,6 +142,7 @@ const CourseCard: React.FC = () => {
                     </div>
                   )}
 
+
                   <div className="pt-3 mt-auto border-t border-gray-200 dark:border-gray-800">
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Course Price</p>
                     {course.sellingPrice === 0 ? (
