@@ -28,7 +28,7 @@ const CourseCard: React.FC = () => {
     [key: string]: boolean;
   }>({});
 
-  const { coursesData } = useCourseContext();
+  const { coursesData, updatedCourseData } = useCourseContext();
 
   const handleCheckboxChange = (courseId: string) => {
     setCheckedItems((prev) => ({
@@ -50,8 +50,20 @@ const CourseCard: React.FC = () => {
         initial="hidden"
         animate="visible"
       >
-        {coursesData.length !== 0 ? (
-          coursesData.map((course: any, i: number) => {
+<<<<<<< Updated upstream
+        {(() => {
+          const dataToRender = (updatedCourseData && updatedCourseData.length > 0) ? updatedCourseData : coursesData;
+          return dataToRender.length !== 0 ? (
+            dataToRender.map((course: any, i: number) => {
+=======
+        {(updatedCourseData && updatedCourseData.length > 0 ? updatedCourseData : coursesData).length !== 0 ? (
+          (updatedCourseData && updatedCourseData.length > 0 ? updatedCourseData : coursesData).map((course: any, i: number) => {
+            const [gradFrom, gradTo] = getGradientColors(i);
+            const discount = course.originalPrice === course.sellingPrice
+              ? 0
+              : Math.round(((course.originalPrice - course.sellingPrice) / course.originalPrice) * 100);
+
+>>>>>>> Stashed changes
             return (
               <motion.div
                 key={course.courseId}
@@ -161,8 +173,8 @@ const CourseCard: React.FC = () => {
                 </div>
               </motion.div>
             );
-          })
-        ) : (
+            })
+          ) : (
           <motion.div
             className="col-span-full text-center py-20"
             initial={{ opacity: 0 }}

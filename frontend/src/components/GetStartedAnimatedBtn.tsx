@@ -2,16 +2,36 @@ import { motion } from 'framer-motion';
 import RightArrowIcon from '../Icons/RightArrowIcon';
 import React from 'react';
 import { useTheme } from '@/context/ThemeProvider';
+import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '@/context/authContext';
 
 interface GetStartedAnimatedBtnProps {
   BtnText: string;
   isDisabled? : boolean;
+  onClick?: () => void;
 }
 
-const GetStartedAnimatedBtn: React.FC<GetStartedAnimatedBtnProps> = ({ BtnText , isDisabled = false }) => {
+const GetStartedAnimatedBtn: React.FC<GetStartedAnimatedBtnProps> = ({ BtnText , isDisabled = false, onClick }) => {
     const {theme} = useTheme();
+    const navigate = useNavigate();
+    const { isLoggedIn } = useAuthContext();
+
+    const handleClick = () => {
+      if (onClick) {
+        onClick();
+      } else {
+        // Default behavior: navigate based on login status
+        if (isLoggedIn) {
+          navigate('/user/dashboard');
+        } else {
+          navigate('/login');
+        }
+      }
+    };
+
   return (
     <motion.button
+      onClick={handleClick}
       whileTap={{ scale: 0.8 }}
       className="sm:w-[40%] w-[60%] sm:py-3 sm:pr-6 py-2 bg-black text-white sm:text-xl text-lg dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all relative font-ubuntu"
       disabled={isDisabled}

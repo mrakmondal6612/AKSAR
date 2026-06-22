@@ -80,7 +80,7 @@ const DashboardRoutes: React.FC = () => {
         {memoizedNavbar}
 
         <main className="flex-1 overflow-auto p-4 bg-white dark:bg-gray-900 scrollbar-custom">
-          <Suspense fallback={<div className="p-4 text-center">Loading...</div>}>
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
             <Routes location={location} key={location.pathname}>
               {routes.map(({ path, element }) => (
                 <Route key={path} path={path} element={

@@ -1,6 +1,7 @@
 import CourseCard from "@/components/courses/CourseCard";
 import React from "react";
 import CoursesNavbar from "@/components/courses/CoursesNav";
+import SemesterFilter from "@/components/courses/SemesterFilter";
 import Seperator from "@/components/Seperator";
 import { CourseContextProvider } from "@/context/courseContext";
 import { motion } from "framer-motion";
@@ -26,6 +27,7 @@ const Courses: React.FC = () => {
         </motion.div>
 
         <CoursesNavbar />
+        <SemesterFilter />
         <Seperator text="COURSES" />
         <CourseCard />
         {/* <VideoCard /> */}
