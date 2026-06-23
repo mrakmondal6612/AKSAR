@@ -256,25 +256,25 @@ const CourseDetailsPage: React.FC = () => {
   return (
     <div className="w-full min-h-screen bg-[#0b0f19] text-white">
       {/* Course Top Section */}
-      <div className="w-full bg-[#0d1321] border-b border-gray-800/80 pt-24 sm:pt-28 md:pt-36 pb-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-4">
+      <div className="w-full bg-[#0d1321] border-b border-gray-800/80 pt-24 sm:pt-28 md:pt-36 pb-8 sm:pb-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4">
           {/* Course Name */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
             {courseData.courseName}
           </h1>
 
           {/* Course Tagline */}
-          <p className="text-base sm:text-lg text-gray-300 max-w-4xl leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-4xl leading-relaxed">
             {courseData.description || "Learn from scratch"}
           </p>
 
           {/* Course Creator */}
-          <div className="text-sm sm:text-base text-gray-400">
+          <div className="text-xs sm:text-sm md:text-base text-gray-400">
             Created By <span className="text-blue-400 hover:underline cursor-pointer font-semibold">{courseData.tutorName}</span>
           </div>
 
           {/* Metadata Row */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-400 pt-2">
+          <div className="flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2 sm:gap-y-3 text-xs sm:text-sm text-gray-400 pt-2">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-gray-500" />
               <span>Last updated {courseData.lastUpdated ? new Date(courseData.lastUpdated).toLocaleDateString('en-GB') : new Date(courseData.createdAt || Date.now()).toLocaleDateString('en-GB')}</span>
@@ -313,15 +313,15 @@ const CourseDetailsPage: React.FC = () => {
       </div>
 
       {/* Two Column Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
           
           {/* Left Column: Description & Course Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             
             {/* Description Card */}
-            <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-6 shadow-md">
-              <h2 className="text-xl font-bold text-white mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
+            <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-4 sm:p-6 shadow-md">
+              <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
                 <span>📝</span> Description
               </h2>
               <div className="text-gray-300 leading-relaxed text-sm sm:text-base whitespace-pre-line">
@@ -330,12 +330,12 @@ const CourseDetailsPage: React.FC = () => {
             </div>
 
             {/* Course Content / Lectures List */}
-            <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-6 shadow-md">
-              <div className="flex items-center justify-between mb-4 border-b border-gray-800 pb-2">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-4 sm:p-6 shadow-md">
+              <div className="flex items-center justify-between mb-3 sm:mb-4 border-b border-gray-800 pb-2">
+                <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                   <span>📖</span> Course Content
                 </h2>
-                <span className="text-sm text-gray-400 font-medium">
+                <span className="text-xs sm:text-sm text-gray-400 font-medium">
                   {lectureCount} {lectureCount === 1 ? 'lecture' : 'lectures'}
                 </span>
               </div>
@@ -393,7 +393,7 @@ const CourseDetailsPage: React.FC = () => {
 
           {/* Right Column: Sticky Course Card */}
           <div className="lg:col-span-1">
-            <div className="bg-[#111827]/80 backdrop-blur border border-gray-800 rounded-xl overflow-hidden shadow-xl sticky top-24">
+            <div className="bg-[#111827]/80 backdrop-blur border border-gray-800 rounded-xl overflow-hidden shadow-xl sticky top-20 lg:top-24">
               {/* Course Thumbnail */}
               <div className="relative aspect-video w-full overflow-hidden bg-gray-900 border-b border-gray-800">
                 <Image
@@ -405,7 +405,7 @@ const CourseDetailsPage: React.FC = () => {
               </div>
 
               {/* Card Content */}
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Price Block */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">

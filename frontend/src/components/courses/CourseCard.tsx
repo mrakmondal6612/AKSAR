@@ -48,7 +48,7 @@ const CourseCard: React.FC = () => {
   return (
     <>
       <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 py-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6 py-4"
         initial="hidden"
         animate="visible"
       >
@@ -64,7 +64,7 @@ const CourseCard: React.FC = () => {
                 onClick={() => navigate(`/course-details?c=${course.courseId}`)}
               >
                 {/* Course Image Container */}
-                <div className="relative w-full h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                <div className="relative w-full h-36 sm:h-40 md:h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
                   <Image
                     src={course.thumbnail}
                     alt="course-img"
