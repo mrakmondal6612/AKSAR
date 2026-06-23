@@ -31,11 +31,11 @@ const Navbar: React.FC<NavbarProps> = ({ isUserLoggedIn }) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-lg max-w-7xl mx-auto px-4 sm:px-6">
-      <div className="max-w-full sm:py-2">
-        <div className="flex xl:flex-row flex-col justify-between xl:pt-4 xl:pb-1 py-3 sm:py-4 items-center font-noto-sans xl:gap-20 md:gap-5 gap-3">
-        <div className="flex justify-start py-2 items-center font-noto-sans relative w-full sm:w-auto pr-16 sm:pr-0">
-          <Logo theme={theme} className="w-40 sm:w-52 flex-shrink-0" />
+    <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-lg max-w-7xl mx-auto px-3 sm:px-6">
+      <div className="max-w-full">
+        <div className="flex xl:flex-row flex-col justify-between xl:pt-4 xl:pb-1 py-2 sm:py-4 items-center font-noto-sans xl:gap-20 md:gap-5 gap-2">
+        <div className="flex justify-between items-center font-noto-sans relative w-full sm:w-auto pr-12 sm:pr-0">
+          <Logo theme={theme} className="w-32 sm:w-40 md:w-52 flex-shrink-0" />
           <button
             onClick={toggleMenu}
             className={`${styles["menu-btn"]} sm:hidden flex ${theme === 'dark' ? 'dark' : 'light'}`}
@@ -54,14 +54,14 @@ const Navbar: React.FC<NavbarProps> = ({ isUserLoggedIn }) => {
               <>
                 <motion.button
                   whileTap={{ scale: 0.8 }}
-                  className="hidden sm:block py-2 px-4 sm:px-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all border-2 border-purple-500 text-sm sm:text-base"
+                  className="hidden sm:block py-1.5 sm:py-2 px-3 sm:px-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all border-2 border-purple-500 text-xs sm:text-sm md:text-base"
                   onClick={handleSignupClick}
                 >
                   Signup
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.8 }}
-                  className="py-2 px-3 sm:px-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all border-2 border-purple-500 text-xs sm:text-base"
+                  className="py-1.5 sm:py-2 px-2 sm:px-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all border-2 border-purple-500 text-xs sm:text-sm md:text-base"
                   onClick={handleLoginClick}
                 >
                   Login
@@ -71,14 +71,14 @@ const Navbar: React.FC<NavbarProps> = ({ isUserLoggedIn }) => {
               <>
                 <motion.button
                   whileTap={{ scale: 0.8 }}
-                  className="hidden sm:flex py-2 px-4 sm:px-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all gap-2 border-2 border-purple-500 text-sm sm:text-base"
+                  className="hidden sm:flex py-1.5 sm:py-2 px-3 sm:px-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all gap-2 border-2 border-purple-500 text-xs sm:text-sm md:text-base"
                   onClick={() => navigate("/user/dashboard")}
                 >
                   <span className="font-ubuntu">Dashboard</span>
                   {theme === "dark" ? (
-                    <DashboardIcon fillColor="black" size={20} />
+                    <DashboardIcon fillColor="black" size={18} />
                   ) : (
-                    <DashboardIcon fillColor="white" size={20} />
+                    <DashboardIcon fillColor="white" size={18} />
                   )}
                 </motion.button>
                 <AvatarComponent
