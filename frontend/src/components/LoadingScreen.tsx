@@ -18,7 +18,7 @@ const LoadingScreen: React.FC = () => {
       >
         {/* Logo */}
         <motion.img
-          src={theme === "dark" ? "/images/dark-mode-logo.png" : "/images/light-mode-logo.png"}
+          src={theme === "dark" ? "/images/course-yuga-logo-dark-mode-5.png" : "/images/course-yuga-logo-dark-mode-5.png"}
           alt="AKSAR Logo"
           className="w-32 h-32 md:w-48 md:h-48 object-contain"
           animate={{
