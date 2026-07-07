@@ -16,15 +16,15 @@ export async function handleChangeRoleRequestFunction(req: AuthenticatedRequest 
     }
     const { newRole } = req.body;
 
-    if(newRole !== "ADMIN"){
-        return res.status(400).json({ success: false, message: "New role not provided" });
+    if(newRole !== "INSTRUCTOR"){
+        return res.status(400).json({ success: false, message: "Invalid role" });
     }
 
     try {
         const user = await User.findById(userId);
-        
-        if(user.role === "ADMIN"){
-            return res.status(400).json({success: false, message: "user already a admin"});
+
+        if(user.role === "INSTRUCTOR" || user.role === "ADMIN" || user.role === "MASTER"){
+            return res.status(400).json({success: false, message: "Role cannot be changed"});
         }
 
         user.role = newRole;
@@ -38,9 +38,10 @@ export async function handleChangeRoleRequestFunction(req: AuthenticatedRequest 
             }
         );
 
-        return res.status(200).json({success: true, message: "You are now ADMIN", token});
+        return res.status(200).json({success: true, message: "You are now an INSTRUCTOR", token});
 
     } catch (error){
+        console.error("Change role error:", error);
         return res.status(500).json({success: false, message: "Internal server error"});
     }
 }

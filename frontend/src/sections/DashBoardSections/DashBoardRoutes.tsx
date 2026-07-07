@@ -24,6 +24,8 @@ const History = lazy(() => import("./History"));
 
 const CoursesManagement = lazy(() => import("@/sections/DashBoardSections/CoursesManagement"));
 
+const BecomeInstructorPage = lazy(() => import("@/sections/DashBoardSections/BecomeInstructorPage"));
+
 const DashboardRoutes: React.FC = () => {
   const { userData } = useAuthContext();
   const location = useLocation();
@@ -41,6 +43,7 @@ const DashboardRoutes: React.FC = () => {
       { path: "/view-course", element: <ViewCourse /> },
       { path: "/video-player", element: <VideoPlaySection /> },
       { path: "/test", element: <UnderMaintenancePage pageName="Test" /> },
+      { path: "/become-instructor", element: <BecomeInstructorPage /> },
     ];
 
     if (userData.role === "ADMIN" || userData.role === "MASTER") {

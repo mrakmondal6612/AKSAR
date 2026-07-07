@@ -22,7 +22,7 @@ const ChangeRole: React.FC<ChangeRoleProps> = ({ theme }) => {
         )
       }
     >
-      {["Student", "Admin"].map((role, index) => (
+      {["Student", "Instructor"].map((role, index) => (
         <SelectItem key={index} className="w-full">
           {role}
         </SelectItem>
