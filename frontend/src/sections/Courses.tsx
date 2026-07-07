@@ -1,7 +1,7 @@
 import CourseCard from "@/components/courses/CourseCard";
 import React from "react";
 import CoursesNavbar from "@/components/courses/CoursesNav";
-import SemesterFilter from "@/components/courses/SemesterFilter";
+// SemesterFilter removed per request (All/S1.. and Technical only removed)
 import Seperator from "@/components/Seperator";
 import { CourseContextProvider } from "@/context/courseContext";
 import { motion } from "framer-motion";
@@ -27,7 +27,7 @@ const Courses: React.FC = () => {
         </motion.div>
 
         <CoursesNavbar />
-        <SemesterFilter />
+        {/* SemesterFilter removed: semester buttons and technical-only checkbox hidden */}
         <Seperator text="COURSES" />
         <CourseCard />
         {/* <VideoCard /> */}

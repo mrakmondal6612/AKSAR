@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Custom regex for validations
 const userNameRegex = /^[a-zA-Z0-9_]{3,16}$/;
-const firstNameRegex = /^[a-zA-Z]{2,}$/;
+const firstNameRegex = /^[A-Za-z]+(?: [A-Za-z]+)*$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -13,13 +13,13 @@ export const signupSchema = z
       .string()
       .min(2, { message: "First name must be at least 2 characters long" })
       .regex(firstNameRegex, {
-        message: "First name should only contain letters",
+        message: "First name should only contain letters and spaces",
       }),
     lastName: z
       .string()
       .min(2, { message: "Last name must be at least 2 characters long" })
       .regex(firstNameRegex, {
-        message: "Last name should only contain letters",
+        message: "Last name should only contain letters and spaces",
       }),
     userName: z
       .string()

@@ -13,23 +13,42 @@ export const sendEmailVerification = async (
     const emailVerificationOTP = Math.floor(
       100000 + Math.random() * 900000
     ).toString();
-    
+
     console.log(`📧 Email Verification OTP for ${email}: ${emailVerificationOTP}`);
 
-    const emailUser = await User.findByIdAndUpdate(userId, {
-      $set: {
-        emailVerificationOTP: emailVerificationOTP,
-        emailVerificationOTPExpires: Date.now() + 600000,
-        emailSendTime: Date.now() + 120000,
+    const emailUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          emailVerificationOTP: emailVerificationOTP,
+          emailVerificationOTPExpires: Date.now() + 600000,
+          emailSendTime: Date.now() + 120000,
+        },
       },
-    }, { new: true });
-    
+      { new: true }
+    );
+
     console.log(`✅ OTP Saved to DB: ${emailUser?.emailVerificationOTP}`);
 
-    return { success: true, message: "OTP logged to console" };
+    const mailOptions = {
+      from: `"Course Yuga" <${process.env.PUBLIC_GMAIL}>`,
+      to: email,
+      subject: "Verify your email",
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #222;">
+          <h2>Email Verification OTP</h2>
+          <p>Your verification code is: <strong>${emailVerificationOTP}</strong></p>
+          <p>This code will expire in 10 minutes.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return { success: true, message: "Verification OTP sent successfully" };
   } catch (error) {
-    console.log(error);
-    throw new Error();
+    console.error("Error sending verification email:", error);
+    throw new Error("Failed to send verification email");
   }
 };
 

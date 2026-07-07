@@ -152,6 +152,17 @@ const LoginModal: React.FC = () => {
               Login
             </motion.button>
 
+            <p className="text-center text-sm text-gray-500 dark:text-gray-300 mt-3">
+              Don't have an account?{' '}
+              <button
+                type="button"
+                className="text-purple-500 hover:underline"
+                onClick={() => navigate("/signup")}
+              >
+                Sign up
+              </button>
+            </p>
+
             <div className="flex items-center justify-center my-4">
               <div className="h-px bg-gray-300 w-full"></div>
               <span className="px-3 text-sm text-gray-500">OR</span>

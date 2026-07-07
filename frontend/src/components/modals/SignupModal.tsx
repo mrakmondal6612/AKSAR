@@ -32,6 +32,7 @@ const SignupModal: React.FC = () => {
 
   const {
     register,
+    watch,
     getValues,
     handleSubmit,
     formState: { errors },
@@ -39,7 +40,7 @@ const SignupModal: React.FC = () => {
     resolver: zodResolver(signupSchema),
   });
   
-
+  const passwordValue = watch("password", "");
   const formData = getValues();
 
   const onSubmit = async (data: SignupFormData) => {
@@ -188,6 +189,25 @@ const SignupModal: React.FC = () => {
                     {errors.password.message}
                   </p>
                 )}
+                {(passwordValue.length > 0 || errors.password) && (
+                  <div className="mt-2 text-xs text-gray-600 dark:text-gray-300 space-y-1 w-[90%] text-end">
+                    <p className={passwordValue.length >= 8 ? "text-green-500" : "text-red-500"}>
+                      • At least 8 characters
+                    </p>
+                    <p className={/[a-z]/.test(passwordValue) ? "text-green-500" : "text-red-500"}>
+                      • Lowercase letter
+                    </p>
+                    <p className={/[A-Z]/.test(passwordValue) ? "text-green-500" : "text-red-500"}>
+                      • Uppercase letter
+                    </p>
+                    <p className={/\d/.test(passwordValue) ? "text-green-500" : "text-red-500"}>
+                      • Number
+                    </p>
+                    <p className={/[@$!%*?&]/.test(passwordValue) ? "text-green-500" : "text-red-500"}>
+                      • Special character (@$!%*?&)
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Confirm password field with visibility toggle */}
@@ -197,7 +217,7 @@ const SignupModal: React.FC = () => {
                   type={confirmPasswordVisible ? "text" : "password"}
                   placeholder="Confirm Password"
                   className={`p-3 border rounded-md w-full text-black dark:text-white ${
-                    errors.password ? "border-red-500" : ""
+                    errors.confirmPassword ? "border-red-500" : ""
                   }`}
                   {...register("confirmPassword")}
                 />
@@ -229,6 +249,17 @@ const SignupModal: React.FC = () => {
             >
               Sign Up
             </motion.button>
+
+            <p className="text-center text-sm text-gray-500 dark:text-gray-300 mt-3">
+              Already have an account?{' '}
+              <button
+                type="button"
+                className="text-purple-500 hover:underline"
+                onClick={() => navigate("/login")}
+              >
+                Log in
+              </button>
+            </p>
 
             <div className="flex items-center justify-center my-4">
               <div className="h-px bg-gray-300 w-full"></div>
