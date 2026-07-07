@@ -42,7 +42,6 @@ export const CourseContextProvider: React.FC<{ children: ReactNode }> = ({ child
       } catch (error) {
         console.log("No database courses found, trying YouTube courses...");
       }
-
       // Fetch YouTube courses (with error handling)
       try {
         const youtubeCoursesResponse = await axios.get(`${COURSE_API}/youtube/all-courses`);

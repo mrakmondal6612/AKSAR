@@ -1,0 +1,43 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const uploadCourse_controllers_1 = require("../controllers/course/uploadCourse.controllers");
+// import { upload } from "../middleware/multer.middleware";
+const getCourses_controllers_1 = require("../controllers/course/getCourses.controllers");
+const updateCourse_controllers_1 = require("../controllers/course/updateCourse.controllers");
+const enrolledCourses_controllers_1 = require("../controllers/course/enrolledCourses.controllers");
+const deleteCourse_controllers_1 = require("../controllers/course/deleteCourse.controllers");
+const youtubeSync_controllers_1 = require("../controllers/course/youtubeSync.controllers");
+const razorpay_controllers_1 = require("../controllers/payment/razorpay.controllers");
+const multer_1 = __importDefault(require("multer"));
+const courseRoute = express_1.default.Router();
+const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage() });
+// courseRoute.get("/" , handleFetchAllCourseFunction);
+// courseRoute.get("/:slug" , handleSelectedCourseFunction);
+courseRoute.post("/get-course", getCourses_controllers_1.handleFetchCourseByIdFunction);
+courseRoute.get("/get-course-filter", getCourses_controllers_1.handleFetchAllCoursesAsPerParams);
+courseRoute.get("/get-course-search", getCourses_controllers_1.handleGetCourseBySearchParams);
+courseRoute.get("/get-all-courses", getCourses_controllers_1.handleFetchAllCoursesFunction);
+courseRoute.get("/get-admin-courses", auth_middleware_1.authenticateAdminToken, getCourses_controllers_1.handleGetCoursesByUserIdFunction);
+courseRoute.get("/get-user-enrolled-courses", auth_middleware_1.authenticateToken, enrolledCourses_controllers_1.handleGetAllCoursesEnrolledByUser);
+courseRoute.post("/enroll-in-course", auth_middleware_1.authenticateToken, enrolledCourses_controllers_1.handleUserEnrolledCourseFunction);
+// Razorpay Payment Routes
+courseRoute.post("/payment/create-order", auth_middleware_1.authenticateToken, razorpay_controllers_1.handleCreateOrderFunction);
+courseRoute.post("/payment/verify", auth_middleware_1.authenticateToken, razorpay_controllers_1.handleVerifyPaymentFunction);
+courseRoute.post("/add-course/youtube", auth_middleware_1.authenticateAdminToken, upload.single("youtubeCourseImage"), uploadCourse_controllers_1.handleAddNewYoutubeCourseFunction);
+courseRoute.post("/add-course/personal", auth_middleware_1.authenticateAdminToken, upload.single("personalCourseImage"), uploadCourse_controllers_1.handleAddNewPersonalCourseFunction);
+courseRoute.post("/add-course/redirect", auth_middleware_1.authenticateAdminToken, upload.single("redirectCourseImage"), uploadCourse_controllers_1.handleAddNewRedirectCourseFunction);
+courseRoute.put("/update-course/youtube", auth_middleware_1.authenticateAdminToken, upload.single("youtubeCourseImage"), updateCourse_controllers_1.handleUpdateYoutubeCourseFunction);
+courseRoute.put("/update-course/personal", auth_middleware_1.authenticateAdminToken, upload.single("personalCourseImage"), updateCourse_controllers_1.handleUpdatePersonalCourseFunction);
+courseRoute.put("/update-course/redirect", auth_middleware_1.authenticateAdminToken, upload.single("redirectCourseImage"), updateCourse_controllers_1.handleUpdateRedirectCourseFunction);
+courseRoute.patch("/toggle-course-status", auth_middleware_1.authenticateAdminToken, updateCourse_controllers_1.handleToggleCourseStatusFunction);
+courseRoute.post("/delete-course", auth_middleware_1.authenticateAdminToken, deleteCourse_controllers_1.handleDeleteCourseFunction);
+// YouTube Integration Routes
+courseRoute.get("/youtube/all-courses", youtubeSync_controllers_1.handleFetchYouTubeCoursesFunction);
+courseRoute.get("/youtube/search", youtubeSync_controllers_1.handleSearchYouTubeCoursesFunction);
+courseRoute.get("/youtube/playlist-videos/:playlistId", youtubeSync_controllers_1.handleFetchYouTubePlaylistVideosFunction);
+exports.default = courseRoute;
