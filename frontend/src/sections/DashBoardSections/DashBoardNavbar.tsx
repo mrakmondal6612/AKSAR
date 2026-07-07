@@ -7,6 +7,7 @@ import {
   DashBoardNavItems2,
   DashBoardNavItems3,
   DashBoardAdminNavItems,
+  DashBoardInstructorNavItems,
 } from "@/constants";
 import { useAuthContext } from "@/context/authContext";
 import { useTheme } from "@/context/ThemeProvider";
@@ -146,6 +147,34 @@ const DashBoardNavbar: React.FC = () => {
                 </div>
               </div>
           ) : <></>}
+
+          {(userData.role === "STUDENT" || userData.role === "INSTRUCTOR") && (
+              <div className="flex flex-col gap-2">
+                {isSideBarOpen && (
+                    <Seperator text="Instructor section" className="my-2 w-full" />
+                )}
+                <nav className={`space-y-0 w-full ${isSideBarOpen ? "px-0" : "px-1"}`}>
+                  {DashBoardInstructorNavItems
+                      .filter(item =>
+                          userData.role === "INSTRUCTOR"
+                              ? item.title !== "Become Instructor"
+                              : item.title === "Become Instructor"
+                      )
+                      .map((item, index) => (
+                          <DashboardNavItem
+                              key={index}
+                              index={index}
+                              theme={theme}
+                              Icon={item.Icon}
+                              title={item.title}
+                              link={item.link}
+                              isActive={item.link.split("/")[2] === locName}
+                              isSideBarOpen={isSideBarOpen}
+                          />
+                      ))}
+                </nav>
+              </div>
+          )}
 
           <div className="flex justify-around items-start flex-col w-full relative space-y-1">
             <nav className={`space-y-0 ${isSideBarOpen ? "px-0" : "px-1"}`}>

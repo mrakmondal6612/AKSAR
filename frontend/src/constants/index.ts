@@ -18,6 +18,7 @@ import CertificateIcon from "@/Icons/CertificateIcon";
 import CommunityIcon from "@/Icons/CommunityIcon";
 import TeacherIcon from "@/Icons/TeacherIcon";
 import StudentsIcon from "@/Icons/StudentsIcon.tsx";
+import InstructorIcon from "@/Icons/TeacherIcon";
 
 
 export const NavItemsArray = [
@@ -579,6 +580,13 @@ export const DashBoardAdminNavItems: DashboardNavItemProps[] = [
     { theme: "dark", Icon: CertificateIcon, title: "Certificate", link: "/user/admin/certificate" },
     { theme: "dark", Icon: CommunityIcon, title: "Community Manage", link: "/user/admin/community" },
     { theme: "dark", Icon: TeacherIcon, title: "Teacher Management", link: "/user/admin/teacher-management" },
+]
+
+export const DashBoardInstructorNavItems: DashboardNavItemProps[] = [
+    { theme: "dark", Icon: AddIcon, title: "Add Courses", link: "/user/add-courses" },
+    { theme: "dark", Icon: AddIcon, title: "Add Videos", link: "/user/add-videos" },
+    { theme: "dark", Icon: AddIcon, title: "Add Tests", link: "/user/add-tests" },
+    { theme: "dark", Icon: InstructorIcon, title: "Become Instructor", link: "/user/become-instructor" },
 ]
 
   export const defaultUserData: UserDataProps = {
