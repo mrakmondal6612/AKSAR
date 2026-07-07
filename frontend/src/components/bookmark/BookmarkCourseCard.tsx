@@ -108,6 +108,7 @@ const BookmarkCourseCard: React.FC<CourseInterface> = ({ courseIds }) => {
         ErrorToast(response.data.message);
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
     } catch (error: any) {
       ErrorToast(error?.response.data.message || "Something went wrong");
     }

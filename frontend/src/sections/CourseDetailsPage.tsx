@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Image } from "@nextui-org/react";
 import { COURSE_API, VIDEO_API } from "@/lib/env";
@@ -12,7 +12,7 @@ import { Clock, Users, BarChart, Lock, Play, Trophy, Calendar } from "lucide-rea
 
 const CourseDetailsPage: React.FC = () => {
   const location = useLocation();
-  // navigation not used here; remove to avoid unused variable warnings
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const courseId = queryParams.get("c");
   const [courseData, setCourseData] = useState<any>(null);
@@ -72,6 +72,7 @@ const CourseDetailsPage: React.FC = () => {
   const handleEnrollCourse = async () => {
     if (!userData?.id) {
       ErrorToast("Please log in to enroll in this course");
+      navigate("/login");
       return;
     }
 
@@ -255,25 +256,25 @@ const CourseDetailsPage: React.FC = () => {
   return (
     <div className="w-full min-h-screen bg-[#0b0f19] text-white">
       {/* Course Top Section */}
-      <div className="w-full bg-[#0d1321] border-b border-gray-800/80 pt-24 sm:pt-28 md:pt-36 pb-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-4">
+      <div className="w-full bg-[#0d1321] border-b border-gray-800/80 pt-24 sm:pt-28 md:pt-36 pb-8 sm:pb-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4">
           {/* Course Name */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
             {courseData.courseName}
           </h1>
 
           {/* Course Tagline */}
-          <p className="text-base sm:text-lg text-gray-300 max-w-4xl leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-4xl leading-relaxed">
             {courseData.description || "Learn from scratch"}
           </p>
 
           {/* Course Creator */}
-          <div className="text-sm sm:text-base text-gray-400">
+          <div className="text-xs sm:text-sm md:text-base text-gray-400">
             Created By <span className="text-blue-400 hover:underline cursor-pointer font-semibold">{courseData.tutorName}</span>
           </div>
 
           {/* Metadata Row */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-400 pt-2">
+          <div className="flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2 sm:gap-y-3 text-xs sm:text-sm text-gray-400 pt-2">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-gray-500" />
               <span>Last updated {courseData.lastUpdated ? new Date(courseData.lastUpdated).toLocaleDateString('en-GB') : new Date(courseData.createdAt || Date.now()).toLocaleDateString('en-GB')}</span>
@@ -312,15 +313,15 @@ const CourseDetailsPage: React.FC = () => {
       </div>
 
       {/* Two Column Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
           
           {/* Left Column: Description & Course Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             
             {/* Description Card */}
-            <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-6 shadow-md">
-              <h2 className="text-xl font-bold text-white mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
+            <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-4 sm:p-6 shadow-md">
+              <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
                 <span>📝</span> Description
               </h2>
               <div className="text-gray-300 leading-relaxed text-sm sm:text-base whitespace-pre-line">
@@ -329,12 +330,12 @@ const CourseDetailsPage: React.FC = () => {
             </div>
 
             {/* Course Content / Lectures List */}
-            <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-6 shadow-md">
-              <div className="flex items-center justify-between mb-4 border-b border-gray-800 pb-2">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <div className="bg-[#111827]/70 backdrop-blur border border-gray-800 rounded-xl p-4 sm:p-6 shadow-md">
+              <div className="flex items-center justify-between mb-3 sm:mb-4 border-b border-gray-800 pb-2">
+                <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                   <span>📖</span> Course Content
                 </h2>
-                <span className="text-sm text-gray-400 font-medium">
+                <span className="text-xs sm:text-sm text-gray-400 font-medium">
                   {lectureCount} {lectureCount === 1 ? 'lecture' : 'lectures'}
                 </span>
               </div>
@@ -392,7 +393,7 @@ const CourseDetailsPage: React.FC = () => {
 
           {/* Right Column: Sticky Course Card */}
           <div className="lg:col-span-1">
-            <div className="bg-[#111827]/80 backdrop-blur border border-gray-800 rounded-xl overflow-hidden shadow-xl sticky top-24">
+            <div className="bg-[#111827]/80 backdrop-blur border border-gray-800 rounded-xl overflow-hidden shadow-xl sticky top-20 lg:top-24">
               {/* Course Thumbnail */}
               <div className="relative aspect-video w-full overflow-hidden bg-gray-900 border-b border-gray-800">
                 <Image
@@ -404,24 +405,42 @@ const CourseDetailsPage: React.FC = () => {
               </div>
 
               {/* Card Content */}
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Price Block */}
-                <div className="space-y-1">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Course Price</span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <span>💰</span> Pricing Details
+                  </div>
                   {courseData.sellingPrice === 0 ? (
                     <div className="text-3xl font-black text-emerald-400">FREE</div>
-                  ) : (
-                    <div className="flex items-baseline gap-2.5">
-                      <span className="text-3xl font-black text-white">
-                        {courseData.currency === "$" || !courseData.currency ? "₹" : courseData.currency}{courseData.sellingPrice}
-                      </span>
-                      {discount > 0 && (
-                        <span className="text-base line-through text-gray-500 font-semibold">
-                          {courseData.currency === "$" || !courseData.currency ? "₹" : courseData.currency}{courseData.originalPrice}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  ) : (() => {
+                    const currencySymbol = courseData.currency && (courseData.currency.includes("INR") || courseData.currency.includes("₹")) ? "₹" : (courseData.currency === "$" ? "$" : "₹");
+                    const savings = courseData.originalPrice - courseData.sellingPrice;
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex items-baseline gap-2.5">
+                          <span className="text-3xl font-black text-white">
+                            {currencySymbol}{courseData.sellingPrice}
+                          </span>
+                          {discount > 0 && (
+                            <span className="text-base line-through text-gray-500 font-semibold">
+                              {currencySymbol}{courseData.originalPrice}
+                            </span>
+                          )}
+                        </div>
+                        {discount > 0 && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="inline-block px-2 py-0.5 rounded-md text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-500">
+                              {discount}% OFF
+                            </span>
+                            <span className="text-sm font-semibold text-emerald-400">
+                              Save {currencySymbol}{savings}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Action Buttons */}
@@ -430,9 +449,9 @@ const CourseDetailsPage: React.FC = () => {
                     <button
                       onClick={handleUnenrollToggle}
                       disabled={isUnenrolling}
-                      className="w-full font-bold text-base py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all shadow-md disabled:opacity-50"
+                      className="w-full font-bold text-base py-4 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-all shadow-md disabled:opacity-50"
                     >
-                      {isUnenrolling ? "⏳ Unenrolling..." : "✓ Enrolled - Click to Unenroll"}
+                      {isUnenrolling ? "⏳ Unenrolling..." : "Already Enrolled"}
                     </button>
                   ) : (
                     <button

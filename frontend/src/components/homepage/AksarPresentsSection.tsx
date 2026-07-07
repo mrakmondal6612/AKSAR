@@ -101,7 +101,7 @@ const AksarPresentsSection: React.FC = () => {
               <motion.div
                 key={course.courseId}
                 variants={cardVariants}
-                className="group relative h-full flex flex-col bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-800"
+                className="group relative h-full flex flex-col bg-[#1e293b] rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-slate-800"
                 whileHover={{ y: -4 }}
                 onClick={() => navigate(`/course-details?c=${course.courseId}`)}
               >
@@ -136,53 +136,54 @@ const AksarPresentsSection: React.FC = () => {
                 </div>
 
                 {/* Content Container */}
-                <div className="p-4 space-y-3 flex flex-col flex-grow">
+                <div className="p-4 space-y-3 flex flex-col flex-grow bg-[#1e293b]">
                   {/* Title */}
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-1">
+                  <h2 className="text-lg font-bold text-white line-clamp-1">
                     {course.courseName}
                   </h2>
 
                   {/* Description */}
-                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                  <p className="text-sm text-slate-400 line-clamp-2">
                     {course.description}
                   </p>
 
-                  {/* Creator Info */}
-                  <div className="flex items-center gap-3 pt-2">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
-                      {getTutorInitial(course.tutorName || "")}
+                  {/* Creator Info & Level Badge */}
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-md shrink-0 font-ubuntu">
+                        {getTutorInitial(course.tutorName || "")}
+                      </div>
+                      <p className="text-sm font-semibold text-slate-300">{course.tutorName || "Instructor"}</p>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{course.tutorName || "Instructor"}</p>
-                    </div>
-                  </div>
-
-                  {/* Course Level Badge */}
-                  {course.courseLevel && (
-                    <div className="flex items-center gap-2">
-                      <span className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-full">
+                    {course.courseLevel && (
+                      <span className="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full font-ubuntu">
                         {course.courseLevel}
                       </span>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {/* Price Section */}
-                  <div className="pt-3 mt-auto border-t border-gray-200 dark:border-gray-800">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Course Price</p>
-                    {course.sellingPrice === 0 ? (
-                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">FREE</p>
-                    ) : (
-                      <div className="flex items-baseline gap-2">
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                          {course.currency === "$" || !course.currency ? "₹" : course.currency}{course.sellingPrice}
-                        </p>
-                        {course.originalPrice > course.sellingPrice && (
-                          <p className="text-sm text-gray-500 line-through">
-                            {course.currency === "$" || !course.currency ? "₹" : course.currency}{course.originalPrice}
-                          </p>
-                        )}
-                      </div>
-                    )}
+                  <div className="pt-3 mt-auto border-t border-slate-800 flex items-center justify-between">
+                    <span className="text-sm font-bold text-slate-200">Course Price</span>
+                    <div className="flex items-center gap-2">
+                      {course.sellingPrice === 0 ? (
+                        <span className="text-lg font-bold text-green-400">FREE</span>
+                      ) : (() => {
+                        const currencySymbol = course.currency && (course.currency.includes("INR") || course.currency.includes("₹")) ? "₹" : (course.currency === "$" ? "$" : "₹");
+                        return (
+                          <>
+                            {course.originalPrice > course.sellingPrice && (
+                              <span className="text-xs text-slate-500 line-through">
+                                {currencySymbol}{course.originalPrice}
+                              </span>
+                            )}
+                            <span className="text-lg font-bold text-white">
+                              {currencySymbol}{course.sellingPrice}
+                            </span>
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
                 </div>
               </motion.div>

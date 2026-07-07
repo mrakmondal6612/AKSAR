@@ -400,6 +400,18 @@
     background-color: rgba(0, 0, 0, 0.9); /* Consistent dark background */
    }
 
+/* Make images and media responsive by default */
+img, picture, video, .responsive-media {
+        max-width: 100%;
+        height: auto;
+        display: block;
+}
+
+/* Ensure object-fit behaves consistently for media elements */
+img, video {
+        object-fit: contain;
+}
+
   
 @keyframes wave-animation {
     0% {

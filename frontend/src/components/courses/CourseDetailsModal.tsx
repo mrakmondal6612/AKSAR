@@ -117,18 +117,35 @@ const CourseDetailsModal: React.FC<CourseDetailsModalProps> = ({
                       <p className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-teal-400 to-blue-500">
                         FREE
                       </p>
-                    ) : (
-                      <div>
-                        <p className="text-2xl font-bold text-white">
-                          {course.currency} {course.sellingPrice}
-                        </p>
-                        {course.originalPrice > course.sellingPrice && (
-                          <p className="text-sm text-gray-500 line-through">
-                            {course.currency} {course.originalPrice}
-                          </p>
-                        )}
-                      </div>
-                    )}
+                    ) : (() => {
+                      const currencySymbol = course.currency && (course.currency.includes("INR") || course.currency.includes("₹")) ? "₹" : (course.currency === "$" ? "$" : "₹");
+                      const discount = Math.round(((course.originalPrice - course.sellingPrice) / course.originalPrice) * 100);
+                      const savings = course.originalPrice - course.sellingPrice;
+                      return (
+                        <div className="space-y-1.5">
+                          <div className="flex items-baseline gap-2.5">
+                            <p className="text-2xl font-bold text-white">
+                              {currencySymbol}{course.sellingPrice}
+                            </p>
+                            {course.originalPrice > course.sellingPrice && (
+                              <p className="text-sm text-gray-500 line-through">
+                                {currencySymbol}{course.originalPrice}
+                              </p>
+                            )}
+                          </div>
+                          {course.originalPrice > course.sellingPrice && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="inline-block px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-semibold bg-red-500/10 border border-red-500/20 text-red-500">
+                                {discount}% OFF
+                              </span>
+                              <span className="text-[11px] sm:text-xs font-semibold text-green-400">
+                                Save {currencySymbol}{savings}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 

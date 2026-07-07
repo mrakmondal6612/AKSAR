@@ -10,18 +10,18 @@ import { motion } from "framer-motion";
 const Courses: React.FC = () => {
   return (
     <CourseContextProvider>
-      <section className="max-w-7xl mx-auto flex-col flex xl:pt-24 md:pt-56 pt-28 px-5">
+      <section className="max-w-7xl mx-auto flex-col flex xl:pt-24 md:pt-56 pt-28 px-4 sm:px-5 md:px-6">
         {/* Hero Header */}
         <motion.div
-          className="text-center mb-8"
+          className="text-center mb-6 md:mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 mb-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 mb-3">
             Explore Courses
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-4">
             Discover premium courses to master new skills and advance your career
           </p>
         </motion.div>

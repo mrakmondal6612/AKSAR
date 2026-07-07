@@ -331,14 +331,21 @@ const CoursesManagement: React.FC = () => {
                                 </p>
 
                                 <div className="flex items-center gap-4 flex-wrap">
-                  <span className="text-base font-bold font-ubuntu bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
-                    {course.currency}{course.sellingPrice}
-                  </span>
-                                    {course.originalPrice > course.sellingPrice && (
-                                        <span className="text-sm text-gray-400 line-through font-ubuntu">
-                      {course.currency}{course.originalPrice}
-                    </span>
-                                    )}
+                                  {(() => {
+                                    const currencySymbol = course.currency && (course.currency.includes("INR") || course.currency.includes("₹")) ? "₹" : (course.currency === "$" ? "$" : "₹");
+                                    return (
+                                      <>
+                                        <span className="text-base font-bold font-ubuntu bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
+                                          {currencySymbol}{course.sellingPrice}
+                                        </span>
+                                        {course.originalPrice > course.sellingPrice && (
+                                          <span className="text-sm text-gray-400 line-through font-ubuntu">
+                                            {currencySymbol}{course.originalPrice}
+                                          </span>
+                                        )}
+                                      </>
+                                    );
+                                  })()}
                                     {course.enrolledCount !== undefined && (
                                         <span className="text-xs text-gray-500 dark:text-gray-400 font-ubuntu">
                       {course.enrolledCount} enrolled
