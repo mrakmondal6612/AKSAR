@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, CheckCircle, XCircle, Shield, Award, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSearchParams } from "react-router-dom";
 import { verifyCertificatePublic } from "@/lib/testService";
 
 const CertificateVerification: React.FC = () => {
@@ -12,19 +13,16 @@ const CertificateVerification: React.FC = () => {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!certificateId.trim()) {
-      setError("Please enter a certificate ID");
-      return;
-    }
+  const [searchParams] = useSearchParams();
+  const urlId = searchParams.get("id");
 
+  const verifyId = async (id: string) => {
     try {
       setLoading(true);
       setError(null);
       setResult(null);
       
-      const response = await verifyCertificatePublic(certificateId.trim());
+      const response = await verifyCertificatePublic(id.trim());
       setResult(response);
     } catch (err: any) {
       setError(err.response?.data?.message || "Certificate verification failed");
@@ -33,6 +31,23 @@ const CertificateVerification: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!certificateId.trim()) {
+      setError("Please enter a certificate ID");
+      return;
+    }
+    await verifyId(certificateId);
+  };
+
+  useEffect(() => {
+    if (urlId) {
+      const cleanId = urlId.trim();
+      setCertificateId(cleanId);
+      verifyId(cleanId);
+    }
+  }, [urlId]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {

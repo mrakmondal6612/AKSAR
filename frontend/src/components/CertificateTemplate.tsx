@@ -1,228 +1,442 @@
 import React from "react";
-import { Award, Calendar, Shield, CheckCircle, Share2, QrCode } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
 interface CertificateTemplateProps {
   certificate: {
     marksheetId: string;
-    user: {
-      firstName: string;
-      lastName: string;
-    };
-    course: {
-      courseName: string;
-    };
-    test?: {
-      title: string;
-    };
+    user: { firstName: string; lastName: string };
+    course: { courseName: string };
+    test?: { title: string };
     grade: string;
     percentage: number;
     completionDate: string;
     issuedDate: string;
-    skillsDemonstrated?: string[];
     certificateType: string;
   };
 }
 
 const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  /* ── Helpers ─────────────────────────────────────────────── */
+  const fmt = (d: string) => {
+    if (!d) return "DD MMM YYYY";
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return "DD MMM YYYY";
+    const M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${String(dt.getDate()).padStart(2,"0")} ${M[dt.getMonth()]} ${dt.getFullYear()}`;
   };
 
-  const getCertificateTitle = () => {
-    switch (certificate.certificateType) {
-      case "COURSE_COMPLETE":
-        return "Certificate of Completion";
-      case "TEST_RESULT":
-        return "Certificate of Achievement";
-      case "OTHERS":
-        return "Certificate of Excellence";
-      default:
-        return "Certificate";
-    }
+  const url = () =>
+    `${window.location.origin}/verify-certificate?id=${certificate.marksheetId}`;
+
+  const sid = () => {
+    const n = certificate.user.firstName.substring(0,3).toUpperCase().padEnd(3,"X");
+    const h = (certificate.marksheetId ?? "0000").slice(-4).toUpperCase();
+    return `STU-${n}${h}`;
   };
 
-  const getCertificateColor = () => {
-    switch (certificate.certificateType) {
-      case "COURSE_COMPLETE":
-        return "from-emerald-500 via-teal-600 to-cyan-700";
-      case "TEST_RESULT":
-        return "from-amber-500 via-orange-600 to-red-700";
-      case "OTHERS":
-        return "from-violet-500 via-purple-600 to-indigo-700";
-      default:
-        return "from-emerald-500 via-teal-600 to-cyan-700";
-    }
+  const cid = () => {
+    const src = certificate.test?.title ?? certificate.course?.courseName ?? "CRS";
+    const n = src.substring(0,3).toUpperCase().padEnd(3,"X");
+    const h = (certificate.marksheetId ?? "0000").slice(0,4).toUpperCase();
+    return `CRS-${n}${h}`;
   };
 
-  const getCertificateShape = () => {
-    switch (certificate.certificateType) {
-      case "COURSE_COMPLETE":
-        return "rounded-t-3xl rounded-b-2xl";
-      case "TEST_RESULT":
-        return "rounded-t-2xl rounded-b-3xl";
-      case "OTHERS":
-        return "rounded-3xl";
-      default:
-        return "rounded-t-3xl rounded-b-2xl";
-    }
+  const certNo = () => {
+    const y = certificate.issuedDate
+      ? new Date(certificate.issuedDate).getFullYear()
+      : new Date().getFullYear();
+    const h = (certificate.marksheetId ?? "00000000").slice(-8).toUpperCase();
+    return `AKSAR-${y}-${h}`;
   };
 
-  const getVerificationUrl = () => {
-    return `${window.location.origin}/verify-certificate?id=${certificate.marksheetId}`;
+  const subtitle = () => {
+    if (certificate.certificateType === "TEST_RESULT") return "OF ACHIEVEMENT";
+    if (certificate.certificateType === "OTHERS")      return "OF EXCELLENCE";
+    return "OF COMPLETION";
   };
+
+  const name   = `${certificate.user.firstName} ${certificate.user.lastName}`;
+  const course = certificate.test?.title ?? certificate.course?.courseName ?? "Course Name";
+
+  /* ── Palette (matches original template) ─────────────────── */
+  const BLUE      = "#1565e0";   // bright royal blue
+  const GOLD      = "#c8900a";   // gold accent
+  const NAVY      = "#0b1e45";   // dark navy headings
+  const NAME_BLUE = "#1a52c8";   // blue for cursive name
+  const CRS_BLUE  = "#1d4ed8";   // blue for course name
+  const GRAY      = "#6b7280";   // secondary text
+  const BGPAPER   = "#f6f8ff";   // light bluish-white background
+
+  /* ── SVG border path (shared) ────────────────────────────── */
+  const borderPath = `
+    M 158 52
+    C 262 -6, 366 90, 500 52
+    C 634 90, 738 -6, 842 52
+    Q 876 118, 948 150
+    Q 910 400, 948 650
+    Q 876 682, 842 748
+    C 738 806, 634 710, 500 748
+    C 366 710, 262 806, 158 748
+    Q 124 682, 52 650
+    Q 90 400, 52 150
+    Q 124 118, 158 52 Z
+  `;
 
   return (
-    <div className={`w-full max-w-3xl md:max-w-4xl mx-auto bg-white shadow-2xl overflow-hidden ${getCertificateShape()}`}>
-      {/* Decorative Border */}
-      <div className={`bg-gradient-to-r ${getCertificateColor()} h-2 md:h-6`}></div>
-      
-      {/* Header */}
-      <div className={`bg-gradient-to-br ${getCertificateColor()} p-4 md:p-6 relative overflow-hidden`}>
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
-        </div>
-        <div className="relative flex items-center justify-center mb-2 md:mb-3">
-          <img
-            src="/images/dark-mode-logo.png"
-            alt="AKSAR Logo"
-            className="h-12 w-auto md:h-16 object-contain drop-shadow-lg"
-          />
-        </div>
-        <div className="relative text-center">
-          <p className="text-[10px] md:text-xs text-white/90 tracking-widest uppercase font-medium">Professional Learning Platform</p>
-        </div>
-      </div>
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        maxWidth: "920px",
+        margin: "0 auto",
+        aspectRatio: "5 / 4",
+        overflow: "hidden",
+        /* container queries so cqw units work */
+        containerType: "inline-size",
+      }}
+    >
+      {/* ── Google Fonts ─────────────────────────────────────── */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@700;800&family=Montserrat:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+        .c-cur  { font-family:'Great Vibes',cursive; }
+        .c-ser  { font-family:'Playfair Display',Georgia,serif; }
+        .c-bod  { font-family:'Montserrat',sans-serif; }
+        .c-sel  { user-select:text; pointer-events:auto; }
+      `}</style>
 
-      {/* Certificate Title */}
-      <div className="text-center py-2 md:py-4 px-3 md:px-6 bg-gradient-to-b from-white to-gray-50">
-        <div className={`inline-block px-4 md:px-8 py-1.5 md:py-3 bg-gradient-to-r ${getCertificateColor()} rounded-2xl shadow-lg mb-2 md:mb-3 transform hover:scale-105 transition-transform`}>
-          <h2 className="text-sm md:text-2xl font-bold text-white tracking-wide">{getCertificateTitle()}</h2>
-        </div>
-      </div>
+      {/* ══════════════════════ SVG BACKGROUND ══════════════════════ */}
+      <svg
+        viewBox="0 0 1000 800"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="none"
+        style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none" }}
+      >
+        <defs>
+          <linearGradient id="cPaper" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+            <stop offset="0%"   stopColor={BGPAPER} />
+            <stop offset="100%" stopColor="#edf1ff" />
+          </linearGradient>
+          <linearGradient id="cGold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stopColor="#f9e07a" />
+            <stop offset="28%"  stopColor={GOLD} />
+            <stop offset="65%"  stopColor="#f9e07a" />
+            <stop offset="100%" stopColor="#a87208" />
+          </linearGradient>
+          <pattern id="cDots" x="0" y="0" width="11" height="11" patternUnits="userSpaceOnUse">
+            <circle cx="2.5" cy="2.5" r="1.4" fill={BLUE} opacity="0.22" />
+          </pattern>
+        </defs>
 
-      {/* Student Name */}
-      <div className="text-center py-4 md:py-6 px-3 md:px-6 bg-gradient-to-b from-white to-gray-50 relative">
-        <div className="absolute inset-0 opacity-5">
-          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gradient-to-r ${getCertificateColor()} rounded-full blur-3xl`}></div>
-        </div>
-        <p className="text-gray-600 text-xs md:text-base mb-2 md:mb-3 font-medium">This certificate is proudly presented to</p>
-        <h3 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2">
-          {certificate.user.firstName} {certificate.user.lastName}
-        </h3>
-        <div className={`w-12 md:w-24 h-1 bg-gradient-to-r ${getCertificateColor()} mx-auto rounded-full`}></div>
-      </div>
+        {/* Paper background */}
+        <rect width="1000" height="800" fill="url(#cPaper)" />
 
-      {/* Course/Test Information */}
-      <div className="text-center py-4 md:py-6 px-3 md:px-6 bg-white">
-        <p className="text-gray-600 text-xs md:text-base mb-2 md:mb-3 font-medium">For successfully completing</p>
-        <div className={`inline-block px-4 md:px-8 py-2 md:py-4 bg-gradient-to-r ${getCertificateColor()} bg-opacity-10 rounded-2xl`}>
-          <h4 className="text-base md:text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-1">
-            {certificate.test ? certificate.test.title : certificate.course.courseName}
-          </h4>
-          {certificate.test && (
-            <p className="text-gray-600 text-xs md:text-sm font-medium">Course: {certificate.course.courseName}</p>
-          )}
-        </div>
-      </div>
+        {/* Water-ripple concentric circles — TL */}
+        {[140,190,240,290,340,390,440,490,540,590,640].map(r=>(
+          <circle key={`tl${r}`} cx="0" cy="0" r={r}
+            fill="none" stroke={BLUE} strokeWidth="0.75" strokeOpacity="0.05" />
+        ))}
+        {/* Water-ripple concentric circles — TR */}
+        {[140,190,240,290,340,390,440,490,540,590,640].map(r=>(
+          <circle key={`tr${r}`} cx="1000" cy="0" r={r}
+            fill="none" stroke={BLUE} strokeWidth="0.75" strokeOpacity="0.05" />
+        ))}
 
-      {/* Performance Details */}
-      <div className="grid grid-cols-3 gap-2 md:gap-6 py-4 md:py-6 px-3 md:px-6 bg-gradient-to-b from-gray-50 to-white">
-        <div className="text-center p-3 md:p-6 bg-white rounded-2xl shadow-xl border-2 border-transparent hover:border-opacity-50 transition-all">
-          <div className={`w-10 h-10 md:w-14 md:h-14 bg-gradient-to-r ${getCertificateColor()} rounded-2xl flex items-center justify-center mx-auto mb-2 md:mb-3 shadow-lg transform rotate-3`}>
-            <Calendar className="h-5 w-5 md:h-7 md:w-7 text-white" />
+        {/* Corner dot grids (outside the border) */}
+        <rect x="10"  y="10"  width="88" height="88" fill="url(#cDots)" />
+        <rect x="902" y="10"  width="88" height="88" fill="url(#cDots)" />
+        <rect x="10"  y="702" width="88" height="88" fill="url(#cDots)" />
+        <rect x="902" y="702" width="88" height="88" fill="url(#cDots)" />
+
+        {/* White fill + thick blue outer border */}
+        <path d={borderPath} fill="#ffffff" stroke={BLUE} strokeWidth="13" strokeLinejoin="round" />
+
+        {/* Gold inner accent (scaled slightly inward) */}
+        <path d={borderPath} fill="none"
+          stroke="url(#cGold)" strokeWidth="2.4" strokeLinejoin="round"
+          transform="scale(0.9838)" style={{ transformOrigin:"500px 400px" }} />
+
+        {/* Blue hairline inner accent */}
+        <path d={borderPath} fill="none"
+          stroke={BLUE} strokeWidth="0.75" strokeOpacity="0.28" strokeLinejoin="round"
+          transform="scale(0.975)" style={{ transformOrigin:"500px 400px" }} />
+      </svg>
+
+      {/* ══════════════════════ HTML CONTENT ══════════════════════ */}
+      <div
+        className="c-bod"
+        style={{
+          position:"absolute", inset:0,
+          display:"flex", flexDirection:"column",
+          alignItems:"center", justifyContent:"space-between",
+          padding:"4.5cqw 9cqw 3.2cqw",
+          boxSizing:"border-box",
+          pointerEvents:"none",
+        }}
+      >
+
+        {/* ── AKSAR Logo + Brand ── */}
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0 }}>
+          {/* Orbital logo */}
+          <div style={{ width:"6.2cqw", height:"6.2cqw" }}>
+            <svg viewBox="0 0 100 100" style={{ width:"100%", height:"100%" }}>
+              <ellipse cx="50" cy="50" rx="47" ry="13" fill="none" stroke="#5ba4f5" strokeWidth="1.7"
+                transform="rotate(-20 50 50)" />
+              <ellipse cx="50" cy="50" rx="47" ry="13" fill="none" stroke="#5ba4f5" strokeWidth="1.7"
+                transform="rotate(40 50 50)" />
+              <ellipse cx="50" cy="50" rx="47" ry="13" fill="none" stroke="#5ba4f5" strokeWidth="1.7"
+                transform="rotate(100 50 50)" />
+              <circle cx="50" cy="50" r="22" fill={BLUE} />
+              <text x="50" y="57" textAnchor="middle"
+                fontFamily="'Playfair Display',Georgia,serif"
+                fontSize="21" fontWeight="bold" fill="white">A</text>
+            </svg>
           </div>
-          <p className="text-[10px] md:text-xs text-gray-600 mb-1 font-medium">Completed</p>
-          <p className="font-bold text-gray-800 text-xs md:text-base">{formatDate(certificate.completionDate)}</p>
+          {/* AKSAR text – italic blue */}
+          <span
+            className="c-bod"
+            style={{
+              fontStyle:"italic", fontSize:"1.85cqw", fontWeight:600,
+              color:BLUE, letterSpacing:"0.22em",
+              marginTop:"0.2cqw", lineHeight:1,
+            }}
+          >
+            AKSAR
+          </span>
         </div>
-        <div className="text-center p-3 md:p-6 bg-white rounded-2xl shadow-xl border-2 border-transparent hover:border-opacity-50 transition-all">
-          <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-2 md:mb-3 shadow-lg transform -rotate-3">
-            <Shield className="h-5 w-5 md:h-7 md:w-7 text-white" />
-          </div>
-          <p className="text-[10px] md:text-xs text-gray-600 mb-1 font-medium">Grade</p>
-          <p className="font-bold text-gray-800 text-xl md:text-3xl">{certificate.grade}</p>
-        </div>
-        <div className="text-center p-3 md:p-6 bg-white rounded-2xl shadow-xl border-2 border-transparent hover:border-opacity-50 transition-all">
-          <div className="w-10 h-10 md:w-14 md:h-14 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-2 md:mb-3 shadow-lg transform rotate-3">
-            <CheckCircle className="h-5 w-5 md:h-7 md:w-7 text-white" />
-          </div>
-          <p className="text-[10px] md:text-xs text-gray-600 mb-1 font-medium">Score</p>
-          <p className="font-bold text-gray-800 text-xl md:text-3xl">{certificate.percentage.toFixed(0)}%</p>
-        </div>
-      </div>
 
-      {/* Skills Demonstrated */}
-      {certificate.skillsDemonstrated && certificate.skillsDemonstrated.length > 0 && (
-        <div className="py-3 md:py-5 px-3 md:px-6 bg-white">
-          <p className="text-[10px] md:text-xs text-gray-600 mb-2 md:mb-3 text-center font-semibold uppercase tracking-wide">Skills Demonstrated</p>
-          <div className="flex flex-wrap justify-center gap-1.5 md:gap-3">
-            {certificate.skillsDemonstrated.map((skill, index) => (
-              <span
-                key={index}
-                className={`px-3 py-1 md:px-5 md:py-2 bg-gradient-to-r ${getCertificateColor()} bg-opacity-10 text-gray-800 rounded-xl text-[10px] md:text-xs font-semibold border-2 border-opacity-20 shadow-md hover:shadow-lg transition-all`}
-              >
-                {skill}
-              </span>
-            ))}
+        {/* ── "CERTIFICATE" heading ── */}
+        <div style={{ textAlign:"center", flexShrink:0 }}>
+          <h1 className="c-ser" style={{
+            fontSize:"5.3cqw", color:NAVY,
+            letterSpacing:"0.05em", margin:0,
+            lineHeight:1, fontWeight:800,
+          }}>
+            CERTIFICATE
+          </h1>
+
+          {/* — OF COMPLETION — */}
+          <div style={{
+            display:"flex", alignItems:"center", justifyContent:"center",
+            gap:"1.4cqw", marginTop:"0.55cqw",
+          }}>
+            <div style={{ height:"1.5px", width:"7cqw",
+              background:`linear-gradient(to right,transparent,${GOLD})` }} />
+            <span className="c-bod" style={{
+              fontSize:"1.48cqw", color:GOLD,
+              fontWeight:700, letterSpacing:"0.36em",
+              lineHeight:1, whiteSpace:"nowrap",
+            }}>
+              {subtitle()}
+            </span>
+            <div style={{ height:"1.5px", width:"7cqw",
+              background:`linear-gradient(to left,transparent,${GOLD})` }} />
           </div>
         </div>
-      )}
 
-      {/* Certificate ID and Date */}
-      <div className="flex flex-col md:flex-row justify-between items-center py-4 md:py-6 px-3 md:px-6 bg-gradient-to-b from-gray-50 to-white border-t-2 border-gray-100 gap-3 md:gap-0">
-        <div className="text-center md:text-left">
-          <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 font-semibold">Certificate ID</p>
-          <p className="font-mono text-xs md:text-sm text-gray-800 bg-white px-3 py-1.5 rounded-xl shadow-inner border border-gray-200">{certificate.marksheetId}</p>
-        </div>
-        <div className="text-center">
-          <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-r ${getCertificateColor()} rounded-3xl flex items-center justify-center shadow-2xl transform rotate-6 hover:rotate-0 transition-transform`}>
-            <Award className="h-6 w-6 md:h-10 md:w-10 text-white drop-shadow-lg" />
+        {/* ── Body: certify text + name + course ── */}
+        <div style={{
+          textAlign:"center", flex:1,
+          display:"flex", flexDirection:"column",
+          alignItems:"center", justifyContent:"center",
+          width:"100%", padding:"0.4cqw 0",
+        }}>
+
+          {/* Top diamond flourish */}
+          <div style={{ display:"flex", alignItems:"center", gap:"0.7cqw", marginBottom:"0.45cqw" }}>
+            <div style={{ width:"3.2cqw", height:"1px", background:GOLD }} />
+            <div style={{ width:"0.7cqw", height:"0.7cqw", background:GOLD, transform:"rotate(45deg)" }} />
+            <div style={{ width:"3.2cqw", height:"1px", background:GOLD }} />
           </div>
-        </div>
-        <div className="text-center md:text-right">
-          <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 font-semibold">Issued Date</p>
-          <p className="text-xs md:text-sm text-gray-800 font-bold bg-white px-3 py-1.5 rounded-xl shadow-inner border border-gray-200">{formatDate(certificate.issuedDate)}</p>
-        </div>
-      </div>
 
-      {/* QR Code Section */}
-      <div className="py-3 md:py-5 px-3 md:px-6 bg-white border-t border-gray-100">
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
-          <div className="text-center md:text-left">
-            <div className="flex items-center gap-2 mb-2">
-              <QrCode className="h-4 w-4 text-gray-600" />
-              <p className="text-xs font-semibold text-gray-700">Scan to Verify</p>
+          <p className="c-bod" style={{
+            fontSize:"1.2cqw", color:GRAY,
+            fontStyle:"italic", letterSpacing:"0.05em",
+            margin:0, lineHeight:1,
+          }}>
+            This is to certify that
+          </p>
+
+          {/* ★ STUDENT NAME – dynamic */}
+          <h2 className="c-cur c-sel" style={{
+            fontSize:"5.5cqw", color:NAME_BLUE,
+            margin:"0.15cqw 0 0", lineHeight:1.05,
+            overflow:"hidden", textOverflow:"ellipsis",
+            whiteSpace:"nowrap", maxWidth:"90%",
+          }}>
+            {name}
+          </h2>
+
+          {/* Gold line + diamond divider */}
+          <div style={{
+            position:"relative", width:"52%",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            margin:"0.5cqw 0",
+          }}>
+            <div style={{
+              height:"1px", width:"100%",
+              background:`linear-gradient(to right,transparent,${GOLD} 28%,${GOLD} 72%,transparent)`,
+            }} />
+            <div style={{
+              position:"absolute",
+              width:"0.75cqw", height:"0.75cqw",
+              background:GOLD, transform:"rotate(45deg)",
+            }} />
+          </div>
+
+          <p className="c-bod" style={{
+            fontSize:"1.2cqw", color:GRAY,
+            fontStyle:"italic", letterSpacing:"0.05em",
+            margin:0, lineHeight:1,
+          }}>
+            has successfully completed the course
+          </p>
+
+          {/* ★ COURSE NAME – dynamic */}
+          <h3 className="c-bod c-sel" style={{
+            fontSize:"2.45cqw", color:CRS_BLUE,
+            fontWeight:700, margin:"0.3cqw 0 0",
+            lineHeight:1.2, overflow:"hidden",
+            textOverflow:"ellipsis", whiteSpace:"nowrap",
+            maxWidth:"90%", letterSpacing:"0.02em",
+          }}>
+            {course}
+          </h3>
+        </div>
+
+        {/* ── 4-Column Date / ID Grid – dynamic ── */}
+        <div style={{
+          display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr",
+          width:"100%", flexShrink:0,
+        }}>
+          {[
+            { label:"Start Date",  val: fmt(certificate.issuedDate),    sep:true  },
+            { label:"End Date",    val: fmt(certificate.completionDate), sep:true  },
+            { label:"Student ID",  val: sid(),                           sep:true  },
+            { label:"Course ID",   val: cid(),                           sep:false },
+          ].map(({ label, val, sep }) => (
+            <div key={label} className="c-sel" style={{
+              textAlign:"center",
+              borderRight: sep ? "1px solid rgba(200,144,10,0.35)" : "none",
+              padding:"0.4cqw 0",
+            }}>
+              <div className="c-bod" style={{
+                fontSize:"1.05cqw", color:GRAY,
+                fontWeight:600, letterSpacing:"0.1em",
+                textTransform:"uppercase",
+              }}>
+                {label}
+              </div>
+              <div className="c-bod c-sel" style={{
+                fontSize:"1.28cqw", color:"#1e293b",
+                fontWeight:700, marginTop:"0.25cqw",
+                whiteSpace:"nowrap",
+              }}>
+                {val}
+              </div>
             </div>
-            <p className="text-[10px] text-gray-500 max-w-xs">
-              Scan this QR code to verify the authenticity of this certificate on the AKSAR platform.
-            </p>
+          ))}
+        </div>
+
+        {/* ── Footer: Grade | Medal | QR ── */}
+        <div style={{
+          display:"flex", alignItems:"flex-end",
+          justifyContent:"space-between",
+          width:"100%", flexShrink:0,
+          marginTop:"0.6cqw",
+        }}>
+
+          {/* ★ Grade Badge – dynamic */}
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", width:"11cqw" }}>
+            <div style={{
+              width:"7.5cqw", height:"7.5cqw",
+              borderRadius:"50%",
+              border:"2px dotted #c8900a",
+              display:"flex", flexDirection:"column",
+              alignItems:"center", justifyContent:"center",
+            }}>
+              <span className="c-bod" style={{
+                fontSize:"0.82cqw", color:GRAY,
+                fontWeight:700, letterSpacing:"0.18em",
+                textTransform:"uppercase", lineHeight:1,
+              }}>
+                GRADE
+              </span>
+              <span className="c-bod c-sel" style={{
+                fontSize:"2.3cqw", color:"#1e3a8a",
+                fontWeight:700, lineHeight:1,
+                marginTop:"0.1cqw",
+              }}>
+                {certificate.grade}
+              </span>
+            </div>
           </div>
-          <div className="bg-white p-2 rounded-xl shadow-lg border-2 border-gray-100">
+
+          {/* Gold Rosette Medal – certificateStiker.png */}
+          <div style={{ flex:1, display:"flex", justifyContent:"center", alignItems:"flex-end" }}>
             <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(getVerificationUrl())}&bgcolor=ffffff&color=000000`}
-              alt="Certificate Verification QR Code"
-              className="w-24 h-24 md:w-32 md:h-32"
+              src="/images/certificateStiker.png"
+              alt="Gold Medal"
+              style={{
+                width:"9.5cqw", height:"9.5cqw",
+                objectFit:"contain",
+                userSelect:"none", pointerEvents:"none",
+              }}
             />
           </div>
-        </div>
-      </div>
 
-      {/* Footer */}
-      <div className={`bg-gradient-to-r ${getCertificateColor()} py-2 md:py-4 px-3 md:px-6 relative overflow-hidden`}>
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
+          {/* ★ QR Code – dynamic */}
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", width:"11cqw" }}>
+            <div style={{
+              background:"#fff",
+              border:"1px solid rgba(200,144,10,0.3)",
+              borderRadius:"3px",
+              padding:"0.45cqw",
+              display:"inline-flex",
+              pointerEvents:"auto",
+            }}>
+              <QRCodeSVG
+                value={url()}
+                size={100}
+                bgColor="#ffffff"
+                fgColor="#000000"
+                level="L"
+                includeMargin={false}
+                style={{ width:"6.8cqw", height:"6.8cqw" }}
+              />
+            </div>
+            <span className="c-bod" style={{
+              fontSize:"0.82cqw", color:GRAY,
+              fontWeight:600, marginTop:"0.4cqw",
+              letterSpacing:"0.08em", textTransform:"uppercase",
+              whiteSpace:"nowrap", lineHeight:1,
+            }}>
+              Scan to Verify
+            </span>
+          </div>
         </div>
-        <div className="relative flex items-center justify-center gap-2 md:gap-3 text-white">
-          <Share2 className="h-3 w-3 md:h-4 md:w-4" />
-          <p className="text-[10px] md:text-xs text-center font-medium">
-            This certificate can be verified at AKSAR platform using the Certificate ID above.
+
+        {/* ── Certificate Number ── */}
+        <div style={{ textAlign:"center", flexShrink:0, marginTop:"0.5cqw", width:"100%" }}>
+          {/* Gold diamond separator */}
+          <div style={{
+            margin:"0 auto 0.3cqw",
+            width:"26%", height:"1px",
+            background:`linear-gradient(to right,transparent,${GOLD} 35%,${GOLD} 65%,transparent)`,
+            position:"relative",
+            display:"flex", alignItems:"center", justifyContent:"center",
+          }}>
+            <div style={{ width:"0.6cqw", height:"0.6cqw", background:GOLD, transform:"rotate(45deg)" }} />
+          </div>
+          <p className="c-bod c-sel" style={{
+            fontSize:"1.1cqw", color:"#334155",
+            fontWeight:700, letterSpacing:"0.1em",
+            textTransform:"uppercase", margin:0, lineHeight:1,
+          }}>
+            Certificate No:{" "}
+            <span style={{ color:NAVY }}>{certNo()}</span>
           </p>
         </div>
+
       </div>
     </div>
   );
