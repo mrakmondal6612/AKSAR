@@ -11,8 +11,8 @@ export async function handleGetUserDataFunction( req: AuthenticatedRequest, res:
     const user = await User.findById(userId);
     if (!user) {
       return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+          .status(404)
+          .json({ success: false, message: "User not found" });
     }
     const data = {
       userName: user.userName,
@@ -30,42 +30,47 @@ export async function handleGetUserDataFunction( req: AuthenticatedRequest, res:
       address: user.address,
       enrolledIn: user.enrolledIn,
       bookmarks: user.bookmarks,
-      progress : user.progress,  
-      history: user.history, 
-  };
+      progress : user.progress,
+      history: user.history,
+      interests: user.interests,
+      interestTags: user.interestTags,
+      learningGoal: user.learningGoal,
+      experienceLevel: user.experienceLevel,
+      onboardingCompleted: user.onboardingCompleted ?? false,
+    };
 
     return res.status(200).json({ success: true, data });
   } catch (error) {
     console.log(error);
     return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+        .status(500)
+        .json({ success: false, message: "Internal Server Error" });
   }
 }
 
 export async function handleGetUsersBookmarkedVideo(req: AuthenticatedRequest , res: Response) {
-   const userId = req.userId;
+  const userId = req.userId;
 
-   if(!userId){
+  if(!userId){
     return res.status(401).json({success: false , message: "Unauthorized"})
-   }
+  }
 
-   const {videoIds} = req.body;
- 
-   if (!Array.isArray(videoIds) || videoIds.length === 0) {
+  const {videoIds} = req.body;
+
+  if (!Array.isArray(videoIds) || videoIds.length === 0) {
     return res.status(400).json({ success: false, message: 'VideoIds are required' });
   }
 
   try {
 
     const videos = await VideoModel.find({ videoId: { $in: videoIds } })
-    .lean() 
-    .exec();
+        .lean()
+        .exec();
 
     if (!videos || videos.length === 0) {
       return res.status(404).json({success: false, message: 'No videos found for the provided IDs'});
     }
-    
+
     const filteredVideos = videos.map((video) => ({
       videoName: video.videoName,
       tutorName: video.tutorName,
@@ -75,13 +80,13 @@ export async function handleGetUsersBookmarkedVideo(req: AuthenticatedRequest , 
       uploadedBy: video.uploadedBy,
       thumbnail: video.thumbnail,
       videoUrl: video.videoUrl,
-      description: video.description ?? '', 
-      watchedBy: video.watchedBy ?? [], 
-      watchCount: video.watchCount ?? 0, 
-      videoTimeStamps: video.videoTimeStamps ?? [], 
+      description: video.description ?? '',
+      watchedBy: video.watchedBy ?? [],
+      watchCount: video.watchCount ?? 0,
+      videoTimeStamps: video.videoTimeStamps ?? [],
       isVerified: video.isVerified,
-      markdownContent: video.markdownContent ?? '', 
-      pub_id: video.pub_id ?? '', 
+      markdownContent: video.markdownContent ?? '',
+      pub_id: video.pub_id ?? '',
     }));
     return res.status(200).json({ success: true, videos : filteredVideos });
 
@@ -91,20 +96,20 @@ export async function handleGetUsersBookmarkedVideo(req: AuthenticatedRequest , 
   }
 }
 export async function handleGetUsersBookmarkedCourses(req: AuthenticatedRequest , res: Response) {
-   const userId = req.userId;
+  const userId = req.userId;
 
-   console.log("🔵 Get Bookmarked Courses Request:", { userId, body: req.body });
+  console.log("🔵 Get Bookmarked Courses Request:", { userId, body: req.body });
 
-   if(!userId){
+  if(!userId){
     console.log("❌ No userId found");
     return res.status(401).json({success: false , message: "Unauthorized"})
-   }
+  }
 
-   const {courseIds} = req.body;
+  const {courseIds} = req.body;
 
-   console.log("📝 CourseIds received:", courseIds);
- 
-   if (!Array.isArray(courseIds) || courseIds.length === 0) {
+  console.log("📝 CourseIds received:", courseIds);
+
+  if (!Array.isArray(courseIds) || courseIds.length === 0) {
     console.log("❌ Invalid courseIds format or empty");
     return res.status(400).json({ success: false, message: 'CourseIds are required' });
   }
@@ -114,51 +119,51 @@ export async function handleGetUsersBookmarkedCourses(req: AuthenticatedRequest 
     const uniqueCourseIds = Array.from(new Set(courseIds));
 
     const courses = await CourseModel.find({ courseId: { $in: uniqueCourseIds } })
-      .lean() // Convert to plain objects
-      .exec();
+        .lean() // Convert to plain objects
+        .exec();
 
     console.log("✅ Found " + courses.length + " courses in database");
 
     const foundCourseIds = courses.map((course) => course.courseId);
     const missingCourseIds = uniqueCourseIds.filter(
-      (id) => !foundCourseIds.includes(id) && id.startsWith("PL")
+        (id) => !foundCourseIds.includes(id) && id.startsWith("PL")
     );
 
     const youtubeCourses = await Promise.all(
-      missingCourseIds.map(async (playlistId) => {
-        const playlist = await getPlaylistDetails(playlistId);
-        if (!playlist) return null;
-        return {
-          courseName: playlist.snippet.title,
-          courseId: playlist.id,
-          tutorName: playlist.snippet.channelTitle,
-          courseType: "YOUTUBE",
-          description: playlist.snippet.description,
-          currency: "FREE",
-          sellingPrice: 0,
-          originalPrice: 0,
-          thumbnail:
-            playlist.snippet.thumbnails.high?.url ||
-            playlist.snippet.thumbnails.medium?.url ||
-            playlist.snippet.thumbnails.default.url,
-          isVerified: true,
-          uploadedBy: "youtube-integration",
-          ratings: [],
-          likedBy: [],
-          enrolledBy: [],
-          ratingCount: 0,
-          rating: 0,
-          likedCount: 0,
-          enrolledCount: 0,
-          markdownContent: "",
-          redirectLink: "",
-          videos: [],
-        };
-      })
+        missingCourseIds.map(async (playlistId) => {
+          const playlist = await getPlaylistDetails(playlistId);
+          if (!playlist) return null;
+          return {
+            courseName: playlist.snippet.title,
+            courseId: playlist.id,
+            tutorName: playlist.snippet.channelTitle,
+            courseType: "YOUTUBE",
+            description: playlist.snippet.description,
+            currency: "FREE",
+            sellingPrice: 0,
+            originalPrice: 0,
+            thumbnail:
+                playlist.snippet.thumbnails.high?.url ||
+                playlist.snippet.thumbnails.medium?.url ||
+                playlist.snippet.thumbnails.default.url,
+            isVerified: true,
+            uploadedBy: "youtube-integration",
+            ratings: [],
+            likedBy: [],
+            enrolledBy: [],
+            ratingCount: 0,
+            rating: 0,
+            likedCount: 0,
+            enrolledCount: 0,
+            markdownContent: "",
+            redirectLink: "",
+            videos: [],
+          };
+        })
     );
 
     const filteredYoutubeCourses = youtubeCourses.filter(
-      (course): course is NonNullable<typeof course> => Boolean(course)
+        (course): course is NonNullable<typeof course> => Boolean(course)
     );
 
     const filteredCourses = courses.map((course) => ({
@@ -194,10 +199,10 @@ export async function handleGetUsersBookmarkedCourses(req: AuthenticatedRequest 
 }
 
 export async function handleGetUserHistoryVideos(req: AuthenticatedRequest , res: Response){
-  const userId = req.userId; 
+  const userId = req.userId;
 
   if(!userId){
-   return res.status(401).json({success: false , message: "Unauthorized"})
+    return res.status(401).json({success: false , message: "Unauthorized"})
   }
 
   const {videoIds} = req.body;
@@ -222,13 +227,13 @@ export async function handleGetUserHistoryVideos(req: AuthenticatedRequest , res
       uploadedBy: video.uploadedBy,
       thumbnail: video.thumbnail,
       videoUrl: video.videoUrl,
-      description: video.description ?? '', 
-      watchedBy: video.watchedBy ?? [], 
-      watchCount: video.watchedBy.length ?? 0, 
-      videoTimeStamps: video.videoTimeStamps ?? [], 
+      description: video.description ?? '',
+      watchedBy: video.watchedBy ?? [],
+      watchCount: video.watchedBy.length ?? 0,
+      videoTimeStamps: video.videoTimeStamps ?? [],
       isVerified: video.isVerified,
-      markdownContent: video.markdownContent ?? '', 
-      pub_id: video.pub_id ?? '', 
+      markdownContent: video.markdownContent ?? '',
+      pub_id: video.pub_id ?? '',
     }));
 
     return res.status(200).json({ success: true, videos : filteredVideos });
@@ -247,7 +252,7 @@ export async function handleGetUserHistoryVideos(req: AuthenticatedRequest , res
 //    }
 
 //    const {testIds} = req.body;
- 
+
 //    if (!Array.isArray(testIds) || testIds.length === 0) {
 //     return res.status(400).json({ success: false, message: 'VideoIds are required' });
 //   }
@@ -269,7 +274,3 @@ export async function handleGetUserHistoryVideos(req: AuthenticatedRequest , res
 //     return res.status(500).json({success: false, message: 'An error occurred while fetching tests'});
 //   }
 // }
-
-
-
-

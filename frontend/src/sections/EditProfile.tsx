@@ -14,6 +14,7 @@ const DobForm = lazy(() => import("@/components/editProfile/DobForm"));
 const MobileNumberForm = lazy(() => import("@/components/editProfile/MobileNumberForm"));
 const SelectAddressForm = lazy(() => import("@/components/editProfile/SelectAddressForm"));
 const ChangeRoleField = lazy(() => import("@/components/editProfile/ChangeRoleField"));
+const EditInterests = lazy(() => import("@/components/editProfile/EditInterests"));
 
 const modalVariants = {
   hidden: { opacity: 0.3, scale: 0.8 },
@@ -26,71 +27,71 @@ const EditProfile = () => {
   const {userData} = useAuthContext();
 
   return (
-    <section className="w-full flex items-center justify-center bg-white dark:bg-black  backdrop-blur-lg transition-opacity duration-300 relative md:py-56 py-28 lg:py-28 ">
+      <section className="w-full flex items-center justify-center bg-white dark:bg-black  backdrop-blur-lg transition-opacity duration-300 relative md:py-56 py-28 lg:py-28 ">
 
-      <motion.div
-        className="lg:w-[80%] w-full mx-auto dark:bg-white/5  bg-white-800/30 rounded-lg p-6 shadow-2xl dark:shadow-sm dark:shadow-white/20 border-2 dark:border-white/20 border-purple-500/20"
-        variants={modalVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        transition={{ duration: 0.3 }}
-      >
-        <div className="w-full flex justify-between items-center px-2 py-4">
-          <div className="w-full flex gap-4 relative justify-start items-center">
-            <div className="w-full bg-white rounded-2xl dark:bg-black/20 border-[1px] shadow-sm dark:shadow-white-600 border-black/40 dark:border-white/10 flex justify-center items-center flex-col px-4 pb-4 gap-2">
-            <div className="w-full flex  items-center justify-between ">
-              <div className="w-full flex items-center justify-center space-x-2 pt-2">
-                <Avatar className="border-2 border-blue-500">
-                  <AvatarImage src={userData.profileImageUrl} className="" />
-                  <AvatarFallback className="font-bold text-xl dark:text-black font-ubuntu dark:bg-white text-white bg-black ">
-                    {userData.avatarFallbackText}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-center content-center flex-col flex">
-                  <span className="text-center mx-2">{userData.fullName}</span>
-                  <span className="text-blue-500 text-sm">@{userData.userName}</span>
+        <motion.div
+            className="lg:w-[80%] w-full mx-auto dark:bg-white/5  bg-white-800/30 rounded-lg p-6 shadow-2xl dark:shadow-sm dark:shadow-white/20 border-2 dark:border-white/20 border-purple-500/20"
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+        >
+          <div className="w-full flex justify-between items-center px-2 py-4">
+            <div className="w-full flex gap-4 relative justify-start items-center">
+              <div className="w-full bg-white rounded-2xl dark:bg-black/20 border-[1px] shadow-sm dark:shadow-white-600 border-black/40 dark:border-white/10 flex justify-center items-center flex-col px-4 pb-4 gap-2">
+                <div className="w-full flex  items-center justify-between ">
+                  <div className="w-full flex items-center justify-center space-x-2 pt-2">
+                    <Avatar className="border-2 border-blue-500">
+                      <AvatarImage src={userData.profileImageUrl} className="" />
+                      <AvatarFallback className="font-bold text-xl dark:text-black font-ubuntu dark:bg-white text-white bg-black ">
+                        {userData.avatarFallbackText}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-center content-center flex-col flex">
+                      <span className="text-center mx-2">{userData.fullName}</span>
+                      <span className="text-blue-500 text-sm">@{userData.userName}</span>
+                    </div>
+                  </div>
+                  <EditButton
+                      theme={theme}
+                      avatarFallbackText={userData.avatarFallbackText}
+                      imageUrl={userData.profileImageUrl}
+                      userName={userData.userName}
+                  />
+                </div>
+                <div className="w-full rounded-xl flex gap-4 justify-center items-center relative py-1 border-b-[1px] font-ubuntu font-extralight text-center text-medium">
+                  {` "`}{userData.bio}{`" `}
+                </div>
+                <div className="w-full flex flex-col gap-2 justify-start relative">
+                  <Suspense fallback={<div>Loading status fields...</div>}>
+                    <StatusField
+                        inputValue={userData.email}
+                        isInputVerified={userData.emailVerificationStatus}
+                        type="email"
+                    />
+                    <StatusField
+                        inputValue={userData.phoneNumber.number}
+                        isInputVerified={userData.phoneNumberVerificationStatus}
+                        countryCode={userData.phoneNumber.code}
+                        type="mobile"
+                    />
+                    <StatusField
+                        inputValue={userData.userDob}
+                        isInputVerified={userData.userDob !== "" ? true : false}
+                        type="dob"
+                    />
+                    <StatusField
+                        inputValue={userData.address}
+                        isInputVerified={userData.address !== "" ? true : false}
+                        type="address"
+                    />
+                  </Suspense>
                 </div>
               </div>
-              <EditButton
-                theme={theme}
-                avatarFallbackText={userData.avatarFallbackText}
-                imageUrl={userData.profileImageUrl}
-                userName={userData.userName}
-              />
-            </div>
-            <div className="w-full rounded-xl flex gap-4 justify-center items-center relative py-1 border-b-[1px] font-ubuntu font-extralight text-center text-medium">
-              {` "`}{userData.bio}{`" `}
-            </div>
-            <div className="w-full flex flex-col gap-2 justify-start relative">
-              <Suspense fallback={<div>Loading status fields...</div>}>
-                <StatusField
-                  inputValue={userData.email}
-                  isInputVerified={userData.emailVerificationStatus}
-                  type="email"
-                />
-                <StatusField
-                  inputValue={userData.phoneNumber.number}
-                  isInputVerified={userData.phoneNumberVerificationStatus}
-                  countryCode={userData.phoneNumber.code}
-                  type="mobile"
-                />
-                <StatusField
-                  inputValue={userData.userDob}
-                  isInputVerified={userData.userDob !== "" ? true : false}
-                  type="dob"
-                />
-                <StatusField
-                  inputValue={userData.address}
-                  isInputVerified={userData.address !== "" ? true : false}
-                  type="address"
-                />
-              </Suspense>
             </div>
           </div>
-        </div>
-        </div>
-        <Seperator text={"Personal Information"} />
+          <Seperator text={"Personal Information"} />
           <div className="w-full flex flex-col justify-between items-start px-2 py-4 gap-3">
             <div className="relative w-full flex sm:flex-row flex-col items-start justify-between gap-5">
               <div className="flex flex-col w-full relative gap-2">
@@ -105,25 +106,34 @@ const EditProfile = () => {
               </Suspense>
             </div>
           </div>
-        <Seperator text={"Update your address"}/>
+          <Seperator text={"Update your address"}/>
           <div className="w-full flex flex-col justify-between items-start px-2 py-4 gap-3">
             <Suspense fallback={<div>Loading address form...</div>}>
               <SelectAddressForm />
             </Suspense>
           </div>
-        {/* <Seperator text={"Apply Changes"} />
+          {/* <Seperator text={"Apply Changes"} />
         <div className="w-full flex justify-center">
           <Button className="w-full mx-auto dark:bg-white-600 dark:hover:bg-white-700 transition-colors duration-200 font-semibold font-ubuntu dark:text-black/80 place-items-end" >
           Apply Changes
         </Button>
         </div> */}
-        <Seperator text={"Critical Section"} />
-        <Suspense fallback={<div>Loading critical account actions...</div>}>
-          {userData.role === "STUDENT" && <ChangeRoleField />}
-          <DeleteAccountAndChangePassword />
-        </Suspense>
-      </motion.div>
-    </section>
+          <Seperator text={"Your Interests"} />
+          <div className="w-full flex flex-col justify-between items-start px-2 py-4 gap-3">
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-ubuntu">
+              These help us suggest the right courses for you on your dashboard.
+            </p>
+            <Suspense fallback={<div>Loading interests editor...</div>}>
+              <EditInterests />
+            </Suspense>
+          </div>
+          <Seperator text={"Critical Section"} />
+          <Suspense fallback={<div>Loading critical account actions...</div>}>
+            {userData.role === "STUDENT" && <ChangeRoleField />}
+            <DeleteAccountAndChangePassword />
+          </Suspense>
+        </motion.div>
+      </section>
   );
 };
 

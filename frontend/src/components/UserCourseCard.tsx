@@ -34,9 +34,10 @@ const cardVariants = {
 
 interface CoursesInterface{
   courses: IUserCourseData[] | [];
+  mode?: "suggested" | "enrolled";
 }
 
-const UserCourseCard: React.FC<CoursesInterface> = ({ courses }) => {
+const UserCourseCard: React.FC<CoursesInterface> = ({ courses, mode = "enrolled" }) => {
   const {theme} = useTheme();
   const {userData , setUserData} = useAuthContext();
   const navigate = useNavigate();
@@ -84,7 +85,7 @@ const UserCourseCard: React.FC<CoursesInterface> = ({ courses }) => {
         className="w-full space-y-2 relative bg-white text-start dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl cursor-pointer"
           custom={i}
           variants={cardVariants}
-          onClick={() => navigate(course.courseType === "REDIRECT" ? `/course-intro-page?c=${course.courseId}` : `/user/view-course?c=${course.courseId}`)}
+        onClick={() => navigate(course.courseType === "REDIRECT" ? `/course-intro-page?c=${course.courseId}` : mode === "suggested" ? `/course-details?c=${course.courseId}` : `/user/view-course?c=${course.courseId}`)}
         >
           <div className="w-full relative bg-transparent">
             
@@ -118,9 +119,9 @@ const UserCourseCard: React.FC<CoursesInterface> = ({ courses }) => {
                 <RedirectLinkIcon fillColor="white" size={24}/> View Course
               </Button>
 
-          : 
-              <Button className="w-full font-medium text-lg font-ubuntu bg-blue-500 text-white hover:bg-blue-600" onClick={() => navigate(`/user/view-course?c=${course.courseId}`)}>
-               <YoutubeIcon fillColor="white" size={24} /> View Course
+          :
+              <Button className="w-full font-medium text-lg font-ubuntu bg-blue-500 text-white hover:bg-blue-600" onClick={() => navigate(mode === "suggested" ? `/course-details?c=${course.courseId}` : `/user/view-course?c=${course.courseId}`)}>
+                <YoutubeIcon fillColor="white" size={24} /> View Course
               </Button>
           }
             <Button className="w-full font-medium text-lg font-ubuntu bg-white-600 hover:bg-white-800 text-black dark:bg-gray-700 dark:text-white dark:hover:bg-gray-900" onClick={() => handleBookmarkClick(course.courseId)}>
