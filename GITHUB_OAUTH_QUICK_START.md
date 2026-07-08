@@ -43,7 +43,7 @@
 
 1. Edit `frontend/.env`:
    ```env
-   VITE_PUBLIC_COURSE_YUGA_USER_API="http://localhost:8001/api/v1/user"
+   VITE_PUBLIC_COURSE_AKSAR_USER_API="http://localhost:8001/api/v1/user"
    ```
 
 ### Step 4: Start Backend (start watching logs)
@@ -93,7 +93,7 @@ You should see: `http://localhost:5173`
 | Issue | Fix |
 |-------|-----|
 | "Redirect URI mismatch" | Check GitHub OAuth app callback URL matches exactly: `http://localhost:8001/api/v1/user/signup-github/callback` |
-| GitHub button not working | Verify `VITE_PUBLIC_COURSE_YUGA_USER_API` is set in `frontend/.env` |
+| GitHub button not working | Verify `VITE_PUBLIC_COURSE_AKSAR_USER_API` is set in `frontend/.env` |
 | "Invalid credentials" | Check `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` are correct in `backend/.env` |
 | Not logged in after auth | Check browser console for errors, look at backend logs |
 | Stuck on GitHub page | Clear browser cookies and try again |
@@ -158,9 +158,9 @@ MAILER_PASS=...
 
 **frontend/.env** should have:
 ```env
-VITE_PUBLIC_COURSE_YUGA_USER_API="http://localhost:8001/api/v1/user"
-VITE_PUBLIC_COURSE_YUGA_COURSE_API="http://localhost:8001/api/v1/course"
-VITE_PUBLIC_COURSE_YUGA_VIDEO_API="http://localhost:8001/api/v1/video"
+VITE_PUBLIC_COURSE_AKSAR_USER_API="http://localhost:8001/api/v1/user"
+VITE_PUBLIC_COURSE_AKSAR_COURSE_API="http://localhost:8001/api/v1/course"
+VITE_PUBLIC_COURSE_AKSAR_VIDEO_API="http://localhost:8001/api/v1/video"
 ```
 
 ---

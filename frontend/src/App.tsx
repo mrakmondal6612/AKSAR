@@ -21,6 +21,8 @@ const UnauthenticatedPage = lazy(() => import("./components/UnauthenticatedPage"
 const PageNotFound = lazy(() => import("@/components/PageNotFound"));
 const ResetPasswordModal = lazy(() => import("./components/modals/ResetPasswordModal"));
 const VerifyCourses = lazy(() => import("./sections/VerifyCourses"));
+const CertificateVerification = lazy(() => import("@/sections/CertificateVerification"));
+const CertificateView = lazy(() => import("@/sections/DashBoardSections/CertificateView"));
 import LoadingScreen from "@/components/LoadingScreen";
 
 function App() {
@@ -47,7 +49,9 @@ function App() {
         <Route path="/reset-password" element={<ResetPasswordModal />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/verify-courses" element={<VerifyCourses />} />
+        <Route path="/verify-certificate" element={<Suspense fallback={<LoadingScreen />}><CertificateVerification /></Suspense>} />
         <Route path="/verify-email" element={email && <HeroSection route="verify-email" propEmail={email} />} />
+        <Route path="/admin/certificate/:marksheetId" element={<Suspense fallback={<LoadingScreen />}><CertificateView /></Suspense>} />
         <Route path="/user/*" element={<DashboardRoutes />} />
       </>
     );
@@ -66,6 +70,7 @@ function App() {
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/reset-password" element={<ResetPasswordModal />} />
+        <Route path="/verify-certificate" element={<Suspense fallback={<LoadingScreen />}><CertificateVerification /></Suspense>} />
         <Route path="/user/*" element={<UnauthenticatedPage />} />
         <Route path="/edit-profile" element={<UnauthenticatedPage />} />
         <Route path="/verify-courses" element={<UnauthenticatedPage />} />

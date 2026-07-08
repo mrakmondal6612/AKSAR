@@ -8,6 +8,7 @@ const Courses = lazy(() => import("@/sections/DashBoardSections/Courses"));
 const RefreshPage = lazy(() => import("@/sections/DashBoardSections/RefreshPage"));
 const AddCourses = lazy(() => import("@/sections/DashBoardSections/AddCourses"));
 const AddTests = lazy(() => import("@/sections/DashBoardSections/AddTests"));
+const AdminTestPanel = lazy(() => import("@/components/test/AdminTestPanel"));
 const AddVideos = lazy(() => import("@/sections/DashBoardSections/AddVideos"));
 const ProductionTodoList = lazy(() => import("@/sections/DashBoardSections/ProductionTodoList"));
 const ViewCourse = lazy(() => import("@/sections/DashBoardSections/ViewCourse"));
@@ -23,6 +24,10 @@ const Subscription = lazy(() => import("./Subscription"));
 const History = lazy(() => import("./History"));
 
 const CoursesManagement = lazy(() => import("@/sections/DashBoardSections/CoursesManagement"));
+const StudentsManagement = lazy(() => import("@/sections/DashBoardSections/StudentsManagement"));
+const CertificateManagement = lazy(() => import("@/sections/DashBoardSections/CertificateManagement"));
+const CertificateView = lazy(() => import("@/sections/DashBoardSections/CertificateView"));
+const CommunityManagement = lazy(() => import("@/sections/DashBoardSections/CommunityManagement"));
 
 const BecomeInstructorPage = lazy(() => import("@/sections/DashBoardSections/BecomeInstructorPage"));
 
@@ -43,6 +48,10 @@ const DashboardRoutes: React.FC = () => {
       { path: "/view-course", element: <ViewCourse /> },
       { path: "/video-player", element: <VideoPlaySection /> },
       { path: "/test", element: <UnderMaintenancePage pageName="Test" /> },
+      { path: "/test/:testId", element: <UnderMaintenancePage pageName="Test Portal" /> },
+      { path: "/marksheet", element: <UnderMaintenancePage pageName="Marksheet" /> },
+      { path: "/marksheet/:marksheetId", element: <UnderMaintenancePage pageName="Certificate" /> },
+      { path: "/leaderboard/:testId?", element: <UnderMaintenancePage pageName="Leaderboard" /> },
       { path: "/become-instructor", element: <BecomeInstructorPage /> },
     ];
 
@@ -55,11 +64,13 @@ const DashboardRoutes: React.FC = () => {
         { path: "/add-videos", element: <AddVideos /> },
         { path: "/edit-video", element: <VideoEditPage /> },
         { path: "/admin/courses-management", element: <CoursesManagement /> },
-        { path: "/admin/student-management", element: <UnderMaintenancePage pageName="Student Management" /> },
-        { path: "/admin/tests", element: <UnderMaintenancePage pageName="Tests" /> },
+        { path: "/admin/student-management", element: <StudentsManagement /> },
+        { path: "/admin/tests", element: <AddTests /> },
+        { path: "/admin/test-panel", element: <AdminTestPanel /> },
         { path: "/admin/interview", element: <UnderMaintenancePage pageName="Interview" /> },
-        { path: "/admin/certificate", element: <UnderMaintenancePage pageName="Certificate" /> },
-        { path: "/admin/community", element: <UnderMaintenancePage pageName="Community Manage" /> },
+        { path: "/admin/certificate", element: <CertificateManagement /> },
+        { path: "/admin/certificate/:marksheetId", element: <CertificateView /> },
+        { path: "/admin/community", element: <CommunityManagement /> },
         { path: "/admin/teacher-management", element: <UnderMaintenancePage pageName="Teacher Management" /> },
       ];
     } else {

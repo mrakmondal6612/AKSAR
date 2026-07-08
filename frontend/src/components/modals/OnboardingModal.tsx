@@ -12,7 +12,7 @@ interface OnboardingModalProps {
     onComplete: () => void;
 }
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 const COURSE_TYPES = [
     { value: "TECH",      label: "Tech / Programming",  emoji: "💻" },
@@ -44,6 +44,27 @@ const EXPERIENCE_LEVELS = [
     { value: "advanced",     label: "Advanced",      desc: "Looking to go deeper"      },
 ];
 
+const WEEKLY_HOURS = [
+    { value: "less_5",   label: "Less than 5 hours",   emoji: "⏰" },
+    { value: "5_10",      label: "5-10 hours",          emoji: "⏱️" },
+    { value: "10_20",     label: "10-20 hours",         emoji: "⏳" },
+    { value: "20_30",     label: "20-30 hours",         emoji: "🕐" },
+    { value: "30_plus",   label: "30+ hours",           emoji: "🔥" },
+];
+
+const LEARNING_PREFERENCES = [
+    { value: "video",      label: "Video Tutorials",    emoji: "🎬" },
+    { value: "hands_on",   label: "Hands-on Projects",  emoji: "🛠️" },
+    { value: "docs",       label: "Documentation",      emoji: "📖" },
+    { value: "interactive", label: "Interactive Courses", emoji: "🎮" },
+    { value: "mentorship", label: "Mentorship",         emoji: "👨‍🏫" },
+    { value: "practice",   label: "Practice Problems",  emoji: "✏️" },
+];
+
+const PROGRAMMING_LANGUAGES = [
+    "JavaScript", "TypeScript", "Python", "Java", "C++", "C#", "Go", "Rust", "PHP", "Ruby", "Swift", "Kotlin"
+];
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function getStepBubbleClass(stepNum: number, currentStep: number): string {
     if (stepNum === currentStep) return "bg-purple-500 text-white";
@@ -65,6 +86,11 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete })
     // Step 3
     const [learningGoal, setLearningGoal] = useState("");
     const [experienceLevel, setExperienceLevel] = useState("");
+    // Step 4
+    const [weeklyHours, setWeeklyHours] = useState("");
+    const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
+    // Step 5
+    const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
 
     const toggleItem = <T extends string>(
         item: T,
@@ -87,6 +113,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete })
     const canProceedStep1 = selectedTypes.length > 0;
     const canProceedStep2 = selectedTags.length > 0;
     const canProceedStep3 = !!learningGoal && !!experienceLevel;
+    const canProceedStep4 = !!weeklyHours && selectedPreferences.length > 0;
+    const canProceedStep5 = selectedLanguages.length > 0;
 
     const handleSubmit = async () => {
         setLoading(true);
@@ -96,9 +124,10 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete })
                 `${USER_API}/update-interests`,
                 {
                     interests: selectedTypes,
-                    interestTags: selectedTags,
+                    interestTags: [...selectedTags, ...selectedLanguages],
                     learningGoal,
                     experienceLevel,
+                    onboardingCompleted: true,
                 },
                 {
                     headers: {
@@ -113,7 +142,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete })
                 setUserData({
                     ...userData,
                     interests: selectedTypes,
-                    interestTags: selectedTags,
+                    interestTags: [...selectedTags, ...selectedLanguages],
                     learningGoal,
                     experienceLevel,
                     onboardingCompleted: true,
@@ -147,7 +176,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete })
         onComplete();
     };
 
-    const stepLabels = ["Course types", "Topics", "Goals"];
+    const stepLabels = ["Course types", "Topics", "Goals", "Schedule", "Skills"];
 
     return (
         <Modal
@@ -166,7 +195,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete })
                 <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-t-lg overflow-hidden">
                     <div
                         className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-500"
-                        style={{ width: `${(step / 3) * 100}%` }}
+                        style={{ width: `${(step / 5) * 100}%` }}
                     />
                 </div>
 
@@ -185,7 +214,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete })
                     {label}
                   </span>
                                 </div>
-                                {i < 2 && <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />}
+                                {i < 4 && <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />}
                             </React.Fragment>
                         ))}
                     </div>
@@ -217,6 +246,26 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete })
                             </h2>
                             <p className="text-sm text-gray-500 dark:text-gray-400 font-light">
                                 This helps us show the right level of content for you.
+                            </p>
+                        </>
+                    )}
+                    {step === 4 && (
+                        <>
+                            <h2 className="text-xl font-bold font-ubuntu text-gray-800 dark:text-white">
+                                Your learning schedule 📅
+                            </h2>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 font-light">
+                                How much time can you dedicate and how do you prefer to learn?
+                            </p>
+                        </>
+                    )}
+                    {step === 5 && (
+                        <>
+                            <h2 className="text-xl font-bold font-ubuntu text-gray-800 dark:text-white">
+                                Your programming skills 💻
+                            </h2>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 font-light">
+                                Select languages you know or want to learn.
                             </p>
                         </>
                     )}
@@ -360,6 +409,93 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete })
                             </div>
                         </div>
                     )}
+
+                    {/* ── Step 4: Weekly hours + learning preferences ───────────────── */}
+                    {step === 4 && (
+                        <div className="flex flex-col gap-5">
+                            <div>
+                                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    How many hours per week can you dedicate?
+                                </p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {WEEKLY_HOURS.map((h) => (
+                                        <button
+                                            key={h.value}
+                                            onClick={() => setWeeklyHours(h.value)}
+                                            className={`flex items-center gap-2 p-3 rounded-xl border-2 text-left transition-all duration-150 ${
+                                                weeklyHours === h.value
+                                                    ? "border-purple-500 bg-purple-50 dark:bg-purple-900/30"
+                                                    : "border-gray-200 dark:border-gray-700 hover:border-purple-300"
+                                            }`}
+                                        >
+                                            <span className="text-xl">{h.emoji}</span>
+                                            <span className={`text-xs font-ubuntu font-medium ${
+                                                weeklyHours === h.value ? "text-purple-700 dark:text-purple-300" : "text-gray-600 dark:text-gray-400"
+                                            }`}>
+                                                {h.label}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    How do you prefer to learn? (select all that apply)
+                                </p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {LEARNING_PREFERENCES.map((pref) => (
+                                        <button
+                                            key={pref.value}
+                                            onClick={() => toggleItem(pref.value, selectedPreferences, setSelectedPreferences)}
+                                            className={`flex items-center gap-2 p-3 rounded-xl border-2 text-left transition-all duration-150 ${
+                                                selectedPreferences.includes(pref.value)
+                                                    ? "border-purple-500 bg-purple-50 dark:bg-purple-900/30"
+                                                    : "border-gray-200 dark:border-gray-700 hover:border-purple-300"
+                                            }`}
+                                        >
+                                            <span className="text-xl">{pref.emoji}</span>
+                                            <span className={`text-xs font-ubuntu font-medium ${
+                                                selectedPreferences.includes(pref.value) ? "text-purple-700 dark:text-purple-300" : "text-gray-600 dark:text-gray-400"
+                                            }`}>
+                                                {pref.label}
+                                            </span>
+                                            {selectedPreferences.includes(pref.value) && (
+                                                <span className="ml-auto text-purple-500 font-bold">✓</span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── Step 5: Programming languages ───────────────────────────── */}
+                    {step === 5 && (
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-wrap gap-2">
+                                {PROGRAMMING_LANGUAGES.map((lang) => (
+                                    <button
+                                        key={lang}
+                                        onClick={() => toggleItem(lang, selectedLanguages, setSelectedLanguages)}
+                                        className={`px-3 py-1.5 rounded-full text-sm font-ubuntu border transition-all duration-150 ${
+                                            selectedLanguages.includes(lang)
+                                                ? "border-purple-500 bg-purple-500 text-white"
+                                                : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-purple-400"
+                                        }`}
+                                    >
+                                        {lang}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {selectedLanguages.length > 0 && (
+                                <p className="text-xs text-gray-400">
+                                    {selectedLanguages.length} language{selectedLanguages.length > 1 ? "s" : ""} selected
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </ModalBody>
 
                 <ModalFooter className="flex justify-between items-center pt-2">
@@ -382,12 +518,14 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete })
                             </Button>
                         )}
 
-                        {step < 3 ? (
+                        {step < 5 ? (
                             <Button
                                 size="sm"
                                 isDisabled={
                                     (step === 1 && !canProceedStep1) ||
-                                    (step === 2 && !canProceedStep2)
+                                    (step === 2 && !canProceedStep2) ||
+                                    (step === 3 && !canProceedStep3) ||
+                                    (step === 4 && !canProceedStep4)
                                 }
                                 className="bg-purple-500 text-white font-ubuntu hover:bg-purple-600 disabled:opacity-40"
                                 onClick={() => setStep((s) => (s + 1) as Step)}
@@ -397,7 +535,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete })
                         ) : (
                             <Button
                                 size="sm"
-                                isDisabled={!canProceedStep3 || loading}
+                                isDisabled={!canProceedStep5 || loading}
                                 isLoading={loading}
                                 className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-ubuntu"
                                 onClick={handleSubmit}

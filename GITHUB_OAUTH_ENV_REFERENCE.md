@@ -65,12 +65,12 @@ MAILER_PASS="your-mailtrap-password"
 
 ```env
 # API Endpoint for GitHub OAuth buttons
-VITE_PUBLIC_COURSE_YUGA_USER_API="http://localhost:8001/api/v1/user"    # Development
-# VITE_PUBLIC_COURSE_YUGA_USER_API="https://yourdomain.com/api/v1/user"  # Production
+VITE_PUBLIC_COURSE_AKSAR_USER_API="http://localhost:8001/api/v1/user"    # Development
+# VITE_PUBLIC_COURSE_AKSAR_USER_API="https://yourdomain.com/api/v1/user"  # Production
 
 # Other API Endpoints
-VITE_PUBLIC_COURSE_YUGA_COURSE_API="http://localhost:8001/api/v1/course"
-VITE_PUBLIC_COURSE_YUGA_VIDEO_API="http://localhost:8001/api/v1/video"
+VITE_PUBLIC_COURSE_AKSAR_COURSE_API="http://localhost:8001/api/v1/course"
+VITE_PUBLIC_COURSE_AKSAR_VIDEO_API="http://localhost:8001/api/v1/video"
 ```
 
 ---
@@ -88,7 +88,7 @@ VITE_PUBLIC_COURSE_YUGA_VIDEO_API="http://localhost:8001/api/v1/video"
 - [ ] GitHub routes exist in `backend/src/routes/user.route.ts`
 
 ### Frontend Setup
-- [ ] `VITE_PUBLIC_COURSE_YUGA_USER_API` is set to backend user API
+- [ ] `VITE_PUBLIC_COURSE_AKSAR_USER_API` is set to backend user API
 - [ ] GitHub icon button exists in LoginModal.tsx
 - [ ] GitHub icon button exists in SignupModal.tsx
 - [ ] `handleGithubBtn()` function is defined and functional
@@ -162,7 +162,7 @@ npm run dev
 ### frontend/src/components/modals/LoginModal.tsx & SignupModal.tsx
 ```typescript
 // Uses this environment variable:
-- VITE_PUBLIC_COURSE_YUGA_USER_API (accessed via USER_API constant)
+- VITE_PUBLIC_COURSE_AKSAR_USER_API (accessed via USER_API constant)
 ```
 
 ---

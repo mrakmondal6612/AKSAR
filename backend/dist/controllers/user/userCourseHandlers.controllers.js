@@ -8,6 +8,7 @@ exports.handleUserVideoBookmarkfunction = handleUserVideoBookmarkfunction;
 exports.handleUserUnenrolledCourseFunction = handleUserUnenrolledCourseFunction;
 exports.handleRemoveHistoryVideo = handleRemoveHistoryVideo;
 exports.handleRemoveUserEntireHistory = handleRemoveUserEntireHistory;
+exports.handleRemoveHistoryByDateRange = handleRemoveHistoryByDateRange;
 exports.handleUserHistoryVideoOrder = handleUserHistoryVideoOrder;
 exports.handleUserCourseProgress = handleUserCourseProgress;
 exports.calculateProgress = calculateProgress;
@@ -174,6 +175,40 @@ async function handleRemoveUserEntireHistory(req, res) {
         return res.status(200).json({ success: true, message: 'Removed history' });
     }
     catch (error) {
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
+async function handleRemoveHistoryByDateRange(req, res) {
+    const userId = req.userId;
+    if (!userId) {
+        return res.status(401).json({ success: false, message: 'User ID not found' });
+    }
+    const { startDate, endDate } = req.body;
+    if (!startDate || !endDate) {
+        return res.status(400).json({ success: false, message: 'Start date and end date are required' });
+    }
+    try {
+        const user = await User_model_1.default.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // Include the entire end date
+        // Filter out history items within the date range
+        user.history = user.history.filter((item) => {
+            const itemDate = new Date(item.time);
+            return itemDate < start || itemDate > end;
+        });
+        await user.save();
+        return res.status(200).json({
+            success: true,
+            message: 'History cleared for selected date range',
+            remainingCount: user.history.length
+        });
+    }
+    catch (error) {
+        console.error('Error clearing history by date range:', error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }

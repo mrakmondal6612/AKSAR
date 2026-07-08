@@ -56,7 +56,7 @@ BACKEND_DOMAIN="http://localhost:8001/api/v1"
 ### Step 3: Update frontend/.env
 
 ```env
-VITE_PUBLIC_COURSE_YUGA_USER_API="http://localhost:8001/api/v1/user"
+VITE_PUBLIC_COURSE_AKSAR_USER_API="http://localhost:8001/api/v1/user"
 ```
 
 ### Step 4: Run Locally
@@ -187,7 +187,7 @@ npm run dev
 | Error | Solution |
 |-------|----------|
 | "Redirect URI mismatch" | Check GitHub OAuth app callback URL |
-| GitHub button not working | Verify `VITE_PUBLIC_COURSE_YUGA_USER_API` in frontend/.env |
+| GitHub button not working | Verify `VITE_PUBLIC_COURSE_AKSAR_USER_API` in frontend/.env |
 | Invalid credentials | Double-check GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET |
 | Can't login after auth | Clear cookies, check console for errors |
 

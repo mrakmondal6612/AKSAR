@@ -33,17 +33,18 @@ const DashBoard = () => {
 
   // Show onboarding only after real user data is loaded from server
   React.useEffect(() => {
+    // Treat undefined as false (not completed)
+    const isOnboardingComplete = userData.onboardingCompleted === true;
+    
     if (
         isUserDataLoaded &&
-        userData.id &&
-        userData.onboardingCompleted !== true &&
+        !isOnboardingComplete &&
         !onboardingShownRef.current
     ) {
       onboardingShownRef.current = true;
-      const timer = setTimeout(() => setShowOnboarding(true), 800);
-      return () => clearTimeout(timer);
+      setShowOnboarding(true);
     }
-  }, [isUserDataLoaded, userData.id, userData.onboardingCompleted]);
+  }, [isUserDataLoaded, userData.onboardingCompleted]);
 
   React.useEffect(() => {
     const hour = new Date().getHours();
@@ -110,9 +111,7 @@ const DashBoard = () => {
 
   return (
       <>
-        {showOnboarding && (
-            <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
-        )}
+        <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
 
         <motion.div
             className="w-full flex flex-col gap-2 rounded-lg p-2 sm:p-4"

@@ -11,6 +11,7 @@ const db_config_1 = __importDefault(require("./utils/db.config"));
 const user_route_1 = __importDefault(require("./routes/user.route"));
 const course_route_1 = __importDefault(require("./routes/course.route"));
 const video_route_1 = __importDefault(require("./routes/video.route"));
+const test_route_1 = __importDefault(require("./routes/test.route"));
 const notificationJob_service_1 = require("./services/notificationJob.service");
 const recurringTodoJob_service_1 = require("./services/recurringTodoJob.service");
 dotenv_1.default.config();
@@ -32,6 +33,7 @@ app.get("/", (req, res) => {
 app.use("/api/v1/user", user_route_1.default);
 app.use("/api/v1/course", course_route_1.default);
 app.use("/api/v1/video", video_route_1.default);
+app.use("/api/v1/test", test_route_1.default);
 async function startServer() {
     try {
         await (0, db_config_1.default)();

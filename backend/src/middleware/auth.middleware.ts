@@ -75,3 +75,42 @@ export async function authenticateAdminToken(
   });
 }
 
+export async function authenticateAdminOrInstructorToken(
+  req: AuthenticatedAdminRequest,
+  res: Response,
+  next: NextFunction
+) {
+  const token = req.headers["authorization"]?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "Access denied, no token provided" });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET!, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid token" });
+    }
+
+    if (
+      decoded &&
+      typeof decoded === "object" &&
+      "id" in decoded &&
+      "role" in decoded &&
+      "uniqueId" in decoded
+    ) {
+      const { id, role , uniqueId } = decoded as { id: string; role: string , uniqueId: string};
+
+      if (role !== "ADMIN" && role !== "MASTER" && role !== "INSTRUCTOR") {
+        return res.status(403).json({ message: "Unauthorized: Admin or Instructor access only" });
+      }
+
+      req.userId = id;
+      req.userRole = role;
+      req.userUniqueId = uniqueId;
+      next();
+    } else {
+      return res.status(403).json({ message: "Invalid token" });
+    }
+  });
+}
+

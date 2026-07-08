@@ -51,6 +51,19 @@ export const signupSchema = z
       .regex(passwordRegex, {
         message: "Confirm Password must match the required pattern",
       }),
+
+    // Optional fields
+    userDob: z.string().optional(),
+    bio: z.string().max(500, { message: "Bio must be within 500 characters" }).optional(),
+    phoneCode: z.string().optional(),
+    phoneNumber: z.string().optional(),
+    country: z.string().optional(),
+    state: z.string().optional(),
+    city: z.string().optional(),
+    interests: z.array(z.string()).optional(),
+    interestTags: z.array(z.string()).optional(),
+    learningGoal: z.string().optional(),
+    experienceLevel: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",

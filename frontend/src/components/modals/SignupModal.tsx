@@ -45,7 +45,39 @@ const SignupModal: React.FC = () => {
   const onSubmit = async (data: SignupFormData) => {
     setisDisabled(true);
     try {
-      const response = await axios.post(`${USER_API}/signup`, data);
+      // Format the data to match backend expectations
+      const formattedData: any = {
+        userName: data.userName,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+      };
+
+      // Add optional fields if provided
+      if (data.userDob) formattedData.userDob = data.userDob;
+      if (data.bio) formattedData.bio = data.bio;
+      if (data.learningGoal) formattedData.learningGoal = data.learningGoal;
+      if (data.experienceLevel) formattedData.experienceLevel = data.experienceLevel;
+
+      // Format phone number
+      if (data.phoneCode || data.phoneNumber) {
+        formattedData.phoneNumber = {
+          code: data.phoneCode || "",
+          number: data.phoneNumber || "",
+        };
+      }
+
+      // Format address
+      if (data.country || data.state || data.city) {
+        formattedData.address = {
+          country: data.country || "",
+          state: data.state || "",
+          city: data.city || "",
+        };
+      }
+
+      const response = await axios.post(`${USER_API}/signup`, formattedData);
       const responseData: { success: boolean; message: string } = response.data;
     
       if (responseData.success) {
@@ -219,6 +251,160 @@ const SignupModal: React.FC = () => {
                     {errors.confirmPassword.message}
                   </p>
                 )}
+              </div>
+            </div>
+
+            {/* Optional Additional Information Section */}
+            <div className="w-full border-t border-gray-300 dark:border-gray-600 pt-4 mt-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 font-medium">Additional Information (Optional)</p>
+              
+              {/* Date of Birth */}
+              <div className="w-full flex justify-center flex-col items-start mb-3">
+                <label className="text-sm text-gray-600 dark:text-gray-300 mb-1">Date of Birth</label>
+                <input
+                  type="date"
+                  className={`p-3 border rounded-md w-full text-black dark:text-white ${
+                    errors.userDob ? "border-red-500" : ""
+                  }`}
+                  {...register("userDob")}
+                />
+                {errors.userDob && (
+                  <p className="text-red-500 text-sm">{errors.userDob.message}</p>
+                )}
+              </div>
+
+              {/* Phone Number */}
+              <div className="w-full flex flex-col sm:flex-row items-start justify-between gap-2 mb-3">
+                <div className="w-full flex justify-center flex-col items-start">
+                  <label className="text-sm text-gray-600 dark:text-gray-300 mb-1">Phone Code</label>
+                  <input
+                    type="text"
+                    placeholder="+91"
+                    className={`p-3 border rounded-md w-full text-black dark:text-white ${
+                      errors.phoneCode ? "border-red-500" : ""
+                    }`}
+                    {...register("phoneCode")}
+                  />
+                  {errors.phoneCode && (
+                    <p className="text-red-500 text-sm">{errors.phoneCode.message}</p>
+                  )}
+                </div>
+                <div className="w-full flex justify-center flex-col items-start">
+                  <label className="text-sm text-gray-600 dark:text-gray-300 mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    placeholder="1234567890"
+                    className={`p-3 border rounded-md w-full text-black dark:text-white ${
+                      errors.phoneNumber ? "border-red-500" : ""
+                    }`}
+                    {...register("phoneNumber")}
+                  />
+                  {errors.phoneNumber && (
+                    <p className="text-red-500 text-sm">{errors.phoneNumber.message}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Address */}
+              <div className="w-full flex flex-col sm:flex-row items-start justify-between gap-2 mb-3">
+                <div className="w-full flex justify-center flex-col items-start">
+                  <label className="text-sm text-gray-600 dark:text-gray-300 mb-1">Country</label>
+                  <input
+                    type="text"
+                    placeholder="Country"
+                    className={`p-3 border rounded-md w-full text-black dark:text-white ${
+                      errors.country ? "border-red-500" : ""
+                    }`}
+                    {...register("country")}
+                  />
+                  {errors.country && (
+                    <p className="text-red-500 text-sm">{errors.country.message}</p>
+                  )}
+                </div>
+                <div className="w-full flex justify-center flex-col items-start">
+                  <label className="text-sm text-gray-600 dark:text-gray-300 mb-1">State</label>
+                  <input
+                    type="text"
+                    placeholder="State"
+                    className={`p-3 border rounded-md w-full text-black dark:text-white ${
+                      errors.state ? "border-red-500" : ""
+                    }`}
+                    {...register("state")}
+                  />
+                  {errors.state && (
+                    <p className="text-red-500 text-sm">{errors.state.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="w-full flex justify-center flex-col items-start mb-3">
+                <label className="text-sm text-gray-600 dark:text-gray-300 mb-1">City</label>
+                <input
+                  type="text"
+                  placeholder="City"
+                  className={`p-3 border rounded-md w-full text-black dark:text-white ${
+                    errors.city ? "border-red-500" : ""
+                  }`}
+                  {...register("city")}
+                />
+                {errors.city && (
+                  <p className="text-red-500 text-sm">{errors.city.message}</p>
+                )}
+              </div>
+
+              {/* Bio */}
+              <div className="w-full flex justify-center flex-col items-start mb-3">
+                <label className="text-sm text-gray-600 dark:text-gray-300 mb-1">Bio (max 500 characters)</label>
+                <textarea
+                  placeholder="Tell us about yourself..."
+                  rows={3}
+                  className={`p-3 border rounded-md w-full text-black dark:text-white resize-none ${
+                    errors.bio ? "border-red-500" : ""
+                  }`}
+                  {...register("bio")}
+                />
+                {errors.bio && (
+                  <p className="text-red-500 text-sm">{errors.bio.message}</p>
+                )}
+              </div>
+
+              {/* Learning Goals */}
+              <div className="w-full flex flex-col sm:flex-row items-start justify-between gap-2 mb-3">
+                <div className="w-full flex justify-center flex-col items-start">
+                  <label className="text-sm text-gray-600 dark:text-gray-300 mb-1">Learning Goal</label>
+                  <select
+                    className={`p-3 border rounded-md w-full text-black dark:text-white bg-white dark:bg-gray-700 ${
+                      errors.learningGoal ? "border-red-500" : ""
+                    }`}
+                    {...register("learningGoal")}
+                  >
+                    <option value="">Select your goal</option>
+                    <option value="get a job">Get a Job</option>
+                    <option value="upskill">Upskill</option>
+                    <option value="academic">Academic</option>
+                    <option value="hobby">Hobby</option>
+                  </select>
+                  {errors.learningGoal && (
+                    <p className="text-red-500 text-sm">{errors.learningGoal.message}</p>
+                  )}
+                </div>
+                <div className="w-full flex justify-center flex-col items-start">
+                  <label className="text-sm text-gray-600 dark:text-gray-300 mb-1">Experience Level</label>
+                  <select
+                    className={`p-3 border rounded-md w-full text-black dark:text-white bg-white dark:bg-gray-700 ${
+                      errors.experienceLevel ? "border-red-500" : ""
+                    }`}
+                    {...register("experienceLevel")}
+                  >
+                    <option value="">Select your level</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                  {errors.experienceLevel && (
+                    <p className="text-red-500 text-sm">{errors.experienceLevel.message}</p>
+                  )}
+                </div>
               </div>
             </div>
             <motion.button

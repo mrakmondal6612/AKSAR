@@ -71,7 +71,7 @@
 
    **Frontend** (`frontend/.env`):
    ```env
-   VITE_PUBLIC_COURSE_YUGA_USER_API="http://localhost:8001/api/v1/user"
+   VITE_PUBLIC_COURSE_AKSAR_USER_API="http://localhost:8001/api/v1/user"
    ```
 
 3. **Install Dependencies** (if not already done)

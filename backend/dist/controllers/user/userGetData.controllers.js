@@ -182,12 +182,12 @@ async function handleGetUserHistoryVideos(req, res) {
     }
     const { videoIds } = req.body;
     if (!Array.isArray(videoIds) || videoIds.length === 0) {
-        return res.status(400).json({ success: false, message: 'nothing found in history' });
+        return res.status(200).json({ success: true, videos: [] });
     }
     try {
         const videos = await Video_model_1.default.find({ videoId: { $in: videoIds } }).lean().exec();
         if (!videos || videos.length === 0) {
-            return res.status(404).json({ success: false, message: 'No videos found for the provided IDs' });
+            return res.status(200).json({ success: true, videos: [] });
         }
         const filteredVideos = videos.map((video) => ({
             videoName: video.videoName,

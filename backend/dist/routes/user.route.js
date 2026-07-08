@@ -23,6 +23,8 @@ const userResetPassword_controllers_1 = require("../controllers/user/userResetPa
 const userCourseHandlers_controllers_1 = require("../controllers/user/userCourseHandlers.controllers");
 const userChangeRole_controllers_1 = require("../controllers/user/userChangeRole.controllers");
 const userInterests_controllers_1 = require("../controllers/user/userInterests.controllers");
+const communityManagement_controllers_1 = require("../controllers/admin/communityManagement.controllers");
+const studentManagement_controllers_1 = require("../controllers/user/studentManagement.controllers");
 const rateLimiters_1 = require("../validchecks/rateLimiters");
 const multer_1 = __importDefault(require("multer"));
 const userRoute = express_1.default.Router();
@@ -37,6 +39,7 @@ userRoute.post("/get-user-history", auth_middleware_1.authenticateToken, userGet
 userRoute.post("/add-video-to-history", auth_middleware_1.authenticateToken, userCourseHandlers_controllers_1.handleUserHistoryVideoOrder);
 userRoute.post("/delete-user-history-video", auth_middleware_1.authenticateToken, userCourseHandlers_controllers_1.handleRemoveHistoryVideo);
 userRoute.delete("/delete-user-entire-history", auth_middleware_1.authenticateToken, userCourseHandlers_controllers_1.handleRemoveUserEntireHistory);
+userRoute.post("/delete-history-by-date-range", auth_middleware_1.authenticateToken, userCourseHandlers_controllers_1.handleRemoveHistoryByDateRange);
 userRoute.post("/unenrolled-in-course", auth_middleware_1.authenticateToken, userCourseHandlers_controllers_1.handleUserUnenrolledCourseFunction);
 // User Signup/Login Routes
 userRoute.post("/signup", localAuth_controllers_1.handleSignUpFunction);
@@ -99,4 +102,20 @@ userRoute.put("/update-interests", auth_middleware_1.authenticateToken, userInte
 // Course timeline routes
 userRoute.get("/course-timeline", auth_middleware_1.authenticateToken, notification_controllers_1.handleGetCourseTimeline);
 userRoute.post("/course-enrollment", auth_middleware_1.authenticateToken, notification_controllers_1.handleCreateCourseEnrollment);
+// Community Management routes (Admin only)
+userRoute.get("/admin/community/posts", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleGetAllPosts);
+userRoute.get("/admin/community/stats", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleGetCommunityStats);
+userRoute.get("/admin/community/posts/:postId", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleGetPostById);
+userRoute.patch("/admin/community/posts/:postId/approve", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleApprovePost);
+userRoute.patch("/admin/community/posts/:postId/reject", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleRejectPost);
+userRoute.delete("/admin/community/posts/:postId", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleDeletePost);
+userRoute.patch("/admin/community/posts/:postId/flag", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleFlagPost);
+// Student Management routes (Admin/Instructor only)
+userRoute.get("/admin/students", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleGetAllStudents);
+userRoute.get("/admin/students/stats", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleGetStudentStats);
+userRoute.get("/admin/students/:studentId", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleGetStudentById);
+userRoute.get("/admin/students/:studentId/courses", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleGetStudentEnrolledCourses);
+userRoute.put("/admin/students/:studentId", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleUpdateStudent);
+userRoute.patch("/admin/students/:studentId/email-verification", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleToggleStudentEmailVerification);
+userRoute.delete("/admin/students/:studentId", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleDeleteStudent);
 exports.default = userRoute;

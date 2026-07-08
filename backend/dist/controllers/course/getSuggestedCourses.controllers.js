@@ -40,7 +40,11 @@ async function handleGetSuggestedCoursesFunction(req, res) {
                 });
             }
             if (interestTags.length > 0) {
-                const tagRegexes = interestTags.map((tag) => new RegExp(tag, "i"));
+                // Escape special regex characters in tags
+                const tagRegexes = interestTags.map((tag) => {
+                    const escapedTag = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    return new RegExp(escapedTag, "i");
+                });
                 orConditions.push({ category: { $in: tagRegexes } }, { courseName: { $in: tagRegexes } }, { tutorName: { $in: tagRegexes } }, { description: { $in: tagRegexes } });
             }
             query = { ...query, $or: orConditions };

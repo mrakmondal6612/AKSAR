@@ -86,10 +86,12 @@ export async function handleFetchCourseByIdFunction(req: Request, res: Response)
       redirectLink: course.redirectLink ?? '',
       enrolledBy: course.enrolledBy ?? [],
       enrolledCount: course.enrolledBy?.length ?? 0,
-      videos: course.videos ?? []
+      videos: course.videos ?? [],
+      courseTechStack: course.courseTechStack ?? [],
+      courseContent: course.courseContent ?? []
     };
 
-    return res.status(200).json({ success: true, course });
+    return res.status(200).json({ success: true, data: course });
   }
   catch (error) {
     console.error("Error fetching course:", error);

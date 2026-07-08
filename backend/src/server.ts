@@ -6,6 +6,7 @@ import connectDB from "./utils/db.config";
 import userRoute from "./routes/user.route";
 import courseRoute from "./routes/course.route";
 import videoRoute from "./routes/video.route";
+import testRoute from "./routes/test.route";
 import { startNotificationScheduler } from "./services/notificationJob.service";
 import { startRecurringTodoScheduler } from "./services/recurringTodoJob.service";
 
@@ -31,6 +32,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/course", courseRoute);
 app.use("/api/v1/video", videoRoute);
+app.use("/api/v1/test", testRoute);
 
 async function startServer() {
     try {

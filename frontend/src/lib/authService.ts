@@ -10,14 +10,36 @@ export const getUserData = async (): Promise<UserDataProps | null> => {
     return null;
   }
 
-  // Check cache first
+  // Force cache clear for onboarding field update
+  // Check if cached data has the new onboardingCompleted field
   const cachedData = localStorage.getItem('cachedUserData');
-  const cacheTime = localStorage.getItem('userDataCacheTime');
-  if (cachedData && cacheTime) {
-    const cacheAge = Date.now() - parseInt(cacheTime);
+  
+  if (cachedData) {
+    try {
+      const parsed = JSON.parse(cachedData);
+      // Clear cache if it doesn't have onboardingCompleted field (data structure changed)
+      if (parsed.onboardingCompleted === undefined) {
+        console.log("Clearing old cache without onboardingCompleted field");
+        localStorage.removeItem('cachedUserData');
+        localStorage.removeItem('userDataCacheTime');
+      }
+    } catch (e) {
+      // Clear corrupted cache
+      console.log("Clearing corrupted cache");
+      localStorage.removeItem('cachedUserData');
+      localStorage.removeItem('userDataCacheTime');
+    }
+  }
+  
+  // Re-check after potential cache clear
+  const cachedDataAfter = localStorage.getItem('cachedUserData');
+  const cacheTimeAfter = localStorage.getItem('userDataCacheTime');
+  
+  if (cachedDataAfter && cacheTimeAfter) {
+    const cacheAge = Date.now() - parseInt(cacheTimeAfter);
     // Use cached data if less than 5 minutes old
     if (cacheAge < 5 * 60 * 1000) {
-      return JSON.parse(cachedData) as UserDataProps;
+      return JSON.parse(cachedDataAfter) as UserDataProps;
     }
   }
 
@@ -56,6 +78,11 @@ export const getUserData = async (): Promise<UserDataProps | null> => {
         bookmarks : responseData.bookmarks,
         progress : responseData.progress,
         history : responseData.history,
+        interests: responseData.interests,
+        interestTags: responseData.interestTags,
+        learningGoal: responseData.learningGoal,
+        experienceLevel: responseData.experienceLevel,
+        onboardingCompleted: responseData.onboardingCompleted || false,
       };
 
       // Cache the data

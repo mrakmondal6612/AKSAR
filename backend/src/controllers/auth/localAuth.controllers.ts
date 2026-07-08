@@ -7,12 +7,26 @@ import { emailVerificationAlert, sendEmailVerification } from "../../helpers/mai
 
 export async function handleSignUpFunction(req: Request, res: Response) {
     try {
-      const { userName, firstName, lastName, email, password }: IUser = req.body;
+      const { 
+        userName, 
+        firstName, 
+        lastName, 
+        email, 
+        password,
+        userDob,
+        bio,
+        address,
+        phoneNumber,
+        interests,
+        interestTags,
+        learningGoal,
+        experienceLevel
+      } = req.body;
   
       if (!userName || !firstName || !email || !password || !lastName) {
         return res
           .status(400)
-          .json({ success: false, message: "Please filled all the fields" });
+          .json({ success: false, message: "Please filled all the required fields" });
       }
   
       const isValid = checkConstraints(
@@ -50,6 +64,7 @@ export async function handleSignUpFunction(req: Request, res: Response) {
       const hashedPassword: string = await bcrypt.hash(password, 10);
       
       const { nanoid } = await import('nanoid');
+      
       const newUser = new User({
         uniqueId: nanoid(),
         userName: userName,
@@ -58,6 +73,14 @@ export async function handleSignUpFunction(req: Request, res: Response) {
         email: email,
         password: hashedPassword,
         role: "STUDENT",
+        bio: bio || "Hey, I am using AKSAR",
+        userDob: userDob,
+        address: address,
+        phoneNumber: phoneNumber,
+        interests: interests || [],
+        interestTags: interestTags || [],
+        learningGoal: learningGoal,
+        experienceLevel: experienceLevel,
       });
   
       const userId = newUser._id;

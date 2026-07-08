@@ -11,9 +11,11 @@ async function handleFetchYouTubeCoursesFunction(req, res) {
     try {
         // Get YouTube API key from env
         if (!process.env.YOUTUBE_API_KEY) {
-            return res.status(400).json({
-                success: false,
-                message: "YouTube API key not configured. Please add YOUTUBE_API_KEY to .env",
+            return res.status(200).json({
+                success: true,
+                data: [],
+                totalPlaylists: 0,
+                message: "YouTube API key not configured. YouTube courses are disabled.",
             });
         }
         // Step 1: Get channel ID from @BengaliCoder handle
@@ -24,7 +26,7 @@ async function handleFetchYouTubeCoursesFunction(req, res) {
                 success: true,
                 data: [],
                 totalPlaylists: 0,
-                message: `No YouTube playlists found for channel: ${channelHandle}`,
+                message: `Unable to fetch YouTube channel: ${channelHandle}. YouTube courses may be temporarily unavailable.`,
             });
         }
         // Step 2: Get all playlists from the channel
@@ -47,10 +49,12 @@ async function handleFetchYouTubeCoursesFunction(req, res) {
     }
     catch (error) {
         console.error("Error fetching YouTube courses:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Error fetching YouTube courses",
-            error: error instanceof Error ? error.message : "Unknown error",
+        // Return graceful error instead of crashing
+        return res.status(200).json({
+            success: true,
+            data: [],
+            totalPlaylists: 0,
+            message: "YouTube courses are temporarily unavailable due to API limitations.",
         });
     }
 }

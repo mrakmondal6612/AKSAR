@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticateToken } from "../middleware/auth.middleware";
+import { authenticateToken, authenticateAdminOrInstructorToken } from "../middleware/auth.middleware";
 // import { upload } from "../middleware/multer.middleware";
 import { handleGoogleSignUpCallbackFunction, handleGoogleSignUpFunction } from "../controllers/auth/googleAuth.controllers";
 import { handleGithubSignUpCallbackFunction, handleGithubSignUpFunction } from "../controllers/auth/githubAuth.controllers";
@@ -24,9 +24,27 @@ import {
 import { handleGetNotifications, handleMarkAsRead, handleMarkAllAsRead, handleDeleteNotification, handleGetCourseTimeline, handleCreateCourseEnrollment } from "../controllers/user/notification.controllers";
 import { handleUpdateUserImageFunction } from "../controllers/user/userProfileUpdate.controllers";
 import { handleResetPasswordFunction, handleResetPasswordVerificationOTP } from "../controllers/user/userResetPassword.controllers";
-import { handleRemoveHistoryVideo, handleRemoveUserEntireHistory, handleUserCourseBookmarkfunction , handleUserCourseProgress, handleUserHistoryVideoOrder, handleUserUnenrolledCourseFunction, handleUserVideoBookmarkfunction} from "../controllers/user/userCourseHandlers.controllers";
+import { handleRemoveHistoryVideo, handleRemoveUserEntireHistory, handleRemoveHistoryByDateRange, handleUserCourseBookmarkfunction , handleUserCourseProgress, handleUserHistoryVideoOrder, handleUserUnenrolledCourseFunction, handleUserVideoBookmarkfunction} from "../controllers/user/userCourseHandlers.controllers";
 import { handleChangeRoleRequestFunction } from "../controllers/user/userChangeRole.controllers";
 import { handleUpdateInterestsFunction } from "../controllers/user/userInterests.controllers";
+import {
+  handleGetAllPosts,
+  handleApprovePost,
+  handleRejectPost,
+  handleDeletePost,
+  handleFlagPost,
+  handleGetCommunityStats,
+  handleGetPostById,
+} from "../controllers/admin/communityManagement.controllers";
+import {
+  handleGetAllStudents,
+  handleGetStudentById,
+  handleUpdateStudent,
+  handleDeleteStudent,
+  handleGetStudentStats,
+  handleToggleStudentEmailVerification,
+  handleGetStudentEnrolledCourses,
+} from "../controllers/user/studentManagement.controllers";
 import { loginRateLimiter, userUpdateRateLimiter } from "../validchecks/rateLimiters";
 import multer from "multer";
 
@@ -45,6 +63,7 @@ userRoute.post("/get-user-history", authenticateToken , handleGetUserHistoryVide
 userRoute.post("/add-video-to-history", authenticateToken , handleUserHistoryVideoOrder);
 userRoute.post("/delete-user-history-video", authenticateToken , handleRemoveHistoryVideo);
 userRoute.delete("/delete-user-entire-history", authenticateToken , handleRemoveUserEntireHistory);
+userRoute.post("/delete-history-by-date-range", authenticateToken , handleRemoveHistoryByDateRange);
 userRoute.post("/unenrolled-in-course" , authenticateToken , handleUserUnenrolledCourseFunction);
 
 // User Signup/Login Routes
@@ -125,5 +144,23 @@ userRoute.put("/update-interests", authenticateToken, handleUpdateInterestsFunct
 // Course timeline routes
 userRoute.get("/course-timeline", authenticateToken, handleGetCourseTimeline);
 userRoute.post("/course-enrollment", authenticateToken, handleCreateCourseEnrollment);
+
+// Community Management routes (Admin only)
+userRoute.get("/admin/community/posts", authenticateAdminOrInstructorToken, handleGetAllPosts);
+userRoute.get("/admin/community/stats", authenticateAdminOrInstructorToken, handleGetCommunityStats);
+userRoute.get("/admin/community/posts/:postId", authenticateAdminOrInstructorToken, handleGetPostById);
+userRoute.patch("/admin/community/posts/:postId/approve", authenticateAdminOrInstructorToken, handleApprovePost);
+userRoute.patch("/admin/community/posts/:postId/reject", authenticateAdminOrInstructorToken, handleRejectPost);
+userRoute.delete("/admin/community/posts/:postId", authenticateAdminOrInstructorToken, handleDeletePost);
+userRoute.patch("/admin/community/posts/:postId/flag", authenticateAdminOrInstructorToken, handleFlagPost);
+
+// Student Management routes (Admin/Instructor only)
+userRoute.get("/admin/students", authenticateAdminOrInstructorToken, handleGetAllStudents);
+userRoute.get("/admin/students/stats", authenticateAdminOrInstructorToken, handleGetStudentStats);
+userRoute.get("/admin/students/:studentId", authenticateAdminOrInstructorToken, handleGetStudentById);
+userRoute.get("/admin/students/:studentId/courses", authenticateAdminOrInstructorToken, handleGetStudentEnrolledCourses);
+userRoute.put("/admin/students/:studentId", authenticateAdminOrInstructorToken, handleUpdateStudent);
+userRoute.patch("/admin/students/:studentId/email-verification", authenticateAdminOrInstructorToken, handleToggleStudentEmailVerification);
+userRoute.delete("/admin/students/:studentId", authenticateAdminOrInstructorToken, handleDeleteStudent);
 
 export default userRoute;

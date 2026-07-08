@@ -45,11 +45,11 @@ const checkAuthConstraints_1 = require("../../validchecks/checkAuthConstraints")
 const mailer_1 = require("../../helpers/mailer");
 async function handleSignUpFunction(req, res) {
     try {
-        const { userName, firstName, lastName, email, password } = req.body;
+        const { userName, firstName, lastName, email, password, userDob, bio, address, phoneNumber, interests, interestTags, learningGoal, experienceLevel } = req.body;
         if (!userName || !firstName || !email || !password || !lastName) {
             return res
                 .status(400)
-                .json({ success: false, message: "Please filled all the fields" });
+                .json({ success: false, message: "Please filled all the required fields" });
         }
         const isValid = (0, checkAuthConstraints_1.checkConstraints)(userName, firstName, lastName, email, password);
         if (!isValid) {
@@ -83,6 +83,14 @@ async function handleSignUpFunction(req, res) {
             email: email,
             password: hashedPassword,
             role: "STUDENT",
+            bio: bio || "Hey, I am using AKSAR",
+            userDob: userDob,
+            address: address,
+            phoneNumber: phoneNumber,
+            interests: interests || [],
+            interestTags: interestTags || [],
+            learningGoal: learningGoal,
+            experienceLevel: experienceLevel,
         });
         const userId = newUser._id;
         await newUser.save();

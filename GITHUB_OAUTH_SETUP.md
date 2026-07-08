@@ -72,12 +72,12 @@ This URL is used to construct the GitHub callback URL in the Passport strategy c
 
 ### 2.3 Frontend Configuration (.env file)
 
-The frontend uses the `VITE_PUBLIC_COURSE_YUGA_USER_API` variable to make API calls:
+The frontend uses the `VITE_PUBLIC_COURSE_AKSAR_USER_API` variable to make API calls:
 
 ```env
-VITE_PUBLIC_COURSE_YUGA_USER_API="http://localhost:8001/api/v1/user"  # Development
+VITE_PUBLIC_COURSE_AKSAR_USER_API="http://localhost:8001/api/v1/user"  # Development
 # OR
-VITE_PUBLIC_COURSE_YUGA_USER_API="https://yourdomain.com/api/v1/user"  # Production
+VITE_PUBLIC_COURSE_AKSAR_USER_API="https://yourdomain.com/api/v1/user"  # Production
 ```
 
 **Location:** `frontend/.env`

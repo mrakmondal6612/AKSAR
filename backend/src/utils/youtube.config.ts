@@ -81,9 +81,6 @@ export async function getChannelIdFromHandle(
   channelHandle: string
 ): Promise<string | null> {
   if (!YOUTUBE_API_KEY) {
-    console.error(
-      "YOUTUBE_API_KEY not configured. Please add it to your .env file"
-    );
     return null;
   }
 
@@ -97,7 +94,7 @@ export async function getChannelIdFromHandle(
     }
     return null;
   } catch (error) {
-    console.error("Error fetching channel ID:", error);
+    // Silent error - YouTube API may be unavailable
     return null;
   }
 }
