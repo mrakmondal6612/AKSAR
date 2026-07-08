@@ -95,9 +95,11 @@ const UserCourseCard: React.FC<CoursesInterface> = ({ courses, mode = "enrolled"
               alt="NextUI Album Cover"
               className="z-0 object-cover aspect-video"
             />
-            <div className="absolute bottom-1 right-1">
-              <CircularProgressBar progress={(userData.progress?.find((p) => p.courseId === course.courseId)?.count) || 0} />
-            </div>
+            {mode === "enrolled" && (
+                <div className="absolute bottom-1 right-1">
+                  <CircularProgressBar progress={(userData.progress?.find((p) => p.courseId === course.courseId)?.count) || 0} />
+                </div>
+            )}
           </div>
 
           <div className="p-3 space-y-1">
