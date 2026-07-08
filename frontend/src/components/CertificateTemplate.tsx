@@ -58,14 +58,14 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
   const name   = `${certificate.user.firstName} ${certificate.user.lastName}`;
   const course = certificate.test?.title ?? certificate.course?.courseName ?? "Course Name";
 
-  /* ── Palette (matches original template) ─────────────────── */
-  const BLUE      = "#1565e0";   // bright royal blue
-  const GOLD      = "#c8900a";   // gold accent
-  const NAVY      = "#0b1e45";   // dark navy headings
-  const NAME_BLUE = "#1a52c8";   // blue for cursive name
+  /* ── Enhanced Palette ──────────────────────────────────────── */
+  const BLUE      = "#1e40af";   // deeper royal blue
+  const GOLD      = "#d4a017";   // richer gold accent
+  const NAVY      = "#0f172a";   // darker navy headings
+  const NAME_BLUE = "#2563eb";   // vibrant blue for cursive name
   const CRS_BLUE  = "#1d4ed8";   // blue for course name
-  const GRAY      = "#6b7280";   // secondary text
-  const BGPAPER   = "#f6f8ff";   // light bluish-white background
+  const GRAY      = "#475569";   // darker secondary text
+  const BGPAPER   = "#f8fafc";   // cleaner white background
 
   /* ── SVG border path (shared) ────────────────────────────── */
   const borderPath = `
@@ -127,37 +127,49 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
           </pattern>
         </defs>
 
-        {/* Paper background */}
+        {/* Paper background with subtle texture */}
         <rect width="1000" height="800" fill="url(#cPaper)" />
+        {/* Subtle paper texture overlay */}
+        <rect width="1000" height="800" fill="#ffffff" opacity="0.03" />
 
-        {/* Water-ripple concentric circles — TL */}
-        {[140,190,240,290,340,390,440,490,540,590,640].map(r=>(
+        {/* Enhanced water-ripple concentric circles — TL */}
+        {[120,170,220,270,320,370,420,470,520,570,620,670].map(r=>(
           <circle key={`tl${r}`} cx="0" cy="0" r={r}
-            fill="none" stroke={BLUE} strokeWidth="0.75" strokeOpacity="0.05" />
+            fill="none" stroke={BLUE} strokeWidth="0.8" strokeOpacity="0.06" />
         ))}
-        {/* Water-ripple concentric circles — TR */}
-        {[140,190,240,290,340,390,440,490,540,590,640].map(r=>(
+        {/* Enhanced water-ripple concentric circles — TR */}
+        {[120,170,220,270,320,370,420,470,520,570,620,670].map(r=>(
           <circle key={`tr${r}`} cx="1000" cy="0" r={r}
-            fill="none" stroke={BLUE} strokeWidth="0.75" strokeOpacity="0.05" />
+            fill="none" stroke={BLUE} strokeWidth="0.8" strokeOpacity="0.06" />
+        ))}
+        {/* Bottom corner ripples — BL */}
+        {[120,170,220,270,320,370,420,470,520,570,620,670].map(r=>(
+          <circle key={`bl${r}`} cx="0" cy="800" r={r}
+            fill="none" stroke={BLUE} strokeWidth="0.8" strokeOpacity="0.06" />
+        ))}
+        {/* Bottom corner ripples — BR */}
+        {[120,170,220,270,320,370,420,470,520,570,620,670].map(r=>(
+          <circle key={`br${r}`} cx="1000" cy="800" r={r}
+            fill="none" stroke={BLUE} strokeWidth="0.8" strokeOpacity="0.06" />
         ))}
 
-        {/* Corner dot grids (outside the border) */}
-        <rect x="10"  y="10"  width="88" height="88" fill="url(#cDots)" />
-        <rect x="902" y="10"  width="88" height="88" fill="url(#cDots)" />
-        <rect x="10"  y="702" width="88" height="88" fill="url(#cDots)" />
-        <rect x="902" y="702" width="88" height="88" fill="url(#cDots)" />
+        {/* Enhanced corner dot grids with better spacing */}
+        <rect x="8"   y="8"   width="95" height="95" fill="url(#cDots)" />
+        <rect x="897" y="8"   width="95" height="95" fill="url(#cDots)" />
+        <rect x="8"   y="697" width="95" height="95" fill="url(#cDots)" />
+        <rect x="897" y="697" width="95" height="95" fill="url(#cDots)" />
 
-        {/* White fill + thick blue outer border */}
-        <path d={borderPath} fill="#ffffff" stroke={BLUE} strokeWidth="13" strokeLinejoin="round" />
+        {/* White fill + enhanced thick blue outer border */}
+        <path d={borderPath} fill="#ffffff" stroke={BLUE} strokeWidth="14" strokeLinejoin="round" filter="drop-shadow(0 2px 4px rgba(30,64,175,0.15))" />
 
-        {/* Gold inner accent (scaled slightly inward) */}
+        {/* Enhanced gold inner accent with better visibility */}
         <path d={borderPath} fill="none"
-          stroke="url(#cGold)" strokeWidth="2.4" strokeLinejoin="round"
+          stroke="url(#cGold)" strokeWidth="2.8" strokeLinejoin="round"
           transform="scale(0.9838)" style={{ transformOrigin:"500px 400px" }} />
 
-        {/* Blue hairline inner accent */}
+        {/* Enhanced blue hairline inner accent */}
         <path d={borderPath} fill="none"
-          stroke={BLUE} strokeWidth="0.75" strokeOpacity="0.28" strokeLinejoin="round"
+          stroke={BLUE} strokeWidth="1" strokeOpacity="0.35" strokeLinejoin="round"
           transform="scale(0.975)" style={{ transformOrigin:"500px 400px" }} />
       </svg>
 
@@ -168,68 +180,78 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
           position:"absolute", inset:0,
           display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"space-between",
-          padding:"4.5cqw 9cqw 3.2cqw",
+          padding:"5.5cqw 9.5cqw 4.5cqw",
           boxSizing:"border-box",
           pointerEvents:"none",
         }}
       >
 
-        {/* ── AKSAR Logo + Brand ── */}
+        {/* ── Enhanced AKSAR Logo + Brand ── */}
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", flexShrink:0 }}>
-          {/* Orbital logo */}
-          <div style={{ width:"6.2cqw", height:"6.2cqw" }}>
+          {/* Enhanced orbital logo with glow effect */}
+          <div style={{ width:"6.5cqw", height:"6.5cqw", filter:"drop-shadow(0 4px 8px rgba(30,64,175,0.25))" }}>
             <svg viewBox="0 0 100 100" style={{ width:"100%", height:"100%" }}>
-              <ellipse cx="50" cy="50" rx="47" ry="13" fill="none" stroke="#5ba4f5" strokeWidth="1.7"
-                transform="rotate(-20 50 50)" />
-              <ellipse cx="50" cy="50" rx="47" ry="13" fill="none" stroke="#5ba4f5" strokeWidth="1.7"
-                transform="rotate(40 50 50)" />
-              <ellipse cx="50" cy="50" rx="47" ry="13" fill="none" stroke="#5ba4f5" strokeWidth="1.7"
-                transform="rotate(100 50 50)" />
+              <defs>
+                <radialGradient id="logoGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor={BLUE} stopOpacity="0.3" />
+                  <stop offset="100%" stopColor={BLUE} stopOpacity="0" />
+                </radialGradient>
+              </defs>
+              <circle cx="50" cy="50" r="35" fill="url(#logoGlow)" />
+              <ellipse cx="50" cy="50" rx="47" ry="13" fill="none" stroke={BLUE} strokeWidth="2"
+                transform="rotate(-20 50 50)" opacity="0.8" />
+              <ellipse cx="50" cy="50" rx="47" ry="13" fill="none" stroke={BLUE} strokeWidth="2"
+                transform="rotate(40 50 50)" opacity="0.8" />
+              <ellipse cx="50" cy="50" rx="47" ry="13" fill="none" stroke={BLUE} strokeWidth="2"
+                transform="rotate(100 50 50)" opacity="0.8" />
               <circle cx="50" cy="50" r="22" fill={BLUE} />
               <text x="50" y="57" textAnchor="middle"
                 fontFamily="'Playfair Display',Georgia,serif"
-                fontSize="21" fontWeight="bold" fill="white">A</text>
+                fontSize="22" fontWeight="bold" fill="white">A</text>
             </svg>
           </div>
-          {/* AKSAR text – italic blue */}
+          {/* AKSAR text – enhanced italic blue with better spacing */}
           <span
             className="c-bod"
             style={{
-              fontStyle:"italic", fontSize:"1.85cqw", fontWeight:600,
-              color:BLUE, letterSpacing:"0.22em",
-              marginTop:"0.2cqw", lineHeight:1,
+              fontStyle:"italic", fontSize:"1.9cqw", fontWeight:700,
+              color:BLUE, letterSpacing:"0.25em",
+              marginTop:"0.3cqw", lineHeight:1,
+              textShadow:"0 1px 2px rgba(30,64,175,0.1)",
             }}
           >
             AKSAR
           </span>
         </div>
 
-        {/* ── "CERTIFICATE" heading ── */}
+        {/* ── Enhanced "CERTIFICATE" heading ── */}
         <div style={{ textAlign:"center", flexShrink:0 }}>
           <h1 className="c-ser" style={{
-            fontSize:"5.3cqw", color:NAVY,
-            letterSpacing:"0.05em", margin:0,
+            fontSize:"5.5cqw", color:NAVY,
+            letterSpacing:"0.08em", margin:0,
             lineHeight:1, fontWeight:800,
+            textShadow:"0 2px 4px rgba(15,23,42,0.1)",
           }}>
             CERTIFICATE
           </h1>
 
-          {/* — OF COMPLETION — */}
+          {/* — OF COMPLETION — with enhanced styling */}
           <div style={{
             display:"flex", alignItems:"center", justifyContent:"center",
-            gap:"1.4cqw", marginTop:"0.55cqw",
+            gap:"1.5cqw", marginTop:"0.6cqw",
           }}>
-            <div style={{ height:"1.5px", width:"7cqw",
-              background:`linear-gradient(to right,transparent,${GOLD})` }} />
+            <div style={{ height:"2px", width:"8cqw",
+              background:`linear-gradient(to right,transparent,${GOLD} 50%,${GOLD})` }} />
             <span className="c-bod" style={{
-              fontSize:"1.48cqw", color:GOLD,
-              fontWeight:700, letterSpacing:"0.36em",
+              fontSize:"1.55cqw", color:GOLD,
+              fontWeight:700, letterSpacing:"0.4em",
               lineHeight:1, whiteSpace:"nowrap",
+              textShadow:"0 1px 2px rgba(212,160,23,0.2)",
             }}>
               {subtitle()}
             </span>
-            <div style={{ height:"1.5px", width:"7cqw",
-              background:`linear-gradient(to left,transparent,${GOLD})` }} />
+            <div style={{ height:"2px", width:"8cqw",
+              background:`linear-gradient(to left,transparent,${GOLD} 50%,${GOLD})` }} />
           </div>
         </div>
 
@@ -241,11 +263,11 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
           width:"100%", padding:"0.4cqw 0",
         }}>
 
-          {/* Top diamond flourish */}
-          <div style={{ display:"flex", alignItems:"center", gap:"0.7cqw", marginBottom:"0.45cqw" }}>
-            <div style={{ width:"3.2cqw", height:"1px", background:GOLD }} />
-            <div style={{ width:"0.7cqw", height:"0.7cqw", background:GOLD, transform:"rotate(45deg)" }} />
-            <div style={{ width:"3.2cqw", height:"1px", background:GOLD }} />
+          {/* Enhanced top diamond flourish */}
+          <div style={{ display:"flex", alignItems:"center", gap:"0.8cqw", marginBottom:"0.5cqw" }}>
+            <div style={{ width:"3.5cqw", height:"1.5px", background:GOLD, borderRadius:"1px" }} />
+            <div style={{ width:"0.8cqw", height:"0.8cqw", background:GOLD, transform:"rotate(45deg)", boxShadow:"0 0 4px rgba(212,160,23,0.3)" }} />
+            <div style={{ width:"3.5cqw", height:"1.5px", background:GOLD, borderRadius:"1px" }} />
           </div>
 
           <p className="c-bod" style={{
@@ -256,30 +278,32 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
             This is to certify that
           </p>
 
-          {/* ★ STUDENT NAME – dynamic */}
+          {/* ★ Enhanced STUDENT NAME – dynamic */}
           <h2 className="c-cur c-sel" style={{
-            fontSize:"5.5cqw", color:NAME_BLUE,
-            margin:"0.15cqw 0 0", lineHeight:1.05,
+            fontSize:"5.8cqw", color:NAME_BLUE,
+            margin:"0.2cqw 0 0", lineHeight:1.05,
             overflow:"hidden", textOverflow:"ellipsis",
             whiteSpace:"nowrap", maxWidth:"90%",
+            textShadow:"0 2px 4px rgba(37,99,235,0.15)",
           }}>
             {name}
           </h2>
 
-          {/* Gold line + diamond divider */}
+          {/* Enhanced gold line + diamond divider */}
           <div style={{
-            position:"relative", width:"52%",
+            position:"relative", width:"55%",
             display:"flex", alignItems:"center", justifyContent:"center",
-            margin:"0.5cqw 0",
+            margin:"0.6cqw 0",
           }}>
             <div style={{
-              height:"1px", width:"100%",
-              background:`linear-gradient(to right,transparent,${GOLD} 28%,${GOLD} 72%,transparent)`,
+              height:"1.5px", width:"100%",
+              background:`linear-gradient(to right,transparent,${GOLD} 25%,${GOLD} 75%,transparent)`,
             }} />
             <div style={{
               position:"absolute",
-              width:"0.75cqw", height:"0.75cqw",
+              width:"0.85cqw", height:"0.85cqw",
               background:GOLD, transform:"rotate(45deg)",
+              boxShadow:"0 0 6px rgba(212,160,23,0.4)",
             }} />
           </div>
 
@@ -291,22 +315,26 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
             has successfully completed the course
           </p>
 
-          {/* ★ COURSE NAME – dynamic */}
+          {/* ★ Enhanced COURSE NAME – dynamic */}
           <h3 className="c-bod c-sel" style={{
-            fontSize:"2.45cqw", color:CRS_BLUE,
-            fontWeight:700, margin:"0.3cqw 0 0",
+            fontSize:"2.6cqw", color:CRS_BLUE,
+            fontWeight:700, margin:"0.35cqw 0 0",
             lineHeight:1.2, overflow:"hidden",
             textOverflow:"ellipsis", whiteSpace:"nowrap",
-            maxWidth:"90%", letterSpacing:"0.02em",
+            maxWidth:"90%", letterSpacing:"0.04em",
+            textShadow:"0 1px 2px rgba(29,78,216,0.1)",
           }}>
             {course}
           </h3>
         </div>
 
-        {/* ── 4-Column Date / ID Grid – dynamic ── */}
+        {/* ── Enhanced 4-Column Date / ID Grid – dynamic ── */}
         <div style={{
           display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr",
           width:"100%", flexShrink:0,
+          background:"linear-gradient(to bottom, transparent, rgba(212,160,23,0.03), transparent)",
+          borderRadius:"4px",
+          padding:"0.3cqw 0",
         }}>
           {[
             { label:"Start Date",  val: fmt(certificate.issuedDate),    sep:true  },
@@ -316,19 +344,20 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
           ].map(({ label, val, sep }) => (
             <div key={label} className="c-sel" style={{
               textAlign:"center",
-              borderRight: sep ? "1px solid rgba(200,144,10,0.35)" : "none",
-              padding:"0.4cqw 0",
+              borderRight: sep ? "1px solid rgba(212,160,23,0.25)" : "none",
+              padding:"0.5cqw 0",
+              transition:"all 0.2s ease",
             }}>
               <div className="c-bod" style={{
-                fontSize:"1.05cqw", color:GRAY,
-                fontWeight:600, letterSpacing:"0.1em",
+                fontSize:"1.1cqw", color:GRAY,
+                fontWeight:600, letterSpacing:"0.12em",
                 textTransform:"uppercase",
               }}>
                 {label}
               </div>
               <div className="c-bod c-sel" style={{
-                fontSize:"1.28cqw", color:"#1e293b",
-                fontWeight:700, marginTop:"0.25cqw",
+                fontSize:"1.35cqw", color:"#1e293b",
+                fontWeight:700, marginTop:"0.3cqw",
                 whiteSpace:"nowrap",
               }}>
                 {val}
@@ -345,55 +374,106 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
           marginTop:"0.6cqw",
         }}>
 
-          {/* ★ Grade Badge – dynamic */}
+          {/* ★ Enhanced Grade Badge – dynamic */}
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", width:"11cqw" }}>
             <div style={{
-              width:"7.5cqw", height:"7.5cqw",
+              width:"7.8cqw", height:"7.8cqw",
               borderRadius:"50%",
-              border:"2px dotted #c8900a",
+              border:"2.5px dotted #d4a017",
               display:"flex", flexDirection:"column",
               alignItems:"center", justifyContent:"center",
+              background:"linear-gradient(135deg, rgba(212,160,23,0.05), rgba(212,160,23,0.1))",
+              boxShadow:"0 4px 12px rgba(212,160,23,0.2)",
             }}>
               <span className="c-bod" style={{
-                fontSize:"0.82cqw", color:GRAY,
-                fontWeight:700, letterSpacing:"0.18em",
+                fontSize:"0.85cqw", color:GRAY,
+                fontWeight:700, letterSpacing:"0.2em",
                 textTransform:"uppercase", lineHeight:1,
               }}>
                 GRADE
               </span>
               <span className="c-bod c-sel" style={{
-                fontSize:"2.3cqw", color:"#1e3a8a",
-                fontWeight:700, lineHeight:1,
-                marginTop:"0.1cqw",
+                fontSize:"2.4cqw", color:"#1e3a8a",
+                fontWeight:800, lineHeight:1,
+                marginTop:"0.15cqw",
               }}>
                 {certificate.grade}
               </span>
             </div>
           </div>
 
-          {/* Gold Rosette Medal – certificateStiker.png */}
+          {/* Enhanced Gold Rosette Medal – certificateStiker.png */}
           <div style={{ flex:1, display:"flex", justifyContent:"center", alignItems:"flex-end" }}>
             <img
               src="/images/certificateStiker.png"
               alt="Gold Medal"
               style={{
-                width:"9.5cqw", height:"9.5cqw",
+                width:"10cqw", height:"10cqw",
                 objectFit:"contain",
                 userSelect:"none", pointerEvents:"none",
+                filter:"drop-shadow(0 6px 12px rgba(212,160,23,0.3))",
               }}
             />
           </div>
 
-          {/* ★ QR Code – dynamic */}
+          {/* ★ Enhanced QR Code – dynamic with elegant frame */}
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", width:"11cqw" }}>
             <div style={{
+              position:"relative",
               background:"#fff",
-              border:"1px solid rgba(200,144,10,0.3)",
-              borderRadius:"3px",
-              padding:"0.45cqw",
+              borderRadius:"6px",
+              padding:"0.6cqw",
               display:"inline-flex",
               pointerEvents:"auto",
+              boxShadow:"0 6px 16px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08)",
             }}>
+              {/* Outer gold border */}
+              <div style={{
+                position:"absolute",
+                inset:0,
+                borderRadius:"6px",
+                border:"2px solid",
+                borderColor:GOLD,
+                pointerEvents:"none",
+              }} />
+              {/* Inner gold accent border */}
+              <div style={{
+                position:"absolute",
+                inset:"3px",
+                borderRadius:"4px",
+                border:"1px solid",
+                borderColor:"rgba(212,160,23,0.3)",
+                pointerEvents:"none",
+              }} />
+              {/* Corner decorations */}
+              <div style={{
+                position:"absolute",
+                top:"-2px", left:"-2px",
+                width:"8px", height:"8px",
+                borderTop:"2px solid", borderLeft:"2px solid",
+                borderColor:GOLD,
+              }} />
+              <div style={{
+                position:"absolute",
+                top:"-2px", right:"-2px",
+                width:"8px", height:"8px",
+                borderTop:"2px solid", borderRight:"2px solid",
+                borderColor:GOLD,
+              }} />
+              <div style={{
+                position:"absolute",
+                bottom:"-2px", left:"-2px",
+                width:"8px", height:"8px",
+                borderBottom:"2px solid", borderLeft:"2px solid",
+                borderColor:GOLD,
+              }} />
+              <div style={{
+                position:"absolute",
+                bottom:"-2px", right:"-2px",
+                width:"8px", height:"8px",
+                borderBottom:"2px solid", borderRight:"2px solid",
+                borderColor:GOLD,
+              }} />
               <QRCodeSVG
                 value={url()}
                 size={100}
@@ -401,13 +481,13 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
                 fgColor="#000000"
                 level="L"
                 includeMargin={false}
-                style={{ width:"6.8cqw", height:"6.8cqw" }}
+                style={{ width:"7.2cqw", height:"7.2cqw" }}
               />
             </div>
             <span className="c-bod" style={{
-              fontSize:"0.82cqw", color:GRAY,
-              fontWeight:600, marginTop:"0.4cqw",
-              letterSpacing:"0.08em", textTransform:"uppercase",
+              fontSize:"0.85cqw", color:GRAY,
+              fontWeight:600, marginTop:"0.5cqw",
+              letterSpacing:"0.1em", textTransform:"uppercase",
               whiteSpace:"nowrap", lineHeight:1,
             }}>
               Scan to Verify
@@ -415,25 +495,29 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
           </div>
         </div>
 
-        {/* ── Certificate Number ── */}
-        <div style={{ textAlign:"center", flexShrink:0, marginTop:"0.5cqw", width:"100%" }}>
-          {/* Gold diamond separator */}
+        {/* ── Enhanced Certificate Number ── */}
+        <div style={{ textAlign:"center", flexShrink:0, marginTop:"0.6cqw", width:"100%" }}>
+          {/* Enhanced gold diamond separator */}
           <div style={{
-            margin:"0 auto 0.3cqw",
-            width:"26%", height:"1px",
-            background:`linear-gradient(to right,transparent,${GOLD} 35%,${GOLD} 65%,transparent)`,
+            margin:"0 auto 0.35cqw",
+            width:"28%", height:"1.5px",
+            background:`linear-gradient(to right,transparent,${GOLD} 30%,${GOLD} 70%,transparent)`,
             position:"relative",
             display:"flex", alignItems:"center", justifyContent:"center",
           }}>
-            <div style={{ width:"0.6cqw", height:"0.6cqw", background:GOLD, transform:"rotate(45deg)" }} />
+            <div style={{ 
+              width:"0.7cqw", height:"0.7cqw", 
+              background:GOLD, transform:"rotate(45deg)",
+              boxShadow:"0 0 4px rgba(212,160,23,0.3)",
+            }} />
           </div>
           <p className="c-bod c-sel" style={{
-            fontSize:"1.1cqw", color:"#334155",
-            fontWeight:700, letterSpacing:"0.1em",
+            fontSize:"1.15cqw", color:"#334155",
+            fontWeight:700, letterSpacing:"0.12em",
             textTransform:"uppercase", margin:0, lineHeight:1,
           }}>
             Certificate No:{" "}
-            <span style={{ color:NAVY }}>{certNo()}</span>
+            <span style={{ color:NAVY, fontWeight:800 }}>{certNo()}</span>
           </p>
         </div>
 
