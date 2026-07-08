@@ -95,9 +95,9 @@ export async function handlePhoneNumberOTPCheckFunction(
         message: "User not found",
       });
     }
-    const userNumber = user.phoneNumber.number + user.phoneNumber.code;
-  
-    if (userNumber !== undefined && userNumber === to) {
+    const userNumber = (user.phoneNumber.code || "") + (user.phoneNumber.number || "");
+
+    if (userNumber && userNumber === to) {
       return res
         .status(404)
         .json({ success: false, message: "Phone number is already verified" });

@@ -127,7 +127,10 @@ const MobileNumberForm: React.FC<CountrySelectProps> = ({
       if (response.data?.success) {
         SuccessToast(response.data.message);
         setShowOtpField(false);
-        loadUserData();
+        // Clear cached user data so updated phone number is fetched
+        localStorage.removeItem('cachedUserData');
+        localStorage.removeItem('userDataCacheTime');
+        await loadUserData();
         setValue("otp", "");
       } else {
         ErrorToast(response.data.message);
