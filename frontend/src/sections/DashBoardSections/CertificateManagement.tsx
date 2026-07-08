@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,11 +80,10 @@ const CertificateManagement: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
+  const [selectedCertificate] = useState<Certificate | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [selectedCertificateId, setSelectedCertificateId] = useState<string | null>(null);
-  const navigate = useNavigate();
   const [createFormData, setCreateFormData] = useState({
     userId: "",
     testId: "",
