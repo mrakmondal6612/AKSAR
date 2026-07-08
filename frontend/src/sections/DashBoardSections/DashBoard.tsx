@@ -66,8 +66,9 @@ const DashBoard = () => {
         ErrorToast(response.data.message);
         setEnrolledCourses([]);
       }
-    } catch (error: any) {
-      ErrorToast(error?.response?.data?.message || "Something went wrong");
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
+      ErrorToast(err?.response?.data?.message || "Something went wrong");
       setEnrolledCourses([]);
     } finally {
       setEnrolledLoading(false);
