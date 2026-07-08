@@ -35,10 +35,15 @@ export interface UserDataProps {
     completedVideos: string[];
     count: number;
   }[];
-  history?: { 
+  history?: {
     video: string;
-    time: string 
-  }[]
+    time: string
+  }[];
+  interests?: string[];
+  interestTags?: string[];
+  learningGoal?: string;
+  experienceLevel?: string;
+  onboardingCompleted?: boolean;
 }
 
 interface AuthContextType {
@@ -46,6 +51,7 @@ interface AuthContextType {
   setUserData: (user: UserDataProps) => void;
   isLoggedIn: boolean;
   setIsLoggedIn: (value: boolean) => void;
+  isUserDataLoaded: boolean;
   // localStorageUserData: UserDataProps;
   // setLocalStorageUserData: (user: UserDataProps) => void;
 }
@@ -64,6 +70,7 @@ export const useAuthContext = () => {
 export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState<UserDataProps>(defaultUserData);
+  const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
 
   const loadUserData = useCallback(async () => {
     const verifiedToken = getVerifiedToken();
@@ -79,6 +86,7 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
         setUserData(userData);
       }
     }
+    setIsUserDataLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -90,55 +98,56 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
     const handleTokenAndLoadData = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const tokenFromUrl = urlParams.get("token");
-  
+
       if (tokenFromUrl) {
         setTokenCookie(tokenFromUrl);  // Set token
         SuccessToast("Login Successfully");
         WarningToast("Update your profile");
-  
+
         const verifiedToken = getVerifiedToken();
         if (verifiedToken) {
           await loadUserData();  // Load user data after setting the token
         }
-  
+
         setIsLoggedIn(!!verifiedToken);
         window.location.replace("/");
       }
     };
-  
+
     handleTokenAndLoadData();
   }, [loadUserData]);
-  
-  
+
+
   // useEffect(() => {
   //   const urlParams = new URLSearchParams(window.location.search);
   //   const tokenFromUrl = urlParams.get("token");
 
   //   if (tokenFromUrl) {
-  //     setTokenCookie(tokenFromUrl); 
+  //     setTokenCookie(tokenFromUrl);
   //     SuccessToast("Login Successfully");
   //     WarningToast("Update your profile");
-      
+
   //     const verifiedToken = getVerifiedToken();
   //     if (verifiedToken) {
   //       loadUserData();
   //     }
-  
-  //     setIsLoggedIn(!!verifiedToken); 
+
+  //     setIsLoggedIn(!!verifiedToken);
   //   }
 
   // }, [loadUserData]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        userData,
-        setUserData,
-        isLoggedIn,
-        setIsLoggedIn,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+      <AuthContext.Provider
+          value={{
+            userData,
+            setUserData,
+            isLoggedIn,
+            setIsLoggedIn,
+            isUserDataLoaded,
+          }}
+      >
+        {children}
+      </AuthContext.Provider>
   );
 };

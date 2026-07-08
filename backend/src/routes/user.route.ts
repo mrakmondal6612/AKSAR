@@ -26,6 +26,7 @@ import { handleUpdateUserImageFunction } from "../controllers/user/userProfileUp
 import { handleResetPasswordFunction, handleResetPasswordVerificationOTP } from "../controllers/user/userResetPassword.controllers";
 import { handleRemoveHistoryVideo, handleRemoveUserEntireHistory, handleUserCourseBookmarkfunction , handleUserCourseProgress, handleUserHistoryVideoOrder, handleUserUnenrolledCourseFunction, handleUserVideoBookmarkfunction} from "../controllers/user/userCourseHandlers.controllers";
 import { handleChangeRoleRequestFunction } from "../controllers/user/userChangeRole.controllers";
+import { handleUpdateInterestsFunction } from "../controllers/user/userInterests.controllers";
 import { loginRateLimiter, userUpdateRateLimiter } from "../validchecks/rateLimiters";
 import multer from "multer";
 
@@ -78,7 +79,7 @@ userRoute.post("/delete-account", authenticateToken, handleDeleteAccountFunction
 userRoute.post("/user-course-bookmarks" , authenticateToken , handleUserCourseBookmarkfunction);
 userRoute.post("/user-video-bookmarks" , authenticateToken , handleUserVideoBookmarkfunction);
 
-//User added completed Video 
+//User added completed Video
 userRoute.post("/user-video-progress" , authenticateToken , handleUserCourseProgress )
 
 // Todo list routes
@@ -117,6 +118,9 @@ userRoute.get("/notifications", authenticateToken, handleGetNotifications);
 userRoute.put("/notifications/:id/read", authenticateToken, handleMarkAsRead);
 userRoute.put("/notifications/mark-all-read", authenticateToken, handleMarkAllAsRead);
 userRoute.delete("/notifications/:id", authenticateToken, handleDeleteNotification);
+
+// User interests / onboarding
+userRoute.put("/update-interests", authenticateToken, handleUpdateInterestsFunction);
 
 // Course timeline routes
 userRoute.get("/course-timeline", authenticateToken, handleGetCourseTimeline);

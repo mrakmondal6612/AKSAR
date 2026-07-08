@@ -8,6 +8,7 @@ import { handleGetAllCoursesEnrolledByUser, handleUserEnrolledCourseFunction } f
 import { handleDeleteCourseFunction } from "../controllers/course/deleteCourse.controllers";
 import { handleFetchYouTubeCoursesFunction, handleFetchYouTubePlaylistVideosFunction, handleSearchYouTubeCoursesFunction } from "../controllers/course/youtubeSync.controllers";
 import { handleCreateOrderFunction, handleVerifyPaymentFunction } from "../controllers/payment/razorpay.controllers";
+import { handleGetSuggestedCoursesFunction } from "../controllers/course/getSuggestedCourses.controllers";
 import multer from "multer";
 
 const courseRoute = express.Router();
@@ -23,6 +24,7 @@ courseRoute.get("/get-all-courses", handleFetchAllCoursesFunction);
 courseRoute.get("/get-admin-courses", authenticateAdminToken, handleGetCoursesByUserIdFunction);
 
 courseRoute.get("/get-user-enrolled-courses", authenticateToken, handleGetAllCoursesEnrolledByUser);
+courseRoute.get("/get-suggested-courses", authenticateToken, handleGetSuggestedCoursesFunction);
 courseRoute.post("/enroll-in-course", authenticateToken, handleUserEnrolledCourseFunction);
 
 // Razorpay Payment Routes
