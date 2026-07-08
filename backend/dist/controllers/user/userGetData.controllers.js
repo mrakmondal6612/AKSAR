@@ -38,6 +38,11 @@ async function handleGetUserDataFunction(req, res) {
             bookmarks: user.bookmarks,
             progress: user.progress,
             history: user.history,
+            interests: user.interests,
+            interestTags: user.interestTags,
+            learningGoal: user.learningGoal,
+            experienceLevel: user.experienceLevel,
+            onboardingCompleted: user.onboardingCompleted ?? false,
         };
         return res.status(200).json({ success: true, data });
     }

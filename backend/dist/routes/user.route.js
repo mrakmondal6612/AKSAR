@@ -22,6 +22,7 @@ const userProfileUpdate_controllers_1 = require("../controllers/user/userProfile
 const userResetPassword_controllers_1 = require("../controllers/user/userResetPassword.controllers");
 const userCourseHandlers_controllers_1 = require("../controllers/user/userCourseHandlers.controllers");
 const userChangeRole_controllers_1 = require("../controllers/user/userChangeRole.controllers");
+const userInterests_controllers_1 = require("../controllers/user/userInterests.controllers");
 const rateLimiters_1 = require("../validchecks/rateLimiters");
 const multer_1 = __importDefault(require("multer"));
 const userRoute = express_1.default.Router();
@@ -62,7 +63,7 @@ userRoute.post("/delete-account", auth_middleware_1.authenticateToken, userDataD
 //User added bookmarks to the course
 userRoute.post("/user-course-bookmarks", auth_middleware_1.authenticateToken, userCourseHandlers_controllers_1.handleUserCourseBookmarkfunction);
 userRoute.post("/user-video-bookmarks", auth_middleware_1.authenticateToken, userCourseHandlers_controllers_1.handleUserVideoBookmarkfunction);
-//User added completed Video 
+//User added completed Video
 userRoute.post("/user-video-progress", auth_middleware_1.authenticateToken, userCourseHandlers_controllers_1.handleUserCourseProgress);
 // Todo list routes
 userRoute.get("/todos", auth_middleware_1.authenticateToken, todo_controllers_1.handleGetTodos);
@@ -93,6 +94,8 @@ userRoute.get("/notifications", auth_middleware_1.authenticateToken, notificatio
 userRoute.put("/notifications/:id/read", auth_middleware_1.authenticateToken, notification_controllers_1.handleMarkAsRead);
 userRoute.put("/notifications/mark-all-read", auth_middleware_1.authenticateToken, notification_controllers_1.handleMarkAllAsRead);
 userRoute.delete("/notifications/:id", auth_middleware_1.authenticateToken, notification_controllers_1.handleDeleteNotification);
+// User interests / onboarding
+userRoute.put("/update-interests", auth_middleware_1.authenticateToken, userInterests_controllers_1.handleUpdateInterestsFunction);
 // Course timeline routes
 userRoute.get("/course-timeline", auth_middleware_1.authenticateToken, notification_controllers_1.handleGetCourseTimeline);
 userRoute.post("/course-enrollment", auth_middleware_1.authenticateToken, notification_controllers_1.handleCreateCourseEnrollment);

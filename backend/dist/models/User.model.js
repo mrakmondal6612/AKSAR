@@ -12,7 +12,11 @@ const userSchema = new mongoose_1.default.Schema({
     password: { type: String, required: [true, "Password is required"] },
     email: { type: String, required: [true, "Email is required"] },
     profileImageUrl: { type: String || undefined },
-    role: { type: String, enum: ["ADMIN", "STUDENT", "MASTER", "INSTRUCTOR"], required: true },
+    role: {
+        type: String,
+        enum: ["ADMIN", "STUDENT", "MASTER", "INSTRUCTOR"],
+        required: true,
+    },
     emailVerificationOTP: { type: String },
     emailVerificationOTPExpires: { type: String },
     emailVerificationStatus: { type: Boolean, default: false },
@@ -22,15 +26,19 @@ const userSchema = new mongoose_1.default.Schema({
     passwordSendTime: { type: String },
     phoneNumber: {
         code: { type: String },
-        number: { type: String }
+        number: { type: String },
     },
     phoneNumberVerificationStatus: { type: Boolean, default: false },
     userDob: { type: String },
-    bio: { type: String, default: "Hey, I am using AKSAR", max: [500, "bio must be within the 500 chars"] },
+    bio: {
+        type: String,
+        default: "Hey, I am using AKSAR",
+        max: [500, "bio must be within the 500 chars"],
+    },
     address: {
         country: { type: String },
         city: { type: String },
-        state: { type: String }
+        state: { type: String },
     },
     uploadedCourses: [{ type: String, ref: "Course" }],
     enrolledIn: [{ type: String, ref: "Course" }],
@@ -41,19 +49,25 @@ const userSchema = new mongoose_1.default.Schema({
     },
     progress: [
         {
-            courseId: { type: String, ref: 'Course' },
-            completedVideos: [{ type: String, ref: 'Video' }],
-            count: { type: Number }
+            courseId: { type: String, ref: "Course" },
+            completedVideos: [{ type: String, ref: "Video" }],
+            count: { type: Number },
         },
     ],
     history: [
         {
-            video: { type: String, ref: 'Video' },
-            time: { type: String }
-        }
-    ]
+            video: { type: String, ref: "Video" },
+            time: { type: String },
+        },
+    ],
+    // Interests & onboarding
+    interests: [{ type: String }],
+    interestTags: [{ type: String }],
+    learningGoal: { type: String },
+    experienceLevel: { type: String },
+    onboardingCompleted: { type: Boolean, default: false },
 }, {
-    timestamps: true
+    timestamps: true,
 });
 const User = mongoose_1.default.models.User || mongoose_1.default.model("User", userSchema);
 exports.default = User;
