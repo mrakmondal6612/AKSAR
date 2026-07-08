@@ -49,7 +49,7 @@ export interface IUser extends Document {
 const userSchema = new mongoose.Schema<IUser>({
   uniqueId : { type: String, required: true, unique: true },
   firstName : { type: String, required: [true, "Firstname is required"] },
-  lastName: { type: String, required: [true, "LastName is required"] },
+  lastName: { type: String },
   userName: { type: String, required: [true, "Username is required"] },
   password: { type: String, required: [true, "Password is required"] },
   email: { type: String, required: [true, "Email is required"] },
@@ -68,7 +68,7 @@ const userSchema = new mongoose.Schema<IUser>({
   },
   phoneNumberVerificationStatus: {type :Boolean , default: false},
   userDob: { type: String },
-  bio: { type: String, default: "Hey, I am using LMS" , max: [500, "bio must be within the 500 chars" ]},
+  bio: { type: String, default: "Hey, I am using AKSAR" , max: [500, "bio must be within the 500 chars" ]},
   address: { 
     country : {type: String },
     city : {type: String },
