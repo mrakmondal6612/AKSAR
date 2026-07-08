@@ -17,8 +17,20 @@ const schema = z.object({
 });
 
 function convertDateFormat(dateString: string): string {
-  const [year, month, day] = dateString.split("-");
-  return `${day}-${month}-${year}`;
+  // Accept either ISO (YYYY-MM-DD) or Date string; return DD-MM-YYYY
+  if (!dateString) return "";
+  // If already in YYYY-MM-DD format
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const [year, month, day] = dateString.split("-");
+    return `${day}-${month}-${year}`;
+  }
+  // Fallback: try to parse as Date
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return dateString;
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = d.getFullYear();
+  return `${dd}-${mm}-${yy}`;
 }
 
 type DobAndRoleFormData = z.infer<typeof schema>;
@@ -55,7 +67,10 @@ const DobForm: React.FC = () => {
 
         if(response && response.data && response.data.success){
             SuccessToast(response.data.message);
-            loadUserData();
+          // Clear cached user data so the updated DOB is fetched fresh
+          localStorage.removeItem('cachedUserData');
+          localStorage.removeItem('userDataCacheTime');
+          await loadUserData();
         }
         else{
             ErrorToast(response.data.message);
@@ -76,14 +91,21 @@ const DobForm: React.FC = () => {
           className=""
           {...register("dob")} // Register DOB field
           onChange={(date) => {
-            const selectedDate = new Date(date?.toString() || "");
+            const selected = date ? new Date(date as any) : null;
             const currentDate = new Date();
-    
-            if (selectedDate > currentDate) {
-              setValue("dob", ""); 
+
+            if (!selected) {
+              setValue("dob", "");
+              return;
+            }
+
+            if (selected > currentDate) {
+              setValue("dob", "");
               ErrorToast("You cannot select a future date.");
             } else {
-              setValue("dob", date?.toString() || ""); 
+              // store as YYYY-MM-DD for consistent parsing
+              const iso = selected.toISOString().slice(0, 10);
+              setValue("dob", iso);
             }
           }}
         />

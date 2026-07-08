@@ -5,7 +5,7 @@ import FilterIcon from "@/Icons/FilterIcon";
 import { motion } from "framer-motion";
 import OrderFilter from "./OrderFilter";
 import SearchInputFilter from "./SearchInputFilter";
-import SelectCurrency from "./SelectCurrency";
+// SelectCurrency removed per request (currency selector hidden)
 import CategoryFilter from "./CategoryFilter";
 import { useCourseContext } from "@/context/courseContext";
 import { COURSE_API } from "@/lib/env";
@@ -78,7 +78,6 @@ const CoursesNavbar: React.FC = () => {
           transition={{ ease: "easeOut", duration: 0.5 }}
           className="w-full flex md:flex-row flex-col justify-end items-end gap-3 text-xl  sm:pt-20 md:pt-0"
         >
-          <SelectCurrency />
           <OrderFilter onChangeFilter={(data) => handleFilterChange({ order: data.order })} />
           <CategoryFilter onChangeFilter={(data) => handleFilterChange({ categoryValue: data.categoryValue })} />
         </motion.div>
