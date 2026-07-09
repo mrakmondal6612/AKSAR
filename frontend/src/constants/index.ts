@@ -66,12 +66,57 @@ export const faqData = [
   {
     question: 'How can I contact customer support?',
     answer:
-      'You can reach us via the contact form below or email us at support@yourdomain.com. Our team will respond within 24-48 hours.',
+      'You can reach us via the contact form below or email us at support@aksar.com. Our team will respond within 24-48 hours.',
   },
   {
     question: 'What payment methods do you accept?',
     answer:
-      'We accept credit cards, PayPal, and bank transfers. More payment methods are coming soon.',
+      'We accept credit cards, PayPal, and bank transfers. All transactions are secure and encrypted. More payment methods are coming soon.',
+  },
+  {
+    question: 'How do I enroll in a course?',
+    answer:
+      'Browse our courses catalog, select the course you\'re interested in, and click "Enroll Now". You\'ll be guided through the payment process, and you\'ll have immediate access to the course content upon successful enrollment.',
+  },
+  {
+    question: 'Can I access courses offline?',
+    answer:
+      'Currently, our courses require an internet connection to access. However, you can download course materials for offline viewing in select courses. We\'re working on expanding offline capabilities.',
+  },
+  {
+    question: 'What is your refund policy?',
+    answer:
+      'We offer a 30-day money-back guarantee for most courses. If you\'re not satisfied with your purchase, contact our support team within 30 days of enrollment for a full refund.',
+  },
+  {
+    question: 'How do I get a certificate after completing a course?',
+    answer:
+      'Once you complete all course modules and pass the final assessment, a certificate will be automatically generated. You can download it from your dashboard under the "Certificates" section.',
+  },
+  {
+    question: 'Are there any prerequisites for courses?',
+    answer:
+      'Prerequisites vary by course. Each course page lists the recommended background knowledge and skills required. Some courses are beginner-friendly, while others may require prior experience.',
+  },
+  {
+    question: 'How long do I have access to a course?',
+    answer:
+      'Once enrolled, you have lifetime access to the course content. You can learn at your own pace and revisit the material whenever you need a refresher.',
+  },
+  {
+    question: 'Can I switch between courses?',
+    answer:
+      'Yes! You can enroll in multiple courses and switch between them freely. Your progress is saved for each course, so you can pick up where you left off.',
+  },
+  {
+    question: 'Do you offer corporate or group discounts?',
+    answer:
+      'Yes, we offer special pricing for corporate teams and groups. Contact our sales team at sales@aksar.com for custom pricing and enrollment options.',
+  },
+  {
+    question: 'How do I become an instructor on AKSAR?',
+    answer:
+      'We\'re always looking for expert instructors! Apply through our "Become an Instructor" page. Our team will review your application and get back to you within 5-7 business days.',
   },
 ];
 
@@ -583,6 +628,7 @@ export const DashBoardAdminNavItems: DashboardNavItemProps[] = [
 ]
 
 export const DashBoardInstructorNavItems: DashboardNavItemProps[] = [
+    { theme: "dark", Icon: CourseIcon, title: "Courses Management", link: "/user/admin/courses-management" },
     { theme: "dark", Icon: AddIcon, title: "Add Courses", link: "/user/add-courses" },
     { theme: "dark", Icon: AddIcon, title: "Add Videos", link: "/user/add-videos" },
     { theme: "dark", Icon: AddIcon, title: "Add Tests", link: "/user/add-tests" },

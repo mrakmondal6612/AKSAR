@@ -446,3 +446,39 @@ img, video {
         transform: rotate(0deg);
     }
 }
+@keyframes spin-gradient {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spin-gradient-legend::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    background: linear-gradient(to right, #8b5cf6, #ec4899, #f43f5e, #8b5cf6);
+    background-size: 200% 200%;
+    z-index: -1;
+    border-radius: 9999px;
+    animation: spin-gradient 3s linear infinite;
+}
+
+.spin-gradient-master::before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(to right, #eab308, #ca8a04, #fef08a, #eab308);
+    background-size: 200% 200%;
+    z-index: -1;
+    border-radius: 9999px;
+    animation: spin-gradient 4s linear infinite;
+}

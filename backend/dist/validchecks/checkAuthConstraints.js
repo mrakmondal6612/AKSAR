@@ -11,12 +11,12 @@ function checkConstraints(userName, firstName, lastName, email, password) {
     // Username must be alphanumeric and between 3-16 characters
     const userNameRegex = /^[a-zA-Z0-9_]{3,16}$/;
     const isValidUserName = userNameRegex.test(userName);
-    // First name should only contain letters and be at least 2 characters long
-    const firstNameRegex = /^[a-zA-Z]{2,}$/;
+    // First name should only contain letters and spaces, and be at least 2 characters long
+    const firstNameRegex = /^[A-Za-z]+(?: [A-Za-z]+)*$/;
     const isValidFirstName = firstNameRegex.test(firstName);
-    // Last name should only contain letters and be at least 2 characters long
-    const lastNameRegex = /^[a-zA-Z]{2,}$/;
-    const isValidLastName = lastNameRegex.test(firstName);
+    // Last name should only contain letters and spaces, and be at least 2 characters long
+    const lastNameRegex = /^[A-Za-z]+(?: [A-Za-z]+)*$/;
+    const isValidLastName = lastNameRegex.test(lastName);
     // Email validation (simple regex for email format)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValidEmail = emailRegex.test(email);
@@ -40,7 +40,7 @@ function checkLoginConstraintsAsEmail(email, password) {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     const isValidPassword = passwordRegex.test(password);
     // Return true if all constraints are valid
-    return email && isValidPassword;
+    return isValidEmail && isValidPassword;
 }
 function checkLoginConstraintsAsUserName(userName, password) {
     // Username must be alphanumeric and between 3-16 characters

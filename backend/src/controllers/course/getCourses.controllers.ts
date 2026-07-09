@@ -250,6 +250,7 @@ export async function handleGetCourseBySearchParams(req: Request, res: Response)
 export async function handleGetCoursesByUserIdFunction(req: AuthenticatedAdminRequest, res: Response) {
   const userId = req.userId;
   const uniqueId = req.userUniqueId;
+  const userRole = req.userRole;
 
   if (!userId) {
     return res.status(400).json({ success: false, message: "User ID is required" });
@@ -260,10 +261,15 @@ export async function handleGetCoursesByUserIdFunction(req: AuthenticatedAdminRe
   }
 
   try {
-    const courses = await CourseModel.find({ uploadedBy: uniqueId });
+    let filter = {};
+    if (userRole === "INSTRUCTOR") {
+      filter = { uploadedBy: uniqueId };
+    }
+
+    const courses = await CourseModel.find(filter).sort({ createdAt: -1 });
 
     if (courses.length === 0) {
-      return res.status(404).json({ success: false, message: "No courses found" });
+      return res.status(200).json({ success: true, data: [] });
     }
 
     const transformedCourses = courses.map(course => ({

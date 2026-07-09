@@ -223,6 +223,7 @@ async function handleGetCourseBySearchParams(req, res) {
 async function handleGetCoursesByUserIdFunction(req, res) {
     const userId = req.userId;
     const uniqueId = req.userUniqueId;
+    const userRole = req.userRole;
     if (!userId) {
         return res.status(400).json({ success: false, message: "User ID is required" });
     }
@@ -230,9 +231,13 @@ async function handleGetCoursesByUserIdFunction(req, res) {
         return res.status(400).json({ success: false, message: "Unique ID is required" });
     }
     try {
-        const courses = await Course_model_1.default.find({ uploadedBy: uniqueId });
+        let filter = {};
+        if (userRole === "INSTRUCTOR") {
+            filter = { uploadedBy: uniqueId };
+        }
+        const courses = await Course_model_1.default.find(filter).sort({ createdAt: -1 });
         if (courses.length === 0) {
-            return res.status(404).json({ success: false, message: "No courses found" });
+            return res.status(200).json({ success: true, data: [] });
         }
         const transformedCourses = courses.map(course => ({
             courseName: course.courseName,

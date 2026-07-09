@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import MDEditor from "@uiw/react-md-editor";
 import { Button, Switch } from "@nextui-org/react";
-import { courseDataTemplate, ICourseData, IUpdateCourse } from "@/constants";
+import { ICourseData, IUpdateCourse } from "@/constants";
 import rehypeSanitize from "rehype-sanitize";
 import EditPersonalCourseForm from "./EditPersonalCourseForm";
 import EditYoutubeCourseForm from "./EditYoutubeCourseForm";
@@ -22,12 +22,14 @@ const CourseIntroPage: React.FC = () => {
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const courseId = queryParams.get("c");
-  const [courseData, setCourseData] = useState<ICourseData>(courseDataTemplate);
+  const [courseData, setCourseData] = useState<ICourseData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [videos, setVideos] = useState<any[]>([]);
   const [loadingVideos, setLoadingVideos] = useState(true);
   const [activeEditor, setActiveEditor] = useState("markdown");
   const [markdown, setMarkdown] = useState<string>("");
-  const [preview, setPreview] = useState<string>(courseData?.thumbnail);
+  const [preview, setPreview] = useState<string>("");
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isSavingBookmark, setIsSavingBookmark] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -36,23 +38,38 @@ const CourseIntroPage: React.FC = () => {
   const { userData, setUserData } = useAuthContext();
 
   const fetchCourseData = useCallback(async () => {
-    if (!courseId) return;
+    if (!courseId) {
+      setError("No course ID provided in the URL.");
+      setIsLoading(false);
+      return;
+    }
 
     try {
+      setIsLoading(true);
+      setError(null);
       const response = await axios.post(`${COURSE_API}/get-course`, {
         courseId,
       });
 
       if (!response.data.success) {
-        ErrorToast(response.data.message);
+        setError(response.data.message || "Failed to fetch course data");
+        return;
       }
-      const fetchedCourseData = response.data.course;
+      
+      const fetchedCourseData = response.data.course || response.data.data;
+      if (!fetchedCourseData) {
+        setError("Course data is missing or unavailable");
+        return;
+      }
+      
       setCourseData(fetchedCourseData);
       setMarkdown(fetchedCourseData.markdownContent || "");
-      setPreview(fetchedCourseData.thumbnail);
+      setPreview(fetchedCourseData.thumbnail || "");
 
-    } catch (error: any) {
-      ErrorToast(error.response?.data?.message || "Something went wrong");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Something went wrong while fetching the course.");
+    } finally {
+      setIsLoading(false);
     }
   }, [courseId]);
 
@@ -87,7 +104,7 @@ const CourseIntroPage: React.FC = () => {
 
   const handleSave = async () => {
     const jwt = getVerifiedToken();
-    if (!courseId) return;
+    if (!courseId || !courseData) return;
     const type = courseData.courseType.toLowerCase();
 
     if (!["youtube", "redirect", "personal"].includes(type)) {
@@ -428,12 +445,53 @@ const CourseIntroPage: React.FC = () => {
     }
   }, [courseId, userData?.bookmarks?.course]);
 
-  if (!courseData) return <p>Loading course data...</p>;
+  if (isLoading) {
+    return (
+      <div className="w-full min-h-screen bg-[#0b0f19] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-blue-400 font-medium animate-pulse">Loading course data...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const isOwner = courseData.uploadedBy === userData.id;
-  const discount = courseData.originalPrice === courseData.sellingPrice
-    ? 0
-    : Math.round(((courseData.originalPrice - courseData.sellingPrice) / courseData.originalPrice) * 100);
+  if (error || !courseData) {
+    return (
+      <div className="w-full min-h-screen bg-[#0b0f19] text-white flex flex-col items-center justify-center px-4">
+        <div className="max-w-md w-full bg-[#111827]/80 backdrop-blur border border-gray-800 rounded-2xl p-8 text-center shadow-2xl">
+          <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-3xl font-extrabold text-white mb-4">Course Unavailable</h2>
+          <p className="text-gray-400 mb-8 leading-relaxed">
+            {error || "We couldn't find the course you're looking for. It may have been removed, or the link is incorrect."}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              onClick={() => navigate(-1)}
+              className="px-6 py-3 font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition-all"
+            >
+              Go Back
+            </Button>
+            <Button
+              onClick={() => navigate("/courses")}
+              className="px-6 py-3 font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/25"
+            >
+              Browse Courses
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const isOwner = courseData.uploadedBy === userData.id || userData?.role === "ADMIN" || userData?.role === "MASTER";
+  const discount = courseData.originalPrice && courseData.originalPrice > courseData.sellingPrice
+    ? Math.round(((courseData.originalPrice - courseData.sellingPrice) / courseData.originalPrice) * 100)
+    : 0;
 
   return (
     <div className="w-full min-h-screen bg-[#0b0f19] text-white">
@@ -699,7 +757,7 @@ const CourseIntroPage: React.FC = () => {
         </div>
       ) : (
         // ==================== EDIT MODE ====================
-        <div className="pt-20 sm:pt-24 md:pt-32 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="pt-36 sm:pt-40 md:pt-48 pb-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             {/* Edit Mode Header */}
             <div className="bg-gradient-to-r from-blue-900/40 to-purple-900/40 border border-blue-700/50 rounded-2xl p-6 md:p-8 mb-8">

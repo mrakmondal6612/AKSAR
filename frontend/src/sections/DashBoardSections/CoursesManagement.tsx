@@ -67,7 +67,7 @@ const CoursesManagement: React.FC = () => {
         setLoading(true);
         const jwt = getVerifiedToken();
         try {
-            const res = await axios.get(`${COURSE_API}/get-all-courses`, {
+            const res = await axios.get(`${COURSE_API}/get-admin-courses`, {
                 headers: { Authorization: `Bearer ${jwt}` },
             });
             if (res.data?.success) {

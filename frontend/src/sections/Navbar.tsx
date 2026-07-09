@@ -31,8 +31,8 @@ const Navbar: React.FC<NavbarProps> = ({ isUserLoggedIn }) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-lg max-w-7xl mx-auto px-3 sm:px-6">
-      <div className="max-w-full">
+    <header className="fixed top-0 inset-x-0 z-50 bg-white/80 dark:bg-[#0b0f19]/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 transition-colors duration-300 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex xl:flex-row flex-col justify-between xl:pt-4 xl:pb-1 py-2 sm:py-4 items-center font-noto-sans xl:gap-20 md:gap-5 gap-2">
         <div className="flex justify-between items-center font-noto-sans relative w-full sm:w-auto pr-12 sm:pr-0">
           <Logo theme={theme} className="w-32 sm:w-40 md:w-52 flex-shrink-0" />
@@ -100,7 +100,7 @@ const Navbar: React.FC<NavbarProps> = ({ isUserLoggedIn }) => {
       </div>
 
       {/* Sidebar Menu */}
-      <div className={`nav-sidebar ${isOpen ? "max-h-screen" : "max-h-0"}`}>
+      <div className={`nav-sidebar overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}>
         <nav className="p-4 sm:p-5 text-center" onClick={toggleMenu}>
           <NavItems navListBgForSmallScreen="dark:bg-white/5 bg-black/5" />
           {!isUserLoggedIn && (

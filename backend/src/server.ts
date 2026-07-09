@@ -12,6 +12,7 @@ import { startRecurringTodoScheduler } from "./services/recurringTodoJob.service
 
 dotenv.config();
 const app = express();
+// Trigger restart
 const PORT = process.env.PORT || 8080;
 
 //CORS middleware

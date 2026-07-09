@@ -23,21 +23,21 @@ courseRoute.post("/get-course", getCourses_controllers_1.handleFetchCourseByIdFu
 courseRoute.get("/get-course-filter", getCourses_controllers_1.handleFetchAllCoursesAsPerParams);
 courseRoute.get("/get-course-search", getCourses_controllers_1.handleGetCourseBySearchParams);
 courseRoute.get("/get-all-courses", getCourses_controllers_1.handleFetchAllCoursesFunction);
-courseRoute.get("/get-admin-courses", auth_middleware_1.authenticateAdminToken, getCourses_controllers_1.handleGetCoursesByUserIdFunction);
+courseRoute.get("/get-admin-courses", auth_middleware_1.authenticateAdminOrInstructorToken, getCourses_controllers_1.handleGetCoursesByUserIdFunction);
 courseRoute.get("/get-user-enrolled-courses", auth_middleware_1.authenticateToken, enrolledCourses_controllers_1.handleGetAllCoursesEnrolledByUser);
 courseRoute.get("/get-suggested-courses", auth_middleware_1.authenticateToken, getSuggestedCourses_controllers_1.handleGetSuggestedCoursesFunction);
 courseRoute.post("/enroll-in-course", auth_middleware_1.authenticateToken, enrolledCourses_controllers_1.handleUserEnrolledCourseFunction);
 // Razorpay Payment Routes
 courseRoute.post("/payment/create-order", auth_middleware_1.authenticateToken, razorpay_controllers_1.handleCreateOrderFunction);
 courseRoute.post("/payment/verify", auth_middleware_1.authenticateToken, razorpay_controllers_1.handleVerifyPaymentFunction);
-courseRoute.post("/add-course/youtube", auth_middleware_1.authenticateAdminToken, upload.single("youtubeCourseImage"), uploadCourse_controllers_1.handleAddNewYoutubeCourseFunction);
-courseRoute.post("/add-course/personal", auth_middleware_1.authenticateAdminToken, upload.single("personalCourseImage"), uploadCourse_controllers_1.handleAddNewPersonalCourseFunction);
-courseRoute.post("/add-course/redirect", auth_middleware_1.authenticateAdminToken, upload.single("redirectCourseImage"), uploadCourse_controllers_1.handleAddNewRedirectCourseFunction);
-courseRoute.put("/update-course/youtube", auth_middleware_1.authenticateAdminToken, upload.single("youtubeCourseImage"), updateCourse_controllers_1.handleUpdateYoutubeCourseFunction);
-courseRoute.put("/update-course/personal", auth_middleware_1.authenticateAdminToken, upload.single("personalCourseImage"), updateCourse_controllers_1.handleUpdatePersonalCourseFunction);
-courseRoute.put("/update-course/redirect", auth_middleware_1.authenticateAdminToken, upload.single("redirectCourseImage"), updateCourse_controllers_1.handleUpdateRedirectCourseFunction);
-courseRoute.patch("/toggle-course-status", auth_middleware_1.authenticateAdminToken, updateCourse_controllers_1.handleToggleCourseStatusFunction);
-courseRoute.post("/delete-course", auth_middleware_1.authenticateAdminToken, deleteCourse_controllers_1.handleDeleteCourseFunction);
+courseRoute.post("/add-course/youtube", auth_middleware_1.authenticateAdminOrInstructorToken, upload.single("youtubeCourseImage"), uploadCourse_controllers_1.handleAddNewYoutubeCourseFunction);
+courseRoute.post("/add-course/personal", auth_middleware_1.authenticateAdminOrInstructorToken, upload.single("personalCourseImage"), uploadCourse_controllers_1.handleAddNewPersonalCourseFunction);
+courseRoute.post("/add-course/redirect", auth_middleware_1.authenticateAdminOrInstructorToken, upload.single("redirectCourseImage"), uploadCourse_controllers_1.handleAddNewRedirectCourseFunction);
+courseRoute.put("/update-course/youtube", auth_middleware_1.authenticateAdminOrInstructorToken, upload.single("youtubeCourseImage"), updateCourse_controllers_1.handleUpdateYoutubeCourseFunction);
+courseRoute.put("/update-course/personal", auth_middleware_1.authenticateAdminOrInstructorToken, upload.single("personalCourseImage"), updateCourse_controllers_1.handleUpdatePersonalCourseFunction);
+courseRoute.put("/update-course/redirect", auth_middleware_1.authenticateAdminOrInstructorToken, upload.single("redirectCourseImage"), updateCourse_controllers_1.handleUpdateRedirectCourseFunction);
+courseRoute.patch("/toggle-course-status", auth_middleware_1.authenticateAdminOrInstructorToken, updateCourse_controllers_1.handleToggleCourseStatusFunction);
+courseRoute.post("/delete-course", auth_middleware_1.authenticateAdminOrInstructorToken, deleteCourse_controllers_1.handleDeleteCourseFunction);
 // YouTube Integration Routes
 courseRoute.get("/youtube/all-courses", youtubeSync_controllers_1.handleFetchYouTubeCoursesFunction);
 courseRoute.get("/youtube/search", youtubeSync_controllers_1.handleSearchYouTubeCoursesFunction);

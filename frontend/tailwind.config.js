@@ -81,7 +81,16 @@ export default {
   		},
   		transitionProperty: {
   			'clip-path': 'clip-path'
-  		}
+  		},
+		keyframes: {
+			shimmer: {
+				'0%': { transform: 'translateX(-100%)' },
+				'100%': { transform: 'translateX(200%)' },
+			}
+		},
+		animation: {
+			shimmer: 'shimmer 2s infinite linear',
+		}
   	}
   },
 	plugins: [require("tailwindcss-animate"), require('@tailwindcss/typography'), nextui()],
