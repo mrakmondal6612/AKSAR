@@ -2,14 +2,18 @@ import { AuthenticatedRequest } from "../../middleware/auth.middleware";
 import { Response } from "express";
 import CourseModel from "../../models/Course.model";
 import User from "../../models/User.model";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+
+// Simple in-memory cache (5 min TTL per user)
+const suggestionCache = new Map<string, { data: any[]; timestamp: number }>();
 
 /**
  * GET /api/v1/course/get-suggested-courses
- * Returns verified courses matched to the user's interests.
- * Matching priority:
- *   1. courseType matches interests[]
- *   2. category or courseTechStack matches interestTags[]
- * Falls back to latest 12 verified courses if no interests set.
+ * Uses Gemini AI to rank and suggest courses based on user profile.
+ * Falls back to interest-based matching if Gemini fails.
  */
 export async function handleGetSuggestedCoursesFunction(
     req: AuthenticatedRequest,
@@ -22,8 +26,19 @@ export async function handleGetSuggestedCoursesFunction(
             return res.status(401).json({ success: false, message: "Unauthorized" });
         }
 
+        // Check cache first
+        const cacheKey = `suggestions_${userId}`;
+        const cached = suggestionCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
+            return res.status(200).json({
+                success: true,
+                data: cached.data,
+                meta: { aiUsed: true, cached: true },
+            });
+        }
+
         const user = await User.findById(userId).select(
-            "interests interestTags enrolledIn"
+            "interests interestTags enrolledIn learningGoal experienceLevel"
         );
 
         if (!user) {
@@ -33,107 +48,178 @@ export async function handleGetSuggestedCoursesFunction(
         const enrolledIds = user.enrolledIn || [];
         const interests = user.interests || [];
         const interestTags = user.interestTags || [];
-
-        let query: Record<string, any> = {
-            isVerified: true,
-            courseId: { $nin: enrolledIds }, // exclude already enrolled
-        };
+        const learningGoal = (user as any).learningGoal || "";
+        const experienceLevel = (user as any).experienceLevel || "";
 
         const hasInterests = interests.length > 0 || interestTags.length > 0;
 
-        if (hasInterests) {
-            const orConditions: any[] = [];
-
-            if (interests.length > 0) {
-                orConditions.push({
-                    courseType: { $in: interests.map((i: string) => i.toUpperCase()) },
-                });
-            }
-
-            if (interestTags.length > 0) {
-                // Escape special regex characters in tags
-                const tagRegexes = interestTags.map((tag: string) => {
-                    const escapedTag = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    return new RegExp(escapedTag, "i");
-                });
-                orConditions.push(
-                    { category: { $in: tagRegexes } },
-                    { courseName: { $in: tagRegexes } },
-                    { tutorName: { $in: tagRegexes } },
-                    { description: { $in: tagRegexes } },
-                );
-            }
-
-            query = { ...query, $or: orConditions };
-        }
-
-        const courses = await CourseModel.find(query)
-            .sort({ enrolledCount: -1, createdAt: -1 })
+        // Fetch verified non-enrolled courses as candidates
+        const candidateCourses = await CourseModel.find({
+            isVerified: true,
+            courseId: { $nin: enrolledIds },
+        })
+            .sort({ createdAt: -1 })
             .limit(20)
             .lean()
             .exec();
 
-        // If interest-based query returns too few results, top up with latest courses
-        let finalCourses = courses;
-        if (hasInterests && courses.length < 6) {
-            const fallback = await CourseModel.find({
-                isVerified: true,
-                courseId: {
-                    $nin: [
-                        ...enrolledIds,
-                        ...courses.map((c) => c.courseId),
-                    ],
-                },
-            })
-                .sort({ createdAt: -1 })
-                .limit(20 - courses.length)
-                .lean()
-                .exec();
-
-            finalCourses = [...courses, ...fallback];
+        if (candidateCourses.length === 0) {
+            return res.status(200).json({
+                success: true,
+                data: [],
+                meta: { hasInterests, aiUsed: false },
+            });
         }
 
-        if (finalCourses.length === 0) {
-            // absolute fallback — return latest verified courses
-            finalCourses = await CourseModel.find({ isVerified: true })
-                .sort({ createdAt: -1 })
-                .limit(20)
-                .lean()
-                .exec();
+        // If user has no interests, return latest courses without AI
+        if (!hasInterests) {
+            const transformed = candidateCourses.slice(0, 12).map(transformCourse);
+            return res.status(200).json({
+                success: true,
+                data: transformed,
+                meta: { hasInterests: false, aiUsed: false },
+            });
         }
 
-        const transformedCourses = finalCourses.map((course) => ({
-            courseName: course.courseName,
-            courseId: course.courseId,
-            tutorName: course.tutorName,
-            courseType: course.courseType,
-            description: course.description ?? "",
-            currency: course.currency,
-            sellingPrice: course.sellingPrice,
-            originalPrice: course.originalPrice,
-            thumbnail: course.thumbnail,
-            isVerified: course.isVerified,
-            uploadedBy: course.uploadedBy,
-            ratingCount: course.ratings?.length ?? 0,
-            likedCount: course.likedBy?.length ?? 0,
-            enrolledCount: course.enrolledBy?.length ?? 0,
-            category: course.category ?? "",
-            courseTechStack: course.courseTechStack ?? [],
-        }));
+        // ── Try Gemini AI ranking ────────────────────────────────────────────
+        try {
+            const courseList = candidateCourses.map((c, i) => ({
+                index: i,
+                courseId: c.courseId,
+                courseName: c.courseName,
+                tutorName: c.tutorName,
+                description: (c.description ?? "").slice(0, 120),
+                courseType: c.courseType,
+                category: (c as any).category ?? "",
+                courseTechStack: (c as any).courseTechStack ?? [],
+                sellingPrice: c.sellingPrice,
+            }));
+
+            const prompt = `
+You are a course recommendation AI for a learning management system.
+
+User Profile:
+- Interests (course types): ${interests.join(", ")}
+- Topic interests / skills: ${interestTags.join(", ")}
+- Learning goal: ${learningGoal || "not specified"}
+- Experience level: ${experienceLevel || "not specified"}
+
+Available Courses (${courseList.length} courses):
+${JSON.stringify(courseList, null, 2)}
+
+Task: Select ONLY the courses that are genuinely relevant to this user's interests and goals.
+Do NOT include courses that don't match their profile at all.
+Prioritize courses that match:
+1. Their interest tags and skills
+2. Their course type preferences
+3. Their experience level (${experienceLevel})
+4. Their learning goal (${learningGoal})
+
+Return ONLY valid JSON in this exact format:
+{
+  "recommendedIndexes": [0, 5, 2],
+  "reasoning": "Brief explanation of why these courses were selected"
+}
+
+The recommendedIndexes array should contain ONLY the indexes of genuinely relevant courses, ordered from most to least relevant. If no courses match, return an empty array.
+Return ONLY valid JSON, no additional text.
+`;
+
+            const model = genAI.getGenerativeModel({
+                model: "gemini-2.5-flash",
+                generationConfig: { responseMimeType: "application/json" },
+            });
+
+            const result = await model.generateContent(prompt);
+            const response = result.response;
+            const text = response.text();
+
+            const cleanedText = text.replaceAll("```json\n", "").replaceAll("```\n", "").replaceAll("```", "").trim();
+            const aiResponse = JSON.parse(cleanedText);
+
+            if (aiResponse.recommendedIndexes && Array.isArray(aiResponse.recommendedIndexes)) {
+                const recommendedCourses = aiResponse.recommendedIndexes
+                    .filter((idx: number) => idx >= 0 && idx < candidateCourses.length)
+                    .map((idx: number) => transformCourse(candidateCourses[idx]));
+
+                // Save to cache
+                suggestionCache.set(cacheKey, { data: recommendedCourses, timestamp: Date.now() });
+
+                return res.status(200).json({
+                    success: true,
+                    data: recommendedCourses,
+                    meta: {
+                        hasInterests: true,
+                        aiUsed: true,
+                        reasoning: aiResponse.reasoning || "",
+                        interestsUsed: interests,
+                        tagsUsed: interestTags,
+                    },
+                });
+            }
+        } catch (aiError) {
+            console.error("Gemini suggestion error — falling back to interest matching:", aiError);
+        }
+
+        // ── Fallback: interest-based matching ───────────────────────────────
+        const matched = candidateCourses.filter(c => {
+            const typeMatch = interests.some((i: string) =>
+                c.courseType === i.toUpperCase()
+            );
+            const tagMatch = interestTags.some((tag: string) => {
+                const t = tag.toLowerCase();
+                return (
+                    (c.courseName ?? "").toLowerCase().includes(t) ||
+                    (c.description ?? "").toLowerCase().includes(t) ||
+                    ((c as any).category ?? "").toLowerCase().includes(t) ||
+                    ((c as any).courseTechStack ?? []).some((s: string) =>
+                        s.toLowerCase().includes(t)
+                    )
+                );
+            });
+            return typeMatch || tagMatch;
+        });
+
+        const finalCourses = matched.slice(0, 12);
+
+        // Save to cache
+        suggestionCache.set(cacheKey, { data: finalCourses.map(transformCourse), timestamp: Date.now() });
 
         return res.status(200).json({
             success: true,
-            data: transformedCourses,
+            data: finalCourses.map(transformCourse),
             meta: {
-                hasInterests,
+                hasInterests: true,
+                aiUsed: false,
                 interestsUsed: interests,
                 tagsUsed: interestTags,
             },
         });
+
     } catch (error) {
         console.error("Get suggested courses error:", error);
-        return res
-            .status(500)
-            .json({ success: false, message: "Internal Server Error" });
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
+}
+
+// ── Helper ───────────────────────────────────────────────────────────────────
+function transformCourse(course: any) {
+    return {
+        courseName: course.courseName,
+        courseId: course.courseId,
+        tutorName: course.tutorName,
+        courseType: course.courseType,
+        description: course.description ?? "",
+        currency: course.currency,
+        sellingPrice: course.sellingPrice,
+        originalPrice: course.originalPrice,
+        thumbnail: course.thumbnail,
+        isVerified: course.isVerified,
+        uploadedBy: course.uploadedBy,
+        ratingCount: course.ratings?.length ?? 0,
+        likedCount: course.likedBy?.length ?? 0,
+        enrolledCount: course.enrolledBy?.length ?? 0,
+        category: course.category ?? "",
+        courseTechStack: course.courseTechStack ?? [],
+    };
 }
