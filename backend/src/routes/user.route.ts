@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticateToken, authenticateAdminOrInstructorToken } from "../middleware/auth.middleware";
+import { authenticateToken, authenticateAdminOrInstructorToken, authenticateAdminToken } from "../middleware/auth.middleware";
 // import { upload } from "../middleware/multer.middleware";
 import { handleGoogleSignUpCallbackFunction, handleGoogleSignUpFunction } from "../controllers/auth/googleAuth.controllers";
 import { handleGithubSignUpCallbackFunction, handleGithubSignUpFunction } from "../controllers/auth/githubAuth.controllers";
@@ -47,6 +47,20 @@ import {
 } from "../controllers/user/studentManagement.controllers";
 import { loginRateLimiter, userUpdateRateLimiter } from "../validchecks/rateLimiters";
 import multer from "multer";
+import {
+  handleSubmitInstructorRequestFunction,
+  handleGetMyInstructorRequestFunction,
+  handleGetAllInstructorRequestsFunction,
+  handleApproveInstructorRequestFunction,
+  handleRejectInstructorRequestFunction,
+} from "../controllers/user/requests.controllers";
+
+import {
+  handleSubmitContactMessageFunction,
+  handleGetContactMessagesFunction,
+  handleMarkMessageReadFunction,
+  handleDeleteContactMessageFunction,
+} from "../controllers/user/contactMessage.controllers";
 
 const userRoute = express.Router();
 
@@ -162,5 +176,21 @@ userRoute.get("/admin/students/:studentId/courses", authenticateAdminOrInstructo
 userRoute.put("/admin/students/:studentId", authenticateAdminOrInstructorToken, handleUpdateStudent);
 userRoute.patch("/admin/students/:studentId/email-verification", authenticateAdminOrInstructorToken, handleToggleStudentEmailVerification);
 userRoute.delete("/admin/students/:studentId", authenticateAdminOrInstructorToken, handleDeleteStudent);
+
+// Student routes
+userRoute.post("/instructor-request", authenticateToken, handleSubmitInstructorRequestFunction);
+userRoute.get("/instructor-request/my", authenticateToken, handleGetMyInstructorRequestFunction);
+
+userRoute.get("/admin/instructor-requests", authenticateAdminOrInstructorToken, handleGetAllInstructorRequestsFunction);
+userRoute.patch("/admin/instructor-requests/:requestId/approve", authenticateAdminOrInstructorToken, handleApproveInstructorRequestFunction);
+userRoute.patch("/admin/instructor-requests/:requestId/reject", authenticateAdminOrInstructorToken, handleRejectInstructorRequestFunction);
+
+// Public - Contact Us
+userRoute.post("/contact", handleSubmitContactMessageFunction);
+
+// Admin - Inbox
+userRoute.get("/admin/contact-messages", authenticateAdminOrInstructorToken, handleGetContactMessagesFunction);
+userRoute.patch("/admin/contact-messages/:messageId/read", authenticateAdminOrInstructorToken, handleMarkMessageReadFunction);
+userRoute.delete("/admin/contact-messages/:messageId", authenticateAdminOrInstructorToken, handleDeleteContactMessageFunction);
 
 export default userRoute;

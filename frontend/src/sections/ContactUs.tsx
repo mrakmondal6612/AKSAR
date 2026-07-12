@@ -4,6 +4,9 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 import { motion } from 'framer-motion';
+import axios from "axios";
+import { USER_API } from "@/lib/env";
+import { ErrorToast, SuccessToast } from "@/lib/toasts";
 
 interface User_Mail {
   email: string;
@@ -24,6 +27,8 @@ const schema: ZodType<User_Mail> = z.object({
 const ContactUs: React.FC = () => {
   const [assistState, setAssistState] = useState<boolean>(false);
 
+  const [loading, setLoading] = useState<boolean>(false);
+
   const {
     register,
     handleSubmit,
@@ -33,8 +38,24 @@ const ContactUs: React.FC = () => {
     resolver: zodResolver(schema),
   });
 
-  const submit: SubmitHandler<User_Mail> = (data) => {
-    console.log('Submitted:', { email: data.email, message: data.message });
+  const submit: SubmitHandler<User_Mail> = async (data) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(`${USER_API}/contact`, {
+        email: data.email,
+        message: data.message,
+      });
+      if (res.data?.success) {
+        SuccessToast(res.data.message);
+      } else {
+        ErrorToast(res.data.message);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      ErrorToast(error?.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -136,10 +157,10 @@ const ContactUs: React.FC = () => {
         )}
 
         <button
-          type="submit"
+          type="submit" disabled={loading}
           className="w-full px-6 py-2 rounded-lg bg-teal-500 text-white font-medium hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
         >
-          Send Message
+          {loading ? "Sending..." : "Send Message"}
         </button>
       </motion.form>
     </div>

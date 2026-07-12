@@ -74,13 +74,8 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 
   const loadUserData = useCallback(async () => {
     const verifiedToken = getVerifiedToken();
-
-    // Set login state immediately based on token presence
     setIsLoggedIn(!!verifiedToken);
-
-    // Load user data asynchronously without blocking
     if (verifiedToken) {
-      // Load immediately without delay to ensure enrollment works
       const userData = await fetchUserData();
       if (userData) {
         setUserData(userData);

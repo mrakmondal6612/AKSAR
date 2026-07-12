@@ -20,7 +20,6 @@ import TeacherIcon from "@/Icons/TeacherIcon";
 import StudentsIcon from "@/Icons/StudentsIcon.tsx";
 import InstructorIcon from "@/Icons/TeacherIcon";
 
-
 export const NavItemsArray = [
     {
         id: 1,
@@ -625,6 +624,7 @@ export const DashBoardAdminNavItems: DashboardNavItemProps[] = [
     { theme: "dark", Icon: CertificateIcon, title: "Certificate", link: "/user/admin/certificate" },
     { theme: "dark", Icon: CommunityIcon, title: "Community Manage", link: "/user/admin/community" },
     { theme: "dark", Icon: TeacherIcon, title: "Teacher Management", link: "/user/admin/teacher-management" },
+    {theme: "dark", Icon: AddIcon, title: "Requests", link: "/user/admin/requests" },
 ]
 
 export const DashBoardInstructorNavItems: DashboardNavItemProps[] = [

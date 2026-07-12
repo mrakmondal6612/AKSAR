@@ -31,6 +31,8 @@ const CommunityManagement = lazy(() => import("@/sections/DashBoardSections/Comm
 
 const BecomeInstructorPage = lazy(() => import("@/sections/DashBoardSections/BecomeInstructorPage"));
 
+const RequestsManagement = lazy(() => import("@/sections/DashBoardSections/RequestsManagement"));
+
 const DashboardRoutes: React.FC = () => {
   const { userData } = useAuthContext();
   const location = useLocation();
@@ -72,6 +74,7 @@ const DashboardRoutes: React.FC = () => {
         { path: "/admin/certificate/:marksheetId", element: <CertificateView /> },
         { path: "/admin/community", element: <CommunityManagement /> },
         { path: "/admin/teacher-management", element: <UnderMaintenancePage pageName="Teacher Management" /> },
+        { path: "/admin/requests", element: <RequestsManagement /> },
       ];
     } else {
       return [
