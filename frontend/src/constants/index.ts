@@ -20,6 +20,12 @@ import TeacherIcon from "@/Icons/TeacherIcon";
 import StudentsIcon from "@/Icons/StudentsIcon.tsx";
 import InstructorIcon from "@/Icons/TeacherIcon";
 import MailIcon from "@/Icons/MailIcon";
+import { Gift } from "lucide-react";
+import React from "react";
+const GiftIcon = (props: any) => {
+  const { fillColor, ...rest } = props;
+  return React.createElement(Gift, { color: fillColor, ...rest });
+};
 
 
 export const NavItemsArray = [
@@ -578,6 +584,12 @@ export const DashBoardNavItems: DashboardNavItemProps[] = [
       title: "History",
       link: "/user/history",
     },
+    {
+      theme: "dark",
+      Icon: GiftIcon as any,  
+      title: "Rewards Store",
+      link: "/user/rewards-store",
+    },
   ];
   
   export const DashBoardNavItems2: DashboardNavItemProps[] = [
@@ -638,6 +650,7 @@ export const DashBoardAdminNavItems: DashboardNavItemProps[] = [
     { theme: "dark", Icon: TeacherIcon, title: "Teacher Management", link: "/admin/teacher-management" },
     { theme: "dark", Icon: MailIcon, title: "Mail Templates", link: "/admin/mail-templates" },
     { theme: "dark", Icon: AddIcon, title: "Requests", link: "/admin/requests" },
+    { theme: "dark", Icon: GiftIcon as any, title: "Rewards Manage", link: "/admin/rewards" },
 ]
 
 export const DashBoardInstructorNavItems: DashboardNavItemProps[] = [

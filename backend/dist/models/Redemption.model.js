@@ -33,37 +33,20 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostStatus = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-var PostStatus;
-(function (PostStatus) {
-    PostStatus["PENDING"] = "PENDING";
-    PostStatus["APPROVED"] = "APPROVED";
-    PostStatus["REJECTED"] = "REJECTED";
-    PostStatus["FLAGGED"] = "FLAGGED";
-})(PostStatus || (exports.PostStatus = PostStatus = {}));
-const communityPostSchema = new mongoose_1.Schema({
-    postId: { type: String, required: true, unique: true },
+const redemptionSchema = new mongoose_1.Schema({
+    redemptionId: { type: String, required: true, unique: true },
     user: { type: String, ref: "User", required: true },
-    content: { type: String, required: true },
-    images: [{ type: String }],
-    likes: [{ type: String }],
-    comments: [
-        {
-            user: { type: String, ref: "User", required: true },
-            content: { type: String, required: true },
-            createdAt: { type: Date, default: Date.now },
-            isApprovedAnswer: { type: Boolean, default: false },
-        },
-    ],
+    reward: { type: mongoose_1.Schema.Types.ObjectId, ref: "Reward", required: true },
+    pointsSpent: { type: Number, required: true },
     status: {
         type: String,
-        enum: Object.values(PostStatus),
-        default: PostStatus.PENDING,
+        enum: ["COMPLETED", "EXPIRED", "FAILED"],
+        required: true,
+        default: "COMPLETED",
     },
-    tags: [{ type: String }],
-    category: { type: String },
+    benefitDetails: { type: mongoose_1.Schema.Types.Mixed },
 }, { timestamps: true });
-const CommunityPostModel = mongoose_1.default.models.CommunityPost ||
-    mongoose_1.default.model("CommunityPost", communityPostSchema);
-exports.default = CommunityPostModel;
+const Redemption = mongoose_1.default.models.Redemption ||
+    mongoose_1.default.model("Redemption", redemptionSchema);
+exports.default = Redemption;

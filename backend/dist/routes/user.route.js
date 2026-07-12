@@ -141,6 +141,7 @@ userRoute.get("/community/posts", community_controllers_1.handleGetApprovedPosts
 userRoute.post("/community/posts", auth_middleware_1.authenticateToken, community_controllers_1.handleCreateUserPost);
 userRoute.patch("/community/posts/:postId/like", auth_middleware_1.authenticateToken, community_controllers_1.handleToggleLikePost);
 userRoute.post("/community/posts/:postId/comment", auth_middleware_1.authenticateToken, community_controllers_1.handleAddCommentPost);
+userRoute.post("/community/posts/:postId/comment/:commentId/approve", auth_middleware_1.authenticateToken, community_controllers_1.handleApproveComment);
 // User Feedback/Testimonial routes
 userRoute.post("/feedback", auth_middleware_1.authenticateToken, feedback_controllers_1.handleCreateFeedback);
 userRoute.get("/feedback", feedback_controllers_1.handleGetFeedbacks);

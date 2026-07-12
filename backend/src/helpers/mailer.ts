@@ -38,7 +38,11 @@ export const sendEmailVerification = async (
       html: EMAIL_TEMPLATES.VERIFICATION_OTP(emailVerificationOTP),
     };
 
-    await transporter.sendMail(mailOptions);
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (mailError) {
+      console.warn(`⚠️ SMTP failed to send verification email to ${email}. You can check the OTP in the console log above.`, mailError);
+    }
 
     return { success: true, message: "Verification OTP sent successfully" };
   } catch (error) {
@@ -75,7 +79,11 @@ export const sendResetPasswordVerification = async (
       html: EMAIL_TEMPLATES.PASSWORD_RESET_OTP(passwordResetOTP),
     };
 
-    await transporter.sendMail(mailOptions);
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (mailError) {
+      console.warn(`⚠️ SMTP failed to send password reset email to ${email}. You can check the OTP in the console log.`, mailError);
+    }
 
     return { success: true, message: "Password reset OTP sent successfully" };
   } catch (error) {
@@ -93,13 +101,16 @@ export const emailVerificationAlert = async (email: string) => {
       html: EMAIL_TEMPLATES.VERIFICATION_SUCCESS(),
     };
 
-    await transporter.sendMail(mailOptions);
-
-    console.log(`✅ Email Verification Alert sent to: ${email}`);
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(`✅ Email Verification Alert sent to: ${email}`);
+    } catch (mailError) {
+      console.warn(`⚠️ SMTP failed to send email verification alert to ${email}.`, mailError);
+    }
     return { success: true, message: "Verification alert sent successfully" };
   } catch (error) {
     console.error("Error:", error);
-    throw new Error("Failed to send verification alert");
+    return { success: false, message: "Failed to send verification alert" };
   }
 };
 

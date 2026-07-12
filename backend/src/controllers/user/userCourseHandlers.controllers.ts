@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import VideoModel from "../../models/Video.model";
 import CourseModel from "../../models/Course.model";
 import { assignTestToUser } from "../test/autoAssignTest.controllers";
+import { invalidateSuggestionCache } from "../course/getSuggestedCourses.controllers";
 
 export async function handleUserCourseBookmarkfunction(req: AuthenticatedRequest , res: Response){
     const userId = req.userId
@@ -125,15 +126,16 @@ export async function handleUserUnenrolledCourseFunction(req: AuthenticatedReque
         await user.save();
 
         const course = await CourseModel.findOne({courseId});
-        if (!course) {
-            return res.status(404).json({ success: false, message: "Course not found" });
+        if (course) {
+            const enrolledByIndex = course.enrolledBy.indexOf(uniqueId);
+            if (enrolledByIndex !== -1) {
+                course.enrolledBy.splice(enrolledByIndex, 1);
+                await course.save();
+            }
         }
 
-        const enrolledByIndex = course.enrolledBy.indexOf(uniqueId);
-        if (enrolledByIndex !== -1) {
-            course.enrolledBy.splice(enrolledByIndex, 1);
-            await course.save();
-        }
+        // Invalidate suggestion cache
+        invalidateSuggestionCache(userId);
 
         return res.status(200).json({ success: true, message: "User unenrolled from course successfully" });
 
@@ -306,6 +308,7 @@ export async function handleUserCourseProgress(req: AuthenticatedRequest, res: R
     }
 
     let courseProgress = user.progress.find((p: any) => p.courseId === courseId);
+    let isLessonCompleted = false;
 
     if (courseProgress) {
       const videoIndex = courseProgress.completedVideos.findIndex((id: string) => id === videoId);
@@ -314,6 +317,7 @@ export async function handleUserCourseProgress(req: AuthenticatedRequest, res: R
         courseProgress.completedVideos.splice(videoIndex, 1);
       } else {
         courseProgress.completedVideos.push(videoId);
+        isLessonCompleted = true;
       }
       await user.save();
 
@@ -323,6 +327,24 @@ export async function handleUserCourseProgress(req: AuthenticatedRequest, res: R
         completedVideos: [videoId],
       });
       await user.save();
+      isLessonCompleted = true;
+    }
+
+    if (isLessonCompleted) {
+      const todayStr = new Date().toISOString().split("T")[0];
+      try {
+        const { awardPoints, updateStreakAndAwardPoints } = await import("../../services/reward.service");
+        await awardPoints(
+          user.uniqueId,
+          10,
+          "LESSON_COMPLETE",
+          `Completed lesson video in course: ${courseId}`,
+          `lesson_${user.uniqueId}_${videoId}`
+        );
+        await updateStreakAndAwardPoints(user.uniqueId, todayStr);
+      } catch (rewardError) {
+        console.error("Failed to award points/streak for lesson completion:", rewardError);
+      }
     }
    
     let updateCount = user.progress.find((p: any) => p.courseId === courseId);
@@ -333,6 +355,20 @@ export async function handleUserCourseProgress(req: AuthenticatedRequest, res: R
     if (updateCount.count === 100 && !updateCount.completedAt) {
       updateCount.completedAt = new Date();
       console.log("🎉 Course completed:", courseId);
+
+      // Award course completion points
+      try {
+        const { awardPoints } = await import("../../services/reward.service");
+        await awardPoints(
+          user.uniqueId,
+          100,
+          "COURSE_COMPLETE",
+          `Completed course: ${courseId}`,
+          `course_${user.uniqueId}_${courseId}`
+        );
+      } catch (rewardError) {
+        console.error("Failed to award points for course completion:", rewardError);
+      }
       
       // Auto-assign course test automatically
       try {

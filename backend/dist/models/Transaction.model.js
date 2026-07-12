@@ -33,37 +33,37 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostStatus = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-var PostStatus;
-(function (PostStatus) {
-    PostStatus["PENDING"] = "PENDING";
-    PostStatus["APPROVED"] = "APPROVED";
-    PostStatus["REJECTED"] = "REJECTED";
-    PostStatus["FLAGGED"] = "FLAGGED";
-})(PostStatus || (exports.PostStatus = PostStatus = {}));
-const communityPostSchema = new mongoose_1.Schema({
-    postId: { type: String, required: true, unique: true },
+const transactionSchema = new mongoose_1.Schema({
+    transactionId: { type: String, required: true, unique: true },
     user: { type: String, ref: "User", required: true },
-    content: { type: String, required: true },
-    images: [{ type: String }],
-    likes: [{ type: String }],
-    comments: [
-        {
-            user: { type: String, ref: "User", required: true },
-            content: { type: String, required: true },
-            createdAt: { type: Date, default: Date.now },
-            isApprovedAnswer: { type: Boolean, default: false },
-        },
-    ],
-    status: {
+    points: { type: Number, required: true },
+    type: {
         type: String,
-        enum: Object.values(PostStatus),
-        default: PostStatus.PENDING,
+        enum: ["EARNED", "SPENT", "ADMIN_ADJUSTMENT"],
+        required: true,
     },
-    tags: [{ type: String }],
-    category: { type: String },
+    activityType: {
+        type: String,
+        enum: [
+            "DAILY_LOGIN",
+            "LESSON_COMPLETE",
+            "QUIZ_COMPLETE",
+            "QUIZ_BONUS",
+            "MOCK_TEST",
+            "STREAK_BONUS",
+            "DOUBT_ANSWER",
+            "NOTE_UPLOAD",
+            "COURSE_COMPLETE",
+            "REFERRAL",
+            "REDEEM_REWARD",
+            "ADMIN_ADJUST",
+        ],
+        required: true,
+    },
+    description: { type: String, required: true },
+    idempotencyKey: { type: String, required: true, unique: true },
 }, { timestamps: true });
-const CommunityPostModel = mongoose_1.default.models.CommunityPost ||
-    mongoose_1.default.model("CommunityPost", communityPostSchema);
-exports.default = CommunityPostModel;
+const Transaction = mongoose_1.default.models.Transaction ||
+    mongoose_1.default.model("Transaction", transactionSchema);
+exports.default = Transaction;

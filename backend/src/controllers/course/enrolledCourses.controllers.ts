@@ -3,6 +3,7 @@ import { AuthenticatedRequest } from "../../middleware/auth.middleware";
 import CourseModel from "../../models/Course.model";
 import User, { IUser } from "../../models/User.model";
 import { getPlaylistDetails } from "../../utils/youtube.config";
+import { invalidateSuggestionCache } from "./getSuggestedCourses.controllers";
 
 export async function handleUserEnrolledCourseFunction(req: AuthenticatedRequest, res: Response) {
     const userId = req.userId;
@@ -88,6 +89,9 @@ export async function handleUserEnrolledCourseFunction(req: AuthenticatedRequest
         user.enrolledIn.push(courseId);
         await user.save();
         console.log("✅ User enrollment saved successfully");
+
+        // Invalidate suggestion cache
+        invalidateSuggestionCache(userId);
 
         return res.status(200).json({ 
             success: true, 

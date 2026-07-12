@@ -30,7 +30,7 @@ const DashboardNavItem: React.FC<DashboardNavItemProps> = ({
 }) => {
 
   const isHot = title === "Community" || title === "Modern Todo List";
-  const isNew = title === "Certificate";
+  const isNew = title === "Certificate" || title === "Rewards Store" || title === "Rewards Manage";
 
   const handleClick = () => {
     // Sidebar stays open unless manually closed by user

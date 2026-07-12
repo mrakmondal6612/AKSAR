@@ -24,6 +24,14 @@ interface YouTubePlaylistItem {
 const YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
+// Simple in-memory caches to prevent excessive YouTube API queries
+const playlistCache = new Map<string, { data: YouTubePlaylist | null; timestamp: number }>();
+const videoCache = new Map<string, { data: YouTubeVideoDetails | null; timestamp: number }>();
+const playlistVideosCache = new Map<string, { data: any[]; timestamp: number }>();
+
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+
 /**
  * Search YouTube for playlists by keyword
  * Returns playlists that match the search query
@@ -156,6 +164,12 @@ export async function getPlaylistVideos(
     return [];
   }
 
+  const cacheKey = `${playlistId}_${maxResults}`;
+  const cached = playlistVideosCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+
   try {
     const response = await axios.get(`${YOUTUBE_API_BASE}/playlistItems`, {
       params: {
@@ -166,9 +180,12 @@ export async function getPlaylistVideos(
       },
     });
 
-    return response.data.items || [];
+    const items = response.data.items || [];
+    playlistVideosCache.set(cacheKey, { data: items, timestamp: Date.now() });
+    return items;
   } catch (error) {
     console.error("Error fetching playlist videos:", error);
+    if (cached) return cached.data;
     return [];
   }
 }
@@ -201,6 +218,11 @@ export async function getPlaylistDetails(
     return null;
   }
 
+  const cached = playlistCache.get(playlistId);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+
   try {
     const response = await axios.get(`${YOUTUBE_API_BASE}/playlists`, {
       params: {
@@ -211,12 +233,16 @@ export async function getPlaylistDetails(
     });
 
     if (!response.data.items || response.data.items.length === 0) {
+      playlistCache.set(playlistId, { data: null, timestamp: Date.now() });
       return null;
     }
 
-    return response.data.items[0];
+    const playlist = response.data.items[0];
+    playlistCache.set(playlistId, { data: playlist, timestamp: Date.now() });
+    return playlist;
   } catch (error) {
     console.error(`Error fetching playlist details for ${playlistId}:`, error);
+    if (cached) return cached.data;
     return null;
   }
 }
@@ -231,6 +257,11 @@ export async function getVideoDetails(
     return null;
   }
 
+  const cached = videoCache.get(videoId);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+
   try {
     const response = await axios.get(`${YOUTUBE_API_BASE}/videos`, {
       params: {
@@ -241,16 +272,20 @@ export async function getVideoDetails(
     });
 
     if (!response.data.items || response.data.items.length === 0) {
+      videoCache.set(videoId, { data: null, timestamp: Date.now() });
       return null;
     }
 
     const item = response.data.items[0];
-    return {
+    const details = {
       id: item.id,
       snippet: item.snippet,
     };
+    videoCache.set(videoId, { data: details, timestamp: Date.now() });
+    return details;
   } catch (error) {
     console.error(`Error fetching video details for ${videoId}:`, error);
+    if (cached) return cached.data;
     return null;
   }
 }

@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.invalidateSuggestionCache = invalidateSuggestionCache;
 exports.handleGetSuggestedCoursesFunction = handleGetSuggestedCoursesFunction;
 const Course_model_1 = __importDefault(require("../../models/Course.model"));
 const User_model_1 = __importDefault(require("../../models/User.model"));
@@ -11,6 +12,12 @@ const generative_ai_1 = require("@google/generative-ai");
 const genAI = new generative_ai_1.GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 // Simple in-memory cache (5 min TTL per user)
 const suggestionCache = new Map();
+/**
+ * Invalidate the suggestion cache for a user
+ */
+function invalidateSuggestionCache(userId) {
+    suggestionCache.delete(`suggestions_${userId}`);
+}
 /**
  * GET /api/v1/course/get-suggested-courses
  * Uses Gemini AI to rank and suggest courses based on user profile.
@@ -113,7 +120,9 @@ Return ONLY valid JSON, no additional text.
                 model: "gemini-2.5-flash",
                 generationConfig: { responseMimeType: "application/json" },
             });
-            const result = await model.generateContent(prompt);
+            const geminiCall = model.generateContent(prompt);
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini request timed out")), 2500));
+            const result = await Promise.race([geminiCall, timeoutPromise]);
             const response = result.response;
             const text = response.text();
             const cleanedText = text.replaceAll("```json\n", "").replaceAll("```\n", "").replaceAll("```", "").trim();

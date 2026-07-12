@@ -27,7 +27,12 @@ const sendEmailVerification = async (email, userId) => {
             subject: "Verify Your Email - AKSAR",
             html: emailTemplates_1.EMAIL_TEMPLATES.VERIFICATION_OTP(emailVerificationOTP),
         };
-        await mail_config_1.transporter.sendMail(mailOptions);
+        try {
+            await mail_config_1.transporter.sendMail(mailOptions);
+        }
+        catch (mailError) {
+            console.warn(`⚠️ SMTP failed to send verification email to ${email}. You can check the OTP in the console log above.`, mailError);
+        }
         return { success: true, message: "Verification OTP sent successfully" };
     }
     catch (error) {
@@ -54,7 +59,12 @@ const sendResetPasswordVerification = async (email, userId) => {
             subject: "Reset Your Password - AKSAR",
             html: emailTemplates_1.EMAIL_TEMPLATES.PASSWORD_RESET_OTP(passwordResetOTP),
         };
-        await mail_config_1.transporter.sendMail(mailOptions);
+        try {
+            await mail_config_1.transporter.sendMail(mailOptions);
+        }
+        catch (mailError) {
+            console.warn(`⚠️ SMTP failed to send password reset email to ${email}. You can check the OTP in the console log.`, mailError);
+        }
         return { success: true, message: "Password reset OTP sent successfully" };
     }
     catch (error) {
@@ -71,13 +81,18 @@ const emailVerificationAlert = async (email) => {
             subject: "Email Verified Successfully - AKSAR",
             html: emailTemplates_1.EMAIL_TEMPLATES.VERIFICATION_SUCCESS(),
         };
-        await mail_config_1.transporter.sendMail(mailOptions);
-        console.log(`✅ Email Verification Alert sent to: ${email}`);
+        try {
+            await mail_config_1.transporter.sendMail(mailOptions);
+            console.log(`✅ Email Verification Alert sent to: ${email}`);
+        }
+        catch (mailError) {
+            console.warn(`⚠️ SMTP failed to send email verification alert to ${email}.`, mailError);
+        }
         return { success: true, message: "Verification alert sent successfully" };
     }
     catch (error) {
         console.error("Error:", error);
-        throw new Error("Failed to send verification alert");
+        return { success: false, message: "Failed to send verification alert" };
     }
 };
 exports.emailVerificationAlert = emailVerificationAlert;

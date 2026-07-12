@@ -39,6 +39,9 @@ const BecomeInstructorPage = lazy(() => import("@/sections/DashBoardSections/Bec
 
 const RequestsManagement = lazy(() => import("@/sections/DashBoardSections/RequestsManagement"));
 
+const RewardsDashboard = lazy(() => import("@/sections/DashBoardSections/RewardsDashboard"));
+const AdminRewardsPanel = lazy(() => import("@/sections/DashBoardSections/AdminRewardsPanel"));
+
 const DashboardRoutes: React.FC = () => {
   const { userData } = useAuthContext();
   const location = useLocation();
@@ -61,6 +64,7 @@ const DashboardRoutes: React.FC = () => {
           { path: "/community", element: <CommunityManagement /> },
           { path: "/mail-templates", element: <MailTemplatesManagement /> },
           { path: "/requests", element: <RequestsManagement /> },
+          { path: "/rewards", element: <AdminRewardsPanel /> },
         ];
       } else if (isInstructor) {
         return [
@@ -88,6 +92,7 @@ const DashboardRoutes: React.FC = () => {
       { path: "/marksheet/:marksheetId", element: <StudentCertificateView /> },
       { path: "/leaderboard/:testId?", element: <Leaderboard /> },
       { path: "/become-instructor", element: <BecomeInstructorPage /> },
+      { path: "/rewards-store", element: <RewardsDashboard /> },
     ];
 
     if (userData.role === "ADMIN" || userData.role === "MASTER" || userData.role === "INSTRUCTOR") {

@@ -33,37 +33,23 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostStatus = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-var PostStatus;
-(function (PostStatus) {
-    PostStatus["PENDING"] = "PENDING";
-    PostStatus["APPROVED"] = "APPROVED";
-    PostStatus["REJECTED"] = "REJECTED";
-    PostStatus["FLAGGED"] = "FLAGGED";
-})(PostStatus || (exports.PostStatus = PostStatus = {}));
-const communityPostSchema = new mongoose_1.Schema({
-    postId: { type: String, required: true, unique: true },
-    user: { type: String, ref: "User", required: true },
-    content: { type: String, required: true },
-    images: [{ type: String }],
-    likes: [{ type: String }],
-    comments: [
-        {
-            user: { type: String, ref: "User", required: true },
-            content: { type: String, required: true },
-            createdAt: { type: Date, default: Date.now },
-            isApprovedAnswer: { type: Boolean, default: false },
-        },
-    ],
-    status: {
+const rewardSchema = new mongoose_1.Schema({
+    rewardId: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    pointCost: { type: Number, required: true },
+    type: {
         type: String,
-        enum: Object.values(PostStatus),
-        default: PostStatus.PENDING,
+        enum: ["DIGITAL_ACCESS", "COUPON", "FEATURE_UNLOCK", "BADGE", "CUSTOMIZATION"],
+        required: true,
     },
-    tags: [{ type: String }],
-    category: { type: String },
+    stock: { type: Number, required: true, default: 0 },
+    maxStock: { type: Number, required: true, default: 0 },
+    isActive: { type: Boolean, default: true },
+    badgeUrl: { type: String },
+    couponCode: { type: String },
+    durationDays: { type: Number },
 }, { timestamps: true });
-const CommunityPostModel = mongoose_1.default.models.CommunityPost ||
-    mongoose_1.default.model("CommunityPost", communityPostSchema);
-exports.default = CommunityPostModel;
+const Reward = mongoose_1.default.models.Reward || mongoose_1.default.model("Reward", rewardSchema);
+exports.default = Reward;

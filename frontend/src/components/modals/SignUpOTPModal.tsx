@@ -26,7 +26,6 @@ const SignUpOTPModal: React.FC<OTPComponentProps> = ({ userEmail }) => {
 
   const submitOTP = async () => {
     const otpValue = inputValue.join("");
-    console.log(otpValue)
     setDisable(true);
 
     if (isValidOtp(otpValue)) {

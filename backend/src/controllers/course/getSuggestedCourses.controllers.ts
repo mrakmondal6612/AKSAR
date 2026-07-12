@@ -11,6 +11,14 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const suggestionCache = new Map<string, { data: any[]; timestamp: number }>();
 
 /**
+ * Invalidate the suggestion cache for a user
+ */
+export function invalidateSuggestionCache(userId: string) {
+    suggestionCache.delete(`suggestions_${userId}`);
+}
+
+
+/**
  * GET /api/v1/course/get-suggested-courses
  * Uses Gemini AI to rank and suggest courses based on user profile.
  * Falls back to interest-based matching if Gemini fails.
@@ -126,11 +134,16 @@ Return ONLY valid JSON, no additional text.
 `;
 
             const model = genAI.getGenerativeModel({
-                model: "gemini-2.5-flash",
+                model: "gemini-1.5-flash",
                 generationConfig: { responseMimeType: "application/json" },
             });
 
-            const result = await model.generateContent(prompt);
+            const geminiCall = model.generateContent(prompt);
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error("Gemini request timed out")), 8000)
+            );
+
+            const result = await Promise.race([geminiCall, timeoutPromise]) as any;
             const response = result.response;
             const text = response.text();
 

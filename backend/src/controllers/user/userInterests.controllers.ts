@@ -1,6 +1,7 @@
 import { AuthenticatedRequest } from "../../middleware/auth.middleware";
 import { Response } from "express";
 import User from "../../models/User.model";
+import { invalidateSuggestionCache } from "../course/getSuggestedCourses.controllers";
 
 /**
  * PUT /api/v1/user/update-interests
@@ -49,6 +50,9 @@ export async function handleUpdateInterestsFunction(
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
+
+        // Invalidate suggestion cache so suggestions are updated
+        invalidateSuggestionCache(userId);
 
         return res.status(200).json({
             success: true,
