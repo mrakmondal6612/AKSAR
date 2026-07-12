@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -16,6 +49,7 @@ const User_model_1 = __importDefault(require("../../models/User.model"));
 const Video_model_1 = __importDefault(require("../../models/Video.model"));
 const Course_model_1 = __importDefault(require("../../models/Course.model"));
 const autoAssignTest_controllers_1 = require("../test/autoAssignTest.controllers");
+const getSuggestedCourses_controllers_1 = require("../course/getSuggestedCourses.controllers");
 async function handleUserCourseBookmarkfunction(req, res) {
     const userId = req.userId;
     if (!userId) {
@@ -114,14 +148,15 @@ async function handleUserUnenrolledCourseFunction(req, res) {
         user.enrolledIn.splice(userCourseIndex, 1);
         await user.save();
         const course = await Course_model_1.default.findOne({ courseId });
-        if (!course) {
-            return res.status(404).json({ success: false, message: "Course not found" });
+        if (course) {
+            const enrolledByIndex = course.enrolledBy.indexOf(uniqueId);
+            if (enrolledByIndex !== -1) {
+                course.enrolledBy.splice(enrolledByIndex, 1);
+                await course.save();
+            }
         }
-        const enrolledByIndex = course.enrolledBy.indexOf(uniqueId);
-        if (enrolledByIndex !== -1) {
-            course.enrolledBy.splice(enrolledByIndex, 1);
-            await course.save();
-        }
+        // Invalidate suggestion cache
+        (0, getSuggestedCourses_controllers_1.invalidateSuggestionCache)(userId);
         return res.status(200).json({ success: true, message: "User unenrolled from course successfully" });
     }
     catch (error) {
@@ -254,6 +289,7 @@ async function handleUserCourseProgress(req, res) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
         let courseProgress = user.progress.find((p) => p.courseId === courseId);
+        let isLessonCompleted = false;
         if (courseProgress) {
             const videoIndex = courseProgress.completedVideos.findIndex((id) => id === videoId);
             if (videoIndex > -1) {
@@ -261,6 +297,7 @@ async function handleUserCourseProgress(req, res) {
             }
             else {
                 courseProgress.completedVideos.push(videoId);
+                isLessonCompleted = true;
             }
             await user.save();
         }
@@ -270,6 +307,18 @@ async function handleUserCourseProgress(req, res) {
                 completedVideos: [videoId],
             });
             await user.save();
+            isLessonCompleted = true;
+        }
+        if (isLessonCompleted) {
+            const todayStr = new Date().toISOString().split("T")[0];
+            try {
+                const { awardPoints, updateStreakAndAwardPoints } = await Promise.resolve().then(() => __importStar(require("../../services/reward.service")));
+                await awardPoints(user.uniqueId, 10, "LESSON_COMPLETE", `Completed lesson video in course: ${courseId}`, `lesson_${user.uniqueId}_${videoId}`);
+                await updateStreakAndAwardPoints(user.uniqueId, todayStr);
+            }
+            catch (rewardError) {
+                console.error("Failed to award points/streak for lesson completion:", rewardError);
+            }
         }
         let updateCount = user.progress.find((p) => p.courseId === courseId);
         updateCount.count = await calculateProgress(courseId, userId);
@@ -277,6 +326,14 @@ async function handleUserCourseProgress(req, res) {
         if (updateCount.count === 100 && !updateCount.completedAt) {
             updateCount.completedAt = new Date();
             console.log("🎉 Course completed:", courseId);
+            // Award course completion points
+            try {
+                const { awardPoints } = await Promise.resolve().then(() => __importStar(require("../../services/reward.service")));
+                await awardPoints(user.uniqueId, 100, "COURSE_COMPLETE", `Completed course: ${courseId}`, `course_${user.uniqueId}_${courseId}`);
+            }
+            catch (rewardError) {
+                console.error("Failed to award points for course completion:", rewardError);
+            }
             // Auto-assign course test automatically
             try {
                 await (0, autoAssignTest_controllers_1.assignTestToUser)(courseId, user.uniqueId);

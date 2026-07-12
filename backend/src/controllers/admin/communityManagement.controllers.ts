@@ -65,8 +65,27 @@ export const handleApprovePost = async (req: Request, res: Response) => {
       });
     }
 
+    const oldStatus = post.status;
     post.status = PostStatus.APPROVED;
     await post.save();
+
+    if (oldStatus !== PostStatus.APPROVED && (post.category?.toLowerCase() === "notes" || post.category?.toLowerCase() === "note")) {
+      try {
+        const uploader = await User.findById(post.user);
+        if (uploader) {
+          const { awardPoints } = await import("../../services/reward.service");
+          await awardPoints(
+            uploader.uniqueId,
+            30,
+            "NOTE_UPLOAD",
+            `Uploaded useful notes: approved by admin`,
+            `notes_approved_${uploader.uniqueId}_${postId}`
+          );
+        }
+      } catch (rewardError) {
+        console.error("Failed to award points for notes approval:", rewardError);
+      }
+    }
 
     res.status(200).json({
       success: true,

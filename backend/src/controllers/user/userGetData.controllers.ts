@@ -14,11 +14,19 @@ export async function handleGetUserDataFunction( req: AuthenticatedRequest, res:
           .status(404)
           .json({ success: false, message: "User not found" });
     }
+    let uniqueId = user.uniqueId;
+    if (!uniqueId) {
+      const { nanoid } = await import("nanoid");
+      uniqueId = nanoid();
+      user.uniqueId = uniqueId;
+      await user.save();
+    }
+
     const data = {
       userName: user.userName,
       firstName: user.firstName,
       lastName: user.lastName,
-      uniqueId: user.uniqueId,
+      uniqueId: uniqueId,
       email: user.email,
       emailVerificationStatus: user.emailVerificationStatus,
       profileImageUrl: user.profileImageUrl,
@@ -37,6 +45,16 @@ export async function handleGetUserDataFunction( req: AuthenticatedRequest, res:
       learningGoal: user.learningGoal,
       experienceLevel: user.experienceLevel,
       onboardingCompleted: user.onboardingCompleted ?? false,
+      points: user.points || 0,
+      bonusPoints: user.bonusPoints || 0,
+      lifetimePoints: user.lifetimePoints || 0,
+      currentStreak: user.currentStreak || 0,
+      lastActivityDate: user.lastActivityDate,
+      badges: user.badges || [],
+      unlockedUpgrades: user.unlockedUpgrades || [],
+      premiumExpiry: user.premiumExpiry,
+      referredBy: user.referredBy || "",
+      referralCode: user.referralCode || "",
     };
 
     return res.status(200).json({ success: true, data });

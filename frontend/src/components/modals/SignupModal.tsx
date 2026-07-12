@@ -15,6 +15,7 @@ import EyeOpenIcon from "@/Icons/EyeOpenIcon";
 import {useTheme } from "@/context/ThemeProvider";
 import { ErrorToast, SuccessToast } from "@/lib/toasts";
 import { USER_API } from "@/lib/env";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
@@ -123,12 +124,13 @@ const SignupModal: React.FC = () => {
           transition={{ duration: 0.5, ease: "easeInOut" }}
           className="relative w-full mx-auto h-fit sm:py-10 mt-8 max-w-lg sm:p-8 p-4 flex flex-col justify-center items-center bg-white dark:bg-gray-800 rounded-3xl shadow-lg"
         >
+          <LoadingOverlay isVisible={isDisabled} message="Creating account..." />
           <h2 className="sm:text-4xl text-2xl font-bold mb-6 text-center">
             Sign Up for <span className="text-purple-500">Free</span>
           </h2>
           <form
             className="w-full flex flex-col space-y-3 font-sans relative"
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={handleSubmit(onSubmit, (err) => console.log("Signup validation errors:", err))}
           >
             <div className="relative w-full flex flex-col sm:flex-row items-start justify-between gap-2 ">
               <div className=" w-full flex justify-center flex-col items-start">

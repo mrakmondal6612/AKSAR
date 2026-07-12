@@ -8,6 +8,7 @@ exports.handleGetAllCoursesEnrolledByUser = handleGetAllCoursesEnrolledByUser;
 const Course_model_1 = __importDefault(require("../../models/Course.model"));
 const User_model_1 = __importDefault(require("../../models/User.model"));
 const youtube_config_1 = require("../../utils/youtube.config");
+const getSuggestedCourses_controllers_1 = require("./getSuggestedCourses.controllers");
 async function handleUserEnrolledCourseFunction(req, res) {
     const userId = req.userId;
     const uniqueId = req.userUniqueId;
@@ -76,6 +77,8 @@ async function handleUserEnrolledCourseFunction(req, res) {
         user.enrolledIn.push(courseId);
         await user.save();
         console.log("✅ User enrollment saved successfully");
+        // Invalidate suggestion cache
+        (0, getSuggestedCourses_controllers_1.invalidateSuggestionCache)(userId);
         return res.status(200).json({
             success: true,
             message: 'User enrolled in course successfully',

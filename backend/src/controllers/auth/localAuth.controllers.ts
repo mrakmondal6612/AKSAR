@@ -44,10 +44,6 @@ export async function handleSignUpFunction(req: Request, res: Response) {
   
       const user = await User.findOne({ email: email });
   
-      if (user && user.email === email && !user.emailVerificationStatus) {
-        await emailVerificationAlert(user.email);
-      }
-  
       if (user && user.emailVerificationStatus === true) {
         return res.status(400).json({
           success: false,
@@ -56,38 +52,70 @@ export async function handleSignUpFunction(req: Request, res: Response) {
       }
   
       const username = await User.findOne({ userName: userName });
-      if (username && username.emailVerificationStatus) {
+      if (username && username.emailVerificationStatus && (!user || user._id.toString() !== username._id.toString())) {
         return res
           .status(400)
           .json({ success: false, message: "User Name already taken" });
       }
+      
       const hashedPassword: string = await bcrypt.hash(password, 10);
       
       const { nanoid } = await import('nanoid');
+ 
+      let referredByUniqueId = "";
+      if (req.body.referralCode) {
+        const referrer = await User.findOne({ userName: req.body.referralCode });
+        if (referrer) {
+          referredByUniqueId = referrer.uniqueId;
+        }
+      }
       
-      const newUser = new User({
-        uniqueId: nanoid(),
-        userName: userName,
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        password: hashedPassword,
-        role: "STUDENT",
-        bio: bio || "Hey, I am using AKSAR",
-        userDob: userDob,
-        address: address,
-        phoneNumber: phoneNumber,
-        interests: interests || [],
-        interestTags: interestTags || [],
-        learningGoal: learningGoal,
-        experienceLevel: experienceLevel,
-      });
+      let userId;
+      if (user) {
+        // Update existing unverified user
+        user.userName = userName;
+        user.firstName = firstName;
+        user.lastName = lastName;
+        user.password = hashedPassword;
+        user.bio = bio || "Hey, I am using AKSAR";
+        if (userDob) user.userDob = userDob;
+        if (address) user.address = address;
+        if (phoneNumber) user.phoneNumber = phoneNumber;
+        if (interests) user.interests = interests;
+        if (interestTags) user.interestTags = interestTags;
+        if (learningGoal) user.learningGoal = learningGoal;
+        if (experienceLevel) user.experienceLevel = experienceLevel;
+        user.referredBy = referredByUniqueId;
+        user.referralCode = userName;
+        
+        await user.save();
+        userId = user._id;
+      } else {
+        // Create new user
+        const newUser = new User({
+          uniqueId: nanoid(),
+          userName: userName,
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          password: hashedPassword,
+          role: "STUDENT",
+          bio: bio || "Hey, I am using AKSAR",
+          userDob: userDob,
+          address: address,
+          phoneNumber: phoneNumber,
+          interests: interests || [],
+          interestTags: interestTags || [],
+          learningGoal: learningGoal,
+          experienceLevel: experienceLevel,
+          referredBy: referredByUniqueId,
+          referralCode: userName,
+        });
+        await newUser.save();
+        userId = newUser._id;
+      }
   
-      const userId = newUser._id;
-  
-      await newUser.save();
-  
-      await sendEmailVerification(email, userId);
+      await sendEmailVerification(email, userId as any);
   
       return res.status(201).json({
         success: true,

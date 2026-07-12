@@ -46,6 +46,13 @@ const DashBoard = () => {
     }
   }, [isUserDataLoaded, userData.onboardingCompleted]);
 
+  // Default active tab to enrolled if the user is enrolled in at least one course
+  React.useEffect(() => {
+    if (isUserDataLoaded && userData.enrolledIn && userData.enrolledIn.length > 0) {
+      setActiveTab("enrolled");
+    }
+  }, [isUserDataLoaded, userData.enrolledIn]);
+
   React.useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12 && hour >= 4) setTimeGreeting("Good Morning");

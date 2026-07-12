@@ -18,6 +18,7 @@ import { ErrorToast, SuccessToast } from "@/lib/toasts";
 import { USER_API } from "@/lib/env";
 import { useAuthContext } from "@/context/authContext";
 import { defaultUserData } from "@/constants";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 type loginSchemaData = z.infer<typeof loginSchema>;
 
@@ -93,6 +94,7 @@ const LoginModal: React.FC = () => {
           transition={{ duration: 0.5, ease: "easeInOut" }}
           className="relative w-full mx-auto h-fit sm:py-10 mt-8 max-w-lg sm:p-8 p-4 flex flex-col justify-center items-center bg-white dark:bg-gray-800 rounded-3xl shadow-lg "
         >
+          <LoadingOverlay isVisible={isDisabled} message="Logging you in..." />
           <h2 className="sm:text-4xl text-2xl font-bold mb-6 text-center">
             Login<span className="text-purple-500">{" "}Now</span>
           </h2>

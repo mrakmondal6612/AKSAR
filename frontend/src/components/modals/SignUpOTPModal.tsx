@@ -26,7 +26,6 @@ const SignUpOTPModal: React.FC<OTPComponentProps> = ({ userEmail }) => {
 
   const submitOTP = async () => {
     const otpValue = inputValue.join("");
-    console.log(otpValue)
     setDisable(true);
 
     if (isValidOtp(otpValue)) {
@@ -97,9 +96,23 @@ const SignUpOTPModal: React.FC<OTPComponentProps> = ({ userEmail }) => {
     
   };
 
-  const handleResend = () => {
+  const resendOTP = async (email: string) => {
+    try {
+      const response = await axios.post(`${USER_API}/verify-email`, { email });
+      const responseData = response.data as { success: boolean; message: string };
+      if (responseData.success) {
+        SuccessToast(responseData.message || "OTP sent successfully");
+      } else {
+        throw new Error(responseData.message);
+      }
+    } catch (error: any) {
+      ErrorToast(error.response?.data?.message || "Failed to resend OTP");
+    }
+  };
+
+  const handleResend = async () => {
     setIsResendEnabled(false);
-    // TODO : logic for resending OTP here
+    await resendOTP(userEmail);
     setTimeout(() => {
       setIsResendEnabled(true);
     }, 30000); 

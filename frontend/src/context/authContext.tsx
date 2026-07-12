@@ -45,6 +45,16 @@ export interface UserDataProps {
   learningGoal?: string;
   experienceLevel?: string;
   onboardingCompleted?: boolean;
+  points?: number;
+  bonusPoints?: number;
+  lifetimePoints?: number;
+  currentStreak?: number;
+  lastActivityDate?: string;
+  badges?: string[];
+  unlockedUpgrades?: string[];
+  premiumExpiry?: string;
+  referredBy?: string;
+  referralCode?: string;
 }
 
 interface AuthContextType {
@@ -98,7 +108,7 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
       const tokenFromUrl = urlParams.get("token");
 
       if (tokenFromUrl) {
-        setTokenCookie(tokenFromUrl);  // Set token
+        setTokenCookie(tokenFromUrl);
         SuccessToast("Login Successfully");
         WarningToast("Update your profile");
 

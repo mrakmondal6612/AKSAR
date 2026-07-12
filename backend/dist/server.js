@@ -13,6 +13,7 @@ const course_route_1 = __importDefault(require("./routes/course.route"));
 const video_route_1 = __importDefault(require("./routes/video.route"));
 const test_route_1 = __importDefault(require("./routes/test.route"));
 const news_route_1 = __importDefault(require("./routes/news.route"));
+const reward_route_1 = __importDefault(require("./routes/reward.route"));
 const notificationJob_service_1 = require("./services/notificationJob.service");
 const recurringTodoJob_service_1 = require("./services/recurringTodoJob.service");
 dotenv_1.default.config();
@@ -37,6 +38,7 @@ app.use("/api/v1/course", course_route_1.default);
 app.use("/api/v1/video", video_route_1.default);
 app.use("/api/v1/test", test_route_1.default);
 app.use("/api/v1/news", news_route_1.default);
+app.use("/api/v1/rewards", reward_route_1.default);
 async function startServer() {
     try {
         await (0, db_config_1.default)();

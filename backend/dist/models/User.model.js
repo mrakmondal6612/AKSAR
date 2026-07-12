@@ -66,6 +66,16 @@ const userSchema = new mongoose_1.default.Schema({
     learningGoal: { type: String },
     experienceLevel: { type: String },
     onboardingCompleted: { type: Boolean, default: false },
+    points: { type: Number, default: 0 },
+    bonusPoints: { type: Number, default: 0 },
+    lifetimePoints: { type: Number, default: 0 },
+    currentStreak: { type: Number, default: 0 },
+    lastActivityDate: { type: Date },
+    badges: [{ type: String }],
+    unlockedUpgrades: [{ type: String }],
+    premiumExpiry: { type: Date },
+    referredBy: { type: String, default: "" },
+    referralCode: { type: String, default: "" },
 }, {
     timestamps: true,
 });

@@ -20,6 +20,12 @@ import TeacherIcon from "@/Icons/TeacherIcon";
 import StudentsIcon from "@/Icons/StudentsIcon.tsx";
 import InstructorIcon from "@/Icons/TeacherIcon";
 import MailIcon from "@/Icons/MailIcon";
+import { Gift } from "lucide-react";
+import React from "react";
+const GiftIcon = (props: any) => {
+  const { fillColor, ...rest } = props;
+  return React.createElement(Gift, { color: fillColor, ...rest });
+};
 
 
 export const NavItemsArray = [
@@ -65,7 +71,7 @@ export const heroContent = {
     h1Heading2: "AKSAR",
     description : ["Are you ready to leave the stress of all-nighters behind? Imagine mastering skills with ease, without the burnout or late-night struggles. AKSAR helps you get there, guiding you step-by-step to success." , "Tired of endless textbooks and confusing lectures? With AKSAR, we break down even the toughest concepts into bite-sized lessons, so you can learn faster, smarter, and more effectively." , "Whether you're a beginner or looking to level up, AKSAR tailors your learning experience to your pace and needs. Join thousands who have already transformed their skillsets and take the first step toward your future."],
     buttonText : "Get Started",
-    userCount: "42K +"
+    userCount: "40 +"
 }
 
 export const faqData = [
@@ -574,9 +580,21 @@ export const DashBoardNavItems: DashboardNavItemProps[] = [
     },
     {
       theme: "dark",
+      Icon: InterviewIcon,  
+      title: "Interview",
+      link: "/user/interview",
+    },
+    {
+      theme: "dark",
       Icon: HistoryIcon,  
       title: "History",
       link: "/user/history",
+    },
+    {
+      theme: "dark",
+      Icon: GiftIcon as any,  
+      title: "Rewards Store",
+      link: "/user/rewards-store",
     },
   ];
   
@@ -638,6 +656,7 @@ export const DashBoardAdminNavItems: DashboardNavItemProps[] = [
     { theme: "dark", Icon: TeacherIcon, title: "Teacher Management", link: "/admin/teacher-management" },
     { theme: "dark", Icon: MailIcon, title: "Mail Templates", link: "/admin/mail-templates" },
     { theme: "dark", Icon: AddIcon, title: "Requests", link: "/admin/requests" },
+    { theme: "dark", Icon: GiftIcon as any, title: "Rewards Manage", link: "/admin/rewards" },
 ]
 
 export const DashBoardInstructorNavItems: DashboardNavItemProps[] = [

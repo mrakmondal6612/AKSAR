@@ -60,14 +60,17 @@ export const handleCreateUserPost = async (req: AuthenticatedRequest, res: Respo
 
     const postId = `POST_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-    // Set APPROVED by default so it displays immediately on the page
+    // Set APPROVED by default except for Notes which need moderation/approval for points
+    const isNotes = category?.toLowerCase() === "notes" || category?.toLowerCase() === "note";
+    const status = isNotes ? PostStatus.PENDING : PostStatus.APPROVED;
+
     const newPost = new CommunityPost({
       postId,
       user: userId,
       content,
       category: category || "General",
       tags: tags || [],
-      status: PostStatus.APPROVED,
+      status,
       likes: [],
       comments: [],
     });
@@ -184,6 +187,84 @@ export const handleAddCommentPost = async (req: AuthenticatedRequest, res: Respo
     res.status(500).json({
       success: false,
       message: "Failed to add comment",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+export const handleApproveComment = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { postId, commentId } = req.params;
+    const userId = req.userId; // MongoDB _id of the requester
+
+    const post = await CommunityPost.findOne({ postId });
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    // Verify requester is the owner of the post
+    if (post.user.toString() !== userId?.toString()) {
+      // Allow Admin or Master to approve too
+      const requester = await User.findById(userId);
+      if (!requester || (requester.role !== "ADMIN" && requester.role !== "MASTER")) {
+        return res.status(403).json({
+          success: false,
+          message: "Only the post owner or an admin can approve an answer",
+        });
+      }
+    }
+
+    const comment = (post.comments as any).id 
+      ? (post.comments as any).id(commentId)
+      : post.comments.find((c: any) => c._id?.toString() === commentId);
+
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        message: "Comment not found",
+      });
+    }
+
+    if (comment.isApprovedAnswer) {
+      return res.status(400).json({
+        success: false,
+        message: "This comment is already approved as the answer",
+      });
+    }
+
+    comment.isApprovedAnswer = true;
+    await post.save();
+
+    // Award 10 points to the comment author
+    try {
+      const commentAuthor = await User.findById(comment.user);
+      if (commentAuthor) {
+        const { awardPoints } = await import("../../services/reward.service");
+        await awardPoints(
+          commentAuthor.uniqueId,
+          10,
+          "DOUBT_ANSWER",
+          `Your answer was approved on post: ${post.content.substring(0, 30)}...`,
+          `doubt_answer_${commentAuthor.uniqueId}_${commentId}`
+        );
+      }
+    } catch (rewardError) {
+      console.error("Failed to award points for doubt answer approval:", rewardError);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Comment approved as correct answer successfully",
+      comments: post.comments,
+    });
+  } catch (error) {
+    console.error("Error approving comment:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to approve comment",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }

@@ -53,6 +53,7 @@ const communityPostSchema = new mongoose_1.Schema({
             user: { type: String, ref: "User", required: true },
             content: { type: String, required: true },
             createdAt: { type: Date, default: Date.now },
+            isApprovedAnswer: { type: Boolean, default: false },
         },
     ],
     status: {

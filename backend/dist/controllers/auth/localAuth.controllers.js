@@ -58,9 +58,6 @@ async function handleSignUpFunction(req, res) {
                 .json({ success: false, message: "Invalid Constraints" });
         }
         const user = await User_model_1.default.findOne({ email: email });
-        if (user && user.email === email && !user.emailVerificationStatus) {
-            await (0, mailer_1.emailVerificationAlert)(user.email);
-        }
         if (user && user.emailVerificationStatus === true) {
             return res.status(400).json({
                 success: false,
@@ -68,32 +65,71 @@ async function handleSignUpFunction(req, res) {
             });
         }
         const username = await User_model_1.default.findOne({ userName: userName });
-        if (username && username.emailVerificationStatus) {
+        if (username && username.emailVerificationStatus && (!user || user._id.toString() !== username._id.toString())) {
             return res
                 .status(400)
                 .json({ success: false, message: "User Name already taken" });
         }
         const hashedPassword = await bcryptjs_1.default.hash(password, 10);
         const { nanoid } = await Promise.resolve().then(() => __importStar(require('nanoid')));
-        const newUser = new User_model_1.default({
-            uniqueId: nanoid(),
-            userName: userName,
-            firstName: firstName,
-            lastName: lastName,
-            email: email,
-            password: hashedPassword,
-            role: "STUDENT",
-            bio: bio || "Hey, I am using AKSAR",
-            userDob: userDob,
-            address: address,
-            phoneNumber: phoneNumber,
-            interests: interests || [],
-            interestTags: interestTags || [],
-            learningGoal: learningGoal,
-            experienceLevel: experienceLevel,
-        });
-        const userId = newUser._id;
-        await newUser.save();
+        let referredByUniqueId = "";
+        if (req.body.referralCode) {
+            const referrer = await User_model_1.default.findOne({ userName: req.body.referralCode });
+            if (referrer) {
+                referredByUniqueId = referrer.uniqueId;
+            }
+        }
+        let userId;
+        if (user) {
+            // Update existing unverified user
+            user.userName = userName;
+            user.firstName = firstName;
+            user.lastName = lastName;
+            user.password = hashedPassword;
+            user.bio = bio || "Hey, I am using AKSAR";
+            if (userDob)
+                user.userDob = userDob;
+            if (address)
+                user.address = address;
+            if (phoneNumber)
+                user.phoneNumber = phoneNumber;
+            if (interests)
+                user.interests = interests;
+            if (interestTags)
+                user.interestTags = interestTags;
+            if (learningGoal)
+                user.learningGoal = learningGoal;
+            if (experienceLevel)
+                user.experienceLevel = experienceLevel;
+            user.referredBy = referredByUniqueId;
+            user.referralCode = userName;
+            await user.save();
+            userId = user._id;
+        }
+        else {
+            // Create new user
+            const newUser = new User_model_1.default({
+                uniqueId: nanoid(),
+                userName: userName,
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: hashedPassword,
+                role: "STUDENT",
+                bio: bio || "Hey, I am using AKSAR",
+                userDob: userDob,
+                address: address,
+                phoneNumber: phoneNumber,
+                interests: interests || [],
+                interestTags: interestTags || [],
+                learningGoal: learningGoal,
+                experienceLevel: experienceLevel,
+                referredBy: referredByUniqueId,
+                referralCode: userName,
+            });
+            await newUser.save();
+            userId = newUser._id;
+        }
         await (0, mailer_1.sendEmailVerification)(email, userId);
         return res.status(201).json({
             success: true,
