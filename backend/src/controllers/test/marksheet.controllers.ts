@@ -212,18 +212,18 @@ export const handleGetLeaderboardFunction = async (
     const courseIds = leaderboard.map((l) => l.course).filter(Boolean);
 
     const [users, tests, courses] = await Promise.all([
-      User.find({ _id: { $in: userIds } }),
+      User.find({ uniqueId: { $in: userIds } }),
       Test.find({ testId: { $in: testIds } }),
       Course.find({ courseId: { $in: courseIds } }),
     ]);
 
-    const userMap = new Map(users.map((u) => [u._id.toString(), u]));
+    const userMap = new Map(users.map((u) => [u.uniqueId, u]));
     const testMap = new Map(tests.map((t) => [t.testId, t]));
     const courseMap = new Map(courses.map((c) => [c.courseId, c]));
 
     const populatedLeaderboard = leaderboard.map((l) => {
       const obj = l.toObject();
-      const userDoc = userMap.get(l.user?.toString() || "");
+      const userDoc = userMap.get(l.user || "");
       const testDoc = testMap.get(l.test || "");
       const courseDoc = courseMap.get(l.course);
 

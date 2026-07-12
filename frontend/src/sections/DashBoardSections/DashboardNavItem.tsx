@@ -30,7 +30,7 @@ const DashboardNavItem: React.FC<DashboardNavItemProps> = ({
 }) => {
 
   const isHot = title === "Community" || title === "Modern Todo List";
-  const isNew = title === "Certificate" || title === "Rewards Store" || title === "Rewards Manage";
+  const isNew = title === "Certificate" || title === "Rewards Store" || title === "Rewards Manage" || title === "Interview";
 
   const handleClick = () => {
     // Sidebar stays open unless manually closed by user
@@ -48,6 +48,8 @@ const DashboardNavItem: React.FC<DashboardNavItemProps> = ({
         return { desc: "Check off your learning checklists.", xp: "+10 XP per task complete" };
       case "Certificate":
         return { desc: "Claim your verified diplomas.", xp: "Proof of mastery" };
+      case "Interview":
+        return { desc: "Practice mock interviews & coding rounds.", xp: "Boost your career readiness" };
       default:
         return { desc: `Navigate to ${title}.`, xp: "Quest active" };
     }

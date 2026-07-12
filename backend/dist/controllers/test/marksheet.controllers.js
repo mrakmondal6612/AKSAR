@@ -183,16 +183,16 @@ const handleGetLeaderboardFunction = async (req, res) => {
         const testIds = leaderboard.map((l) => l.test).filter(Boolean);
         const courseIds = leaderboard.map((l) => l.course).filter(Boolean);
         const [users, tests, courses] = await Promise.all([
-            User_model_1.default.find({ _id: { $in: userIds } }),
+            User_model_1.default.find({ uniqueId: { $in: userIds } }),
             Test_model_1.default.find({ testId: { $in: testIds } }),
             Course_model_1.default.find({ courseId: { $in: courseIds } }),
         ]);
-        const userMap = new Map(users.map((u) => [u._id.toString(), u]));
+        const userMap = new Map(users.map((u) => [u.uniqueId, u]));
         const testMap = new Map(tests.map((t) => [t.testId, t]));
         const courseMap = new Map(courses.map((c) => [c.courseId, c]));
         const populatedLeaderboard = leaderboard.map((l) => {
             const obj = l.toObject();
-            const userDoc = userMap.get(l.user?.toString() || "");
+            const userDoc = userMap.get(l.user || "");
             const testDoc = testMap.get(l.test || "");
             const courseDoc = courseMap.get(l.course);
             obj.user = userDoc

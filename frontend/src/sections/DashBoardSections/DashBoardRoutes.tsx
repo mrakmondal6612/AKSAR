@@ -18,7 +18,7 @@ const ProductionTodoList = lazy(() => import("@/sections/DashBoardSections/Produ
 const ViewCourse = lazy(() => import("@/sections/DashBoardSections/ViewCourse"));
 const VideoPlaySection = lazy(() => import("./VideoPlaySection"));
 const VideoEditPage = lazy(() => import("@/components/addVideos/VideoEditPage"));
-const UnderMaintenancePage = lazy(() => import("@/components/UnderMaintenancePage"));
+const InterviewPage = lazy(() => import("@/sections/DashBoardSections/Interview"));
 const PageNotFound = lazy(() => import("@/components/PageNotFound"));
 const UnauthorizedPage = lazy(() => import("@/components/UnauthorizedPage"));
 import DashBoardNavbar from "./DashBoardNavbar";
@@ -58,7 +58,7 @@ const DashboardRoutes: React.FC = () => {
           { path: "/teacher-management", element: <TeachersManagement /> },
           { path: "/tests", element: <AddTests /> },
           { path: "/test-panel", element: <AdminTestPanel /> },
-          { path: "/interview", element: <UnderMaintenancePage pageName="Interview" /> },
+          { path: "/interview", element: <InterviewPage /> },
           { path: "/certificate", element: <CertificateManagement /> },
           { path: "/certificate/:marksheetId", element: <CertificateView /> },
           { path: "/community", element: <CommunityManagement /> },
@@ -93,6 +93,7 @@ const DashboardRoutes: React.FC = () => {
       { path: "/leaderboard/:testId?", element: <Leaderboard /> },
       { path: "/become-instructor", element: <BecomeInstructorPage /> },
       { path: "/rewards-store", element: <RewardsDashboard /> },
+      { path: "/interview", element: <InterviewPage /> },
     ];
 
     if (userData.role === "ADMIN" || userData.role === "MASTER" || userData.role === "INSTRUCTOR") {

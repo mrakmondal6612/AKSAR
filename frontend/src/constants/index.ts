@@ -580,6 +580,12 @@ export const DashBoardNavItems: DashboardNavItemProps[] = [
     },
     {
       theme: "dark",
+      Icon: InterviewIcon,  
+      title: "Interview",
+      link: "/user/interview",
+    },
+    {
+      theme: "dark",
       Icon: HistoryIcon,  
       title: "History",
       link: "/user/history",
