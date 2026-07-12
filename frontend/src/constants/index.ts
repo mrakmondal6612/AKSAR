@@ -20,6 +20,7 @@ import TeacherIcon from "@/Icons/TeacherIcon";
 import StudentsIcon from "@/Icons/StudentsIcon.tsx";
 import InstructorIcon from "@/Icons/TeacherIcon";
 
+
 export const NavItemsArray = [
     {
         id: 1,

@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { useAuthContext } from "@/context/authContext";
 import { DashboardContextProvider } from "@/context/dashboardContext";
+
 const DashBoard = lazy(() => import("@/sections/DashBoardSections/DashBoard"));
 const Bookmarks = lazy(() => import("@/sections/DashBoardSections/Bookmarks"));
 const Courses = lazy(() => import("@/sections/DashBoardSections/Courses"));

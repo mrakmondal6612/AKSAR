@@ -36,6 +36,7 @@ const instructorRequestSchema = new mongoose.Schema<IInstructorRequest>(
     { timestamps: true }
 );
 
+
 const InstructorRequest =
     mongoose.models.InstructorRequest ||
     mongoose.model<IInstructorRequest>("InstructorRequest", instructorRequestSchema);

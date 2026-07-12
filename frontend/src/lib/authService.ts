@@ -4,6 +4,7 @@ import { ErrorToast } from "@/lib/toasts";
 import { USER_API } from "@/lib/env";
 import { UserDataProps } from "@/context/authContext";
 
+
 export const getUserData = async (): Promise<UserDataProps | null> => {
   const jwt = getVerifiedToken();
   if (!jwt) {

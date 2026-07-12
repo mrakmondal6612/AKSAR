@@ -6,6 +6,7 @@ import { USER_API } from '@/lib/env';
 import { ErrorToast, SuccessToast } from '@/lib/toasts';
 import axios from 'axios';
 
+
 const BecomeInstructorModal: React.FC = () => {
     const [isOpen, setIsOpen] = React.useState<boolean>(true);
     const [reason, setReason] = React.useState("");

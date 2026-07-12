@@ -3,6 +3,7 @@ import ContactMessage from "../../models/ContactMessage.model";
 import { AuthenticatedAdminRequest } from "../../middleware/auth.middleware";
 import { nanoid } from "nanoid";
 
+
 // ── Public: Submit contact message ────────────────────────────────────────────
 export async function handleSubmitContactMessageFunction(
     req: Request,

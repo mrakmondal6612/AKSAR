@@ -7,6 +7,7 @@ import { ErrorToast } from "@/lib/toasts";
 import axios from "axios";
 import BecomeInstructorModal from "@/components/modals/BecomeInstructorModal";
 
+
 interface IRequestStatus {
     requestId: string;
     status: "PENDING" | "APPROVED" | "REJECTED";

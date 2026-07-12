@@ -8,6 +8,7 @@ export interface IContactMessage extends Document {
     createdAt: Date;
 }
 
+
 const contactMessageSchema = new mongoose.Schema<IContactMessage>(
     {
         messageId: { type: String, required: true, unique: true },
