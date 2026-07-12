@@ -81,19 +81,16 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
       if (userData) {
         setUserData(userData);
       }
+    } else {
+      setUserData(defaultUserData);
+      setIsLoggedIn(false);
     }
     setIsUserDataLoaded(true);
   }, []);
 
   useEffect(() => {
     loadUserData();
-  }, [loadUserData])
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      loadUserData();
-    }
-  }, [isLoggedIn, loadUserData])
+  }, [isLoggedIn, loadUserData]);
 
   useEffect(() => {
     const handleTokenAndLoadData = async () => {

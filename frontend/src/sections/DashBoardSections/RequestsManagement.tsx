@@ -183,7 +183,7 @@ const RequestsManagement: React.FC = () => {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth shrink-0 py-1">
                 <button
                     onClick={() => setActiveTab("instructor")}
                     className={`relative px-4 py-2 rounded-lg text-sm font-ubuntu font-medium transition-all duration-200 flex items-center gap-2 ${
@@ -226,7 +226,7 @@ const RequestsManagement: React.FC = () => {
             {activeTab === "instructor" && (
                 <>
                     {/* Stats */}
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {[
                             { label: "Pending", value: requests.filter(r => r.status === "PENDING").length, color: "from-yellow-400 to-orange-500" },
                             { label: "Approved", value: requests.filter(r => r.status === "APPROVED").length, color: "from-green-400 to-emerald-500" },
@@ -312,18 +312,18 @@ const RequestsManagement: React.FC = () => {
 
                                         {/* Actions */}
                                         {req.status === "PENDING" && (
-                                            <div className="flex gap-2 shrink-0">
+                                            <div className="flex gap-2 shrink-0 w-full sm:w-auto">
                                                 <Button
                                                     size="sm"
                                                     isLoading={actionLoading}
-                                                    className="bg-green-500 text-white font-ubuntu text-xs"
+                                                    className="bg-green-500 text-white font-ubuntu text-xs flex-1 sm:flex-initial"
                                                     onClick={() => handleApprove(req)}
                                                 >
                                                     Approve
                                                 </Button>
                                                 <Button
                                                     size="sm"
-                                                    className="bg-red-400/70 text-white font-ubuntu text-xs"
+                                                    className="bg-red-400/70 text-white font-ubuntu text-xs flex-1 sm:flex-initial"
                                                     onClick={() => { setSelectedRequest(req); onRejectOpen(); }}
                                                 >
                                                     Reject

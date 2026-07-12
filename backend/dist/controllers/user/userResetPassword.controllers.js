@@ -92,6 +92,8 @@ async function handleResetPasswordVerificationOTP(req, res) {
                 passwordSendTime: "",
             },
         });
+        // Send password reset success email
+        await (0, mailer_1.sendPasswordResetSuccessEmail)(user.email);
         return res
             .status(200)
             .json({ success: true, message: "Password changed successfully. You can now log in with your new password" });

@@ -7,11 +7,23 @@ import { ErrorToast, SuccessToast } from '@/lib/toasts';
 import axios from 'axios';
 
 
-const BecomeInstructorModal: React.FC = () => {
-    const [isOpen, setIsOpen] = React.useState<boolean>(true);
+interface BecomeInstructorModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSuccess: () => void;
+}
+
+const BecomeInstructorModal: React.FC<BecomeInstructorModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const [reason, setReason] = React.useState("");
     const [loading, setLoading] = React.useState(false);
     const [submitted, setSubmitted] = React.useState(false);
+
+    const handleClose = () => {
+        onClose();
+        if (submitted) {
+            onSuccess();
+        }
+    };
 
     const handleSubmitRequest = async () => {
         setLoading(true);
@@ -42,7 +54,7 @@ const BecomeInstructorModal: React.FC = () => {
     };
 
     return (
-        <Modal backdrop="opaque" isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <Modal backdrop="opaque" isOpen={isOpen} onClose={handleClose}>
             <ModalContent className="sm:max-w-[480px] p-6 shadow-lg rounded-lg dark:bg-gray-800 bg-white">
                 <ModalHeader className="flex flex-col gap-1">
                     <div className="w-full space-x-2 flex justify-start items-center">
@@ -114,7 +126,7 @@ const BecomeInstructorModal: React.FC = () => {
                             <Button
                                 color="danger"
                                 variant="bordered"
-                                onClick={() => setIsOpen(false)}
+                                onClick={handleClose}
                                 className="hover:bg-red-600/10 transition-colors duration-300 w-full"
                             >
                                 Cancel
@@ -123,7 +135,7 @@ const BecomeInstructorModal: React.FC = () => {
                     ) : (
                         <Button
                             className="bg-purple-600 text-white font-ubuntu w-full"
-                            onClick={() => setIsOpen(false)}
+                            onClick={handleClose}
                         >
                             Close
                         </Button>

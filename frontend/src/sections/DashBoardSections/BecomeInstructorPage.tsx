@@ -18,7 +18,7 @@ interface IRequestStatus {
 const BecomeInstructorPage = () => {
     const [loading, setLoading] = React.useState(true);
     const [requestStatus, setRequestStatus] = React.useState<IRequestStatus | null>(null);
-    const [showModal, setShowModal] = React.useState(false);
+    const [isModalOpen, setIsModalOpen] = React.useState(false);
 
     const fetchMyRequest = React.useCallback(async () => {
         const jwt = getVerifiedToken();
@@ -72,7 +72,7 @@ const BecomeInstructorPage = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
             >
-                <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-yellow-200 dark:border-yellow-800 flex flex-col items-center gap-4 text-center">
+                <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-lg border border-yellow-200 dark:border-yellow-800 flex flex-col items-center gap-4 text-center">
                     <div className="text-5xl">⏳</div>
                     <h2 className="text-xl font-bold font-ubuntu text-yellow-600 dark:text-yellow-400">
                         Request Under Review
@@ -102,7 +102,7 @@ const BecomeInstructorPage = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
             >
-                <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-red-200 dark:border-red-800 flex flex-col items-center gap-4 text-center">
+                <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-lg border border-red-200 dark:border-red-800 flex flex-col items-center gap-4 text-center">
                     <div className="text-5xl">❌</div>
                     <h2 className="text-xl font-bold font-ubuntu text-red-600 dark:text-red-400">
                         Request Rejected
@@ -134,36 +134,43 @@ const BecomeInstructorPage = () => {
     // ── NO REQUEST or CAN RE-REQUEST ───────────────────────────────────────────
     return (
         <div className="w-full h-full flex items-center justify-center">
-            {showModal ? (
-                <BecomeInstructorModal />
-            ) : (
-                <motion.div
-                    className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-purple-200 dark:border-purple-800 flex flex-col items-center gap-4 text-center"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
+            <motion.div
+                className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-lg border border-purple-200 dark:border-purple-800 flex flex-col items-center gap-4 text-center"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+            >
+                {canReRequestAfterRejection && (
+                    <div className="w-full bg-green-50 dark:bg-green-900/20 rounded-xl p-3 border border-green-200 dark:border-green-800 mb-2">
+                        <p className="text-sm text-green-700 dark:text-green-400 font-ubuntu">
+                            ✅ You can now re-apply for instructor role!
+                        </p>
+                    </div>
+                )}
+                <div className="text-5xl">🎓</div>
+                <h2 className="text-xl font-bold font-ubuntu bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+                    Become an Instructor
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 font-ubuntu">
+                    Share your knowledge with thousands of students. Create courses, upload videos, and track progress.
+                </p>
+                <Button
+                    className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-ubuntu w-full"
+                    onClick={() => setIsModalOpen(true)}
                 >
-                    {canReRequestAfterRejection && (
-                        <div className="w-full bg-green-50 dark:bg-green-900/20 rounded-xl p-3 border border-green-200 dark:border-green-800 mb-2">
-                            <p className="text-sm text-green-700 dark:text-green-400 font-ubuntu">
-                                ✅ You can now re-apply for instructor role!
-                            </p>
-                        </div>
-                    )}
-                    <div className="text-5xl">🎓</div>
-                    <h2 className="text-xl font-bold font-ubuntu bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
-                        Become an Instructor
-                    </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 font-ubuntu">
-                        Share your knowledge with thousands of students. Create courses, upload videos, and track progress.
-                    </p>
-                    <Button
-                        className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-ubuntu w-full"
-                        onClick={() => setShowModal(true)}
-                    >
-                        Apply Now
-                    </Button>
-                </motion.div>
+                    Apply Now
+                </Button>
+            </motion.div>
+
+            {isModalOpen && (
+                <BecomeInstructorModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSuccess={() => {
+                        setIsModalOpen(false);
+                        fetchMyRequest();
+                    }}
+                />
             )}
         </div>
     );

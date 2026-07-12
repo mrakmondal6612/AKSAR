@@ -23,12 +23,16 @@ const userResetPassword_controllers_1 = require("../controllers/user/userResetPa
 const userCourseHandlers_controllers_1 = require("../controllers/user/userCourseHandlers.controllers");
 const userChangeRole_controllers_1 = require("../controllers/user/userChangeRole.controllers");
 const userInterests_controllers_1 = require("../controllers/user/userInterests.controllers");
+const community_controllers_1 = require("../controllers/user/community.controllers");
+const feedback_controllers_1 = require("../controllers/user/feedback.controllers");
 const communityManagement_controllers_1 = require("../controllers/admin/communityManagement.controllers");
 const studentManagement_controllers_1 = require("../controllers/user/studentManagement.controllers");
 const mailTest_controllers_1 = require("../controllers/admin/mailTest.controllers");
 const teacherManagement_controllers_1 = require("../controllers/user/teacherManagement.controllers");
 const rateLimiters_1 = require("../validchecks/rateLimiters");
 const multer_1 = __importDefault(require("multer"));
+const requests_controllers_1 = require("../controllers/user/requests.controllers");
+const contactMessage_controllers_1 = require("../controllers/user/contactMessage.controllers");
 const userRoute = express_1.default.Router();
 const storage = multer_1.default.memoryStorage();
 exports.upload = (0, multer_1.default)({ storage: storage });
@@ -132,4 +136,24 @@ userRoute.put("/admin/teachers/:teacherId", auth_middleware_1.authenticateAdminO
 userRoute.patch("/admin/teachers/:teacherId/email-verification", auth_middleware_1.authenticateAdminOrInstructorToken, teacherManagement_controllers_1.handleToggleTeacherEmailVerification);
 userRoute.delete("/admin/teachers/:teacherId", auth_middleware_1.authenticateAdminOrInstructorToken, teacherManagement_controllers_1.handleDeleteTeacher);
 userRoute.post("/admin/send-test-email", auth_middleware_1.authenticateAdminOrInstructorToken, mailTest_controllers_1.handleSendTestEmailFunction);
+// User Community routes (authenticated general users)
+userRoute.get("/community/posts", community_controllers_1.handleGetApprovedPosts);
+userRoute.post("/community/posts", auth_middleware_1.authenticateToken, community_controllers_1.handleCreateUserPost);
+userRoute.patch("/community/posts/:postId/like", auth_middleware_1.authenticateToken, community_controllers_1.handleToggleLikePost);
+userRoute.post("/community/posts/:postId/comment", auth_middleware_1.authenticateToken, community_controllers_1.handleAddCommentPost);
+// User Feedback/Testimonial routes
+userRoute.post("/feedback", auth_middleware_1.authenticateToken, feedback_controllers_1.handleCreateFeedback);
+userRoute.get("/feedback", feedback_controllers_1.handleGetFeedbacks);
+// Student routes (Instructor Requests)
+userRoute.post("/instructor-request", auth_middleware_1.authenticateToken, requests_controllers_1.handleSubmitInstructorRequestFunction);
+userRoute.get("/instructor-request/my", auth_middleware_1.authenticateToken, requests_controllers_1.handleGetMyInstructorRequestFunction);
+userRoute.get("/admin/instructor-requests", auth_middleware_1.authenticateAdminOrInstructorToken, requests_controllers_1.handleGetAllInstructorRequestsFunction);
+userRoute.patch("/admin/instructor-requests/:requestId/approve", auth_middleware_1.authenticateAdminOrInstructorToken, requests_controllers_1.handleApproveInstructorRequestFunction);
+userRoute.patch("/admin/instructor-requests/:requestId/reject", auth_middleware_1.authenticateAdminOrInstructorToken, requests_controllers_1.handleRejectInstructorRequestFunction);
+// Public - Contact Us
+userRoute.post("/contact", contactMessage_controllers_1.handleSubmitContactMessageFunction);
+// Admin - Inbox
+userRoute.get("/admin/contact-messages", auth_middleware_1.authenticateAdminOrInstructorToken, contactMessage_controllers_1.handleGetContactMessagesFunction);
+userRoute.patch("/admin/contact-messages/:messageId/read", auth_middleware_1.authenticateAdminOrInstructorToken, contactMessage_controllers_1.handleMarkMessageReadFunction);
+userRoute.delete("/admin/contact-messages/:messageId", auth_middleware_1.authenticateAdminOrInstructorToken, contactMessage_controllers_1.handleDeleteContactMessageFunction);
 exports.default = userRoute;

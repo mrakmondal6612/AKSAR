@@ -164,6 +164,34 @@ const DashBoard = () => {
               </motion.div>
           )}
 
+          {/* Become an Instructor Promo Banner */}
+          {userData.role === "STUDENT" && (
+              <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mx-2 mb-4 p-4 rounded-2xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-pink-500/10 border border-purple-500/20 dark:border-purple-500/10 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl shrink-0">🎓</span>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white font-ubuntu">
+                      Share your knowledge and teach on AKSAR!
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-ubuntu">
+                      Apply to become an instructor, create your own courses, and upload videos.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold font-ubuntu px-4 rounded-xl shrink-0 w-full sm:w-auto shadow-sm animate-pulse"
+                    onClick={() => navigate("/user/become-instructor")}
+                >
+                  Become an Instructor
+                </Button>
+              </motion.div>
+          )}
+
           {/* Tabs */}
           <div className="flex gap-1 px-2 mb-1">
             {(["suggested", "enrolled"] as DashboardTab[]).map((tab) => (

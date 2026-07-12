@@ -17,7 +17,7 @@ const LogoutModal = () => {
   };
   
   const handleCancelLogout = () => {
-    navigate("/");
+    navigate(-1);
   };
 
   const modalVariants = {
@@ -27,26 +27,34 @@ const LogoutModal = () => {
   };
 
   return (
-    <section className='w-full h-screen fixed inset-0 flex items-center justify-center bg-white dark:bg-black  backdrop-blur-lg transition-opacity duration-300'>
+    <section className="w-full h-screen fixed inset-0 flex items-center justify-center bg-black/50 dark:bg-black/85 backdrop-blur-md transition-opacity duration-300 z-[9999]">
         <motion.div
-          className="dark:bg-white/5 bg-black/5 rounded-lg p-6 shadow-2xl dark:shadow-sm dark:shadow-white border-2 dark:border-white border-black"
+          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800/80 rounded-2xl p-6 shadow-2xl max-w-sm w-full mx-4"
           variants={modalVariants}
           initial="hidden"
           animate="visible"
           exit="exit"
           transition={{ duration: 0.3 }}
         >
-          <div className="flex items-center mb-4">
-            <WarningIcon fillColor="rgb(202 138 4)" />
-            <h2 className="text-lg font-bold">Warning</h2>
+          <div className="flex items-center gap-2 mb-3">
+            <WarningIcon fillColor="rgb(234, 179, 8)" />
+            <h2 className="text-xl font-bold font-ubuntu dark:text-white text-gray-900">Confirm Logout</h2>
           </div>
-          <p className="text-gray-700 mb-4 font-ubuntu dark:text-white-600 ">Are you sure you want to logout?</p>
-          <div className="flex gap-4 mt-4 justify-between">
-            <button className="bg-gray-300 text-gray-700 px-5 py-2 rounded-lg shadow-md hover:bg-gray-400 transition duration-200 font-ubuntu" onClick={handleCancelLogout}>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 font-ubuntu text-sm">
+            Are you sure you want to logout? You will need to sign in again to access your dashboard.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <button 
+              className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-850 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 px-5 py-2.5 rounded-xl transition duration-200 font-ubuntu font-medium text-sm border border-gray-200 dark:border-gray-800" 
+              onClick={handleCancelLogout}
+            >
               Cancel
             </button>
-            <button className="bg-red-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-200 font-ubuntu" onClick={handleConfirmLogout}>
-              Confirm
+            <button 
+              className="bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-red-500/10 transition duration-200 font-ubuntu font-medium text-sm" 
+              onClick={handleConfirmLogout}
+            >
+              Logout
             </button>
           </div>
         </motion.div>
