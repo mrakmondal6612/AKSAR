@@ -11,15 +11,17 @@ const Test_model_1 = __importDefault(require("../../models/Test.model"));
 const TestAttempt_model_1 = __importDefault(require("../../models/TestAttempt.model"));
 const handleGetUserMarksheetsFunction = async (req, res) => {
     try {
-        const userId = req.user?._id?.toString() || req.userUniqueId;
+        const userId = req.userUniqueId || req.user?.uniqueId;
         const { courseId } = req.query;
         console.log("Fetching marksheets for userId:", userId);
-        console.log("Request user object:", req.user);
+        console.log("userUniqueId from req:", req.userUniqueId);
         const filter = { user: userId };
         if (courseId)
             filter.course = courseId;
         const marksheets = await Marksheet_model_1.default.find(filter).sort({ completionDate: -1 });
-        console.log("Found marksheets:", marksheets.length);
+        const allMarksheets = await Marksheet_model_1.default.find({}).limit(5);
+        console.log("Found marksheets for user:", marksheets.length);
+        console.log("Sample marksheet users in DB:", allMarksheets.map(m => m.user));
         // Manually populate test & course details by matching custom string IDs
         const testIds = marksheets.map((m) => m.test).filter(Boolean);
         const courseIds = marksheets.map((m) => m.course).filter(Boolean);
@@ -68,7 +70,7 @@ exports.handleGetUserMarksheetsFunction = handleGetUserMarksheetsFunction;
 const handleGetMarksheetByIdFunction = async (req, res) => {
     try {
         const { marksheetId } = req.params;
-        const userId = req.user?.uniqueId;
+        const userId = req.userUniqueId || req.user?.uniqueId;
         const marksheet = await Marksheet_model_1.default.findOne({ marksheetId });
         if (!marksheet) {
             return res.status(404).json({
