@@ -3,6 +3,7 @@ import { AuthenticatedRequest } from "../../middleware/auth.middleware";
 import CourseModel from "../../models/Course.model";
 import User, { IUser } from "../../models/User.model";
 import { getPlaylistDetails } from "../../utils/youtube.config";
+import { createNotification, notifyAdmins } from "../../helpers/notificationHelper";
 
 export async function handleUserEnrolledCourseFunction(req: AuthenticatedRequest, res: Response) {
     const userId = req.userId;
@@ -49,11 +50,11 @@ export async function handleUserEnrolledCourseFunction(req: AuthenticatedRequest
 
         if (course) {
             console.log("✅ Database course found:", course.courseName);
-            
+
             // Check if course is paid and requires payment (only if Razorpay is configured)
-            const isRazorpayConfigured = process.env.RAZORPAY_KEY_ID && 
-                                         !process.env.RAZORPAY_KEY_ID.includes("your_razorpay_key_id") && 
-                                         process.env.RAZORPAY_KEY_ID.trim() !== "";
+            const isRazorpayConfigured = process.env.RAZORPAY_KEY_ID &&
+                !process.env.RAZORPAY_KEY_ID.includes("your_razorpay_key_id") &&
+                process.env.RAZORPAY_KEY_ID.trim() !== "";
             if (course.sellingPrice > 0 && isRazorpayConfigured) {
                 console.log("💰 Course is paid - payment required");
                 return res.status(403).json({
@@ -79,18 +80,48 @@ export async function handleUserEnrolledCourseFunction(req: AuthenticatedRequest
             course.enrolledBy.push(user.uniqueId);
             await course.save();
             console.log("✅ Updated course enrolledBy");
+
+            // ── Notify student ───────────────────────────────────────────────
+            await createNotification({
+                userId,
+                type: "course_enrolled",
+                title: "🎉 Enrolled Successfully!",
+                message: `You have successfully enrolled in "${course.courseName}". Start learning now!`,
+                courseId: course.courseId,
+                link: `/user/view-course?c=${course.courseId}`,
+            });
+
+            // ── Notify instructor ────────────────────────────────────────────
+            if (course.uploadedBy) {
+                const instructor = await User.findOne({ uniqueId: course.uploadedBy }).select("_id");
+                if (instructor) {
+                    await createNotification({
+                        userId: instructor._id.toString(),
+                        type: "new_enrollment",
+                        title: "👤 New Student Enrolled",
+                        message: `${user.firstName} ${user.lastName} enrolled in your course "${course.courseName}"`,
+                        courseId: course.courseId,
+                    });
+                }
+            }
         } else {
             console.log("📌 No database course found - treating as YouTube course (courseId: " + courseId + ")");
+
+            // ── Notify student for YouTube course ────────────────────────────
+            await createNotification({
+                userId,
+                type: "course_enrolled",
+                title: "🎉 YouTube Course Added!",
+                message: `YouTube course has been added to your learning list.`,
+            });
         }
-        
-        // If courseId starts with 'PL', it's a YouTube course - just add to user's enrolledIn without database course
 
         user.enrolledIn.push(courseId);
         await user.save();
         console.log("✅ User enrollment saved successfully");
 
-        return res.status(200).json({ 
-            success: true, 
+        return res.status(200).json({
+            success: true,
             message: 'User enrolled in course successfully',
             courseId: courseId,
             courseName: course?.courseName || 'Course'
@@ -201,5 +232,3 @@ export async function handleGetAllCoursesEnrolledByUser(req: AuthenticatedReques
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
-
-

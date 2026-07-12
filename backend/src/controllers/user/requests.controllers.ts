@@ -5,6 +5,7 @@ import User from "../../models/User.model";
 import ContactMessage from "../../models/ContactMessage.model";
 import jwt from "jsonwebtoken";
 import { nanoid } from "nanoid";
+import { createNotification, notifyAdmins } from "../../helpers/notificationHelper";
 
 // ── Student: Submit instructor request ────────────────────────────────────────
 export async function handleSubmitInstructorRequestFunction(
@@ -55,6 +56,13 @@ export async function handleSubmitInstructorRequestFunction(
         });
 
         await newRequest.save();
+
+        await notifyAdmins({
+            type: "new_instructor_request",
+            title: "📥 New Instructor Request",
+            message: `${user.firstName} ${user.lastName} (@${user.userName}) has requested to become an instructor.`,
+            link: "/user/admin/requests",
+        });
 
         return res.status(201).json({
             success: true,
@@ -158,6 +166,13 @@ export async function handleApproveInstructorRequestFunction(
         request.reviewedBy = adminId;
         await request.save();
 
+        await createNotification({
+            userId: user._id.toString(),
+            type: "instructor_request_approved",
+            title: "✅ Instructor Request Approved!",
+            message: "Congratulations! Your instructor request has been approved.",
+        });
+
         const token = jwt.sign(
             { id: user._id, role: user.role, uniqueId: user.uniqueId },
             process.env.JWT_SECRET!,
@@ -204,6 +219,16 @@ export async function handleRejectInstructorRequestFunction(
         request.reviewedBy = adminId;
         request.rejectionReason = rejectionReason || "Not specified";
         await request.save();
+
+        const rejectedUser = await User.findOne({ uniqueId: request.userId });
+        if (rejectedUser) {
+            await createNotification({
+                userId: (rejectedUser._id as string).toString(),
+                type: "instructor_request_rejected",
+                title: "❌ Instructor Request Rejected",
+                message: `Your instructor request was rejected. Reason: ${rejectionReason || "Not specified"}. You can re-apply after 7 days.`,
+            });
+        }
 
         return res.status(200).json({
             success: true,
