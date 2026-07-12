@@ -12,7 +12,29 @@ dotenv.config();
  * Otherwise, it falls back to standard Nodemailer SMTP.
  */
 const sendMail = async (mailOptions: { from?: string; to: string; subject: string; html: string }) => {
-  if (process.env.RESEND_API_KEY) {
+  if (process.env.BREVO_API_KEY) {
+    const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.PUBLIC_GMAIL || "mrakmondal6612@gmail.com";
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": process.env.BREVO_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sender: { name: "AKSAR", email: senderEmail },
+        to: [{ email: mailOptions.to }],
+        subject: mailOptions.subject,
+        htmlContent: mailOptions.html,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Brevo API Error: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json();
+  } else if (process.env.RESEND_API_KEY) {
     const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
