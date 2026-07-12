@@ -117,11 +117,11 @@ The recommendedIndexes array should contain ONLY the indexes of genuinely releva
 Return ONLY valid JSON, no additional text.
 `;
             const model = genAI.getGenerativeModel({
-                model: "gemini-2.5-flash",
+                model: "gemini-1.5-flash",
                 generationConfig: { responseMimeType: "application/json" },
             });
             const geminiCall = model.generateContent(prompt);
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini request timed out")), 2500));
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini request timed out")), 8000));
             const result = await Promise.race([geminiCall, timeoutPromise]);
             const response = result.response;
             const text = response.text();
