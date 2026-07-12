@@ -34,7 +34,7 @@ const HeroLeftSection = () => {
 
               {/* Stats */}
               <div className="flex flex-col items-center justify-center px-1">
-                <h1 className="text-black dark:text-white font-ubuntu text-2xl sm:text-3xl font-extrabold">42K +</h1>
+                <h1 className="text-black dark:text-white font-ubuntu text-2xl sm:text-3xl font-extrabold">40 +</h1>
                 <p className="text-black/80 dark:text-white/80 font-sans text-xs sm:text-base">
                   Using this platform
                 </p>

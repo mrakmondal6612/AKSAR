@@ -71,7 +71,7 @@ export const heroContent = {
     h1Heading2: "AKSAR",
     description : ["Are you ready to leave the stress of all-nighters behind? Imagine mastering skills with ease, without the burnout or late-night struggles. AKSAR helps you get there, guiding you step-by-step to success." , "Tired of endless textbooks and confusing lectures? With AKSAR, we break down even the toughest concepts into bite-sized lessons, so you can learn faster, smarter, and more effectively." , "Whether you're a beginner or looking to level up, AKSAR tailors your learning experience to your pace and needs. Join thousands who have already transformed their skillsets and take the first step toward your future."],
     buttonText : "Get Started",
-    userCount: "42K +"
+    userCount: "40 +"
 }
 
 export const faqData = [
