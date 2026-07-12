@@ -10,6 +10,8 @@ export const getLocalStorageuserData = () =>{
   }
 
 export const userLogout = () => {
-  removeTokenCookie();
-  // localStorage.removeItem("userData");
-} 
+    removeTokenCookie();
+    localStorage.removeItem("userData");
+    localStorage.removeItem("cachedUserData");
+    localStorage.removeItem("userDataCacheTime");
+}

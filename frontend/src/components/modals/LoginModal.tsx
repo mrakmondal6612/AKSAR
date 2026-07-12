@@ -17,12 +17,13 @@ import { useTheme } from "@/context/ThemeProvider";
 import { ErrorToast, SuccessToast } from "@/lib/toasts";
 import { USER_API } from "@/lib/env";
 import { useAuthContext } from "@/context/authContext";
+import { defaultUserData } from "@/constants";
 
 type loginSchemaData = z.infer<typeof loginSchema>;
 
 const LoginModal: React.FC = () => {
   const navigate = useNavigate();
-  const {setIsLoggedIn} = useAuthContext();
+  const { setIsLoggedIn, setUserData } = useAuthContext();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isDisabled , setIsDisabled] = useState(false);
   const {theme} = useTheme();
@@ -44,12 +45,15 @@ const LoginModal: React.FC = () => {
     try {
       const response = await axios.post(`${USER_API}/login`, data);
       const responseData: { success: boolean; message: string; token: string } = response.data;
-      
+
       if (responseData.success) {
         setTokenCookie(responseData.token);
-        SuccessToast(responseData.message )
+        localStorage.removeItem("cachedUserData");
+        localStorage.removeItem("userDataCacheTime");
+        setUserData(defaultUserData); // reset old user data
+        SuccessToast(responseData.message);
         setIsLoggedIn(true);
-        navigate("/")
+        navigate("/");
         closeLogin();
       } else {
         throw new Error(responseData.message);

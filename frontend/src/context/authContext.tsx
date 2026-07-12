@@ -5,6 +5,7 @@ import { getUserData as fetchUserData } from "@/lib/authService"; // Import the 
 import React from "react";
 import { defaultUserData } from "@/constants";
 
+
 export interface UserDataProps {
   firstName: string;
   lastName: string;
@@ -74,13 +75,8 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 
   const loadUserData = useCallback(async () => {
     const verifiedToken = getVerifiedToken();
-
-    // Set login state immediately based on token presence
     setIsLoggedIn(!!verifiedToken);
-
-    // Load user data asynchronously without blocking
     if (verifiedToken) {
-      // Load immediately without delay to ensure enrollment works
       const userData = await fetchUserData();
       if (userData) {
         setUserData(userData);
@@ -93,6 +89,11 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
     loadUserData();
   }, [loadUserData])
 
+  useEffect(() => {
+    if (isLoggedIn) {
+      loadUserData();
+    }
+  }, [isLoggedIn, loadUserData])
 
   useEffect(() => {
     const handleTokenAndLoadData = async () => {

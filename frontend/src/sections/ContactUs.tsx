@@ -4,7 +4,9 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 import { motion } from 'framer-motion';
-import { SuccessToast } from '@/lib/toasts';
+import axios from "axios";
+import { USER_API } from "@/lib/env";
+import { SuccessToast, ErrorToast } from "@/lib/toasts";
 
 interface User_Mail {
   email: string;
@@ -26,6 +28,7 @@ const ContactUs: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
+
   const {
     register,
     handleSubmit,
@@ -38,13 +41,24 @@ const ContactUs: React.FC = () => {
 
   const submit: SubmitHandler<User_Mail> = async (data) => {
     setIsSubmitting(true);
-    console.log('Submitted:', { email: data.email, message: data.message });
-    // Simulate submission delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    SuccessToast("Your message has been sent successfully!");
-    reset();
+    try {
+      const res = await axios.post(`${USER_API}/contact`, {
+        email: data.email,
+        message: data.message,
+      });
+      if (res.data?.success) {
+        SuccessToast(res.data.message || "Your message has been sent successfully!");
+        setIsSuccess(true);
+        reset();
+      } else {
+        ErrorToast(res.data.message || "Failed to send message.");
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      ErrorToast(error?.response?.data?.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -238,6 +252,7 @@ const ContactUs: React.FC = () => {
           </div>
         </div>
       </div>
+
     </div>
   );
 };
