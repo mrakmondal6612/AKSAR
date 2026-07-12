@@ -6,6 +6,39 @@ import { EMAIL_TEMPLATES } from "./emailTemplates";
 
 dotenv.config();
 
+/**
+ * Universal mailer helper supporting both Resend API and Nodemailer SMTP.
+ * If RESEND_API_KEY is defined in .env, it uses Resend API (HTTP 443).
+ * Otherwise, it falls back to standard Nodemailer SMTP.
+ */
+const sendMail = async (mailOptions: { from?: string; to: string; subject: string; html: string }) => {
+  if (process.env.RESEND_API_KEY) {
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: `AKSAR <${fromEmail}>`,
+        to: mailOptions.to,
+        subject: mailOptions.subject,
+        html: mailOptions.html,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Resend API Error: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json();
+  } else {
+    return await transporter.sendMail(mailOptions);
+  }
+};
+
 export const sendEmailVerification = async (
   email: string,
   userId: mongoose.Types.ObjectId
@@ -39,9 +72,9 @@ export const sendEmailVerification = async (
     };
 
     try {
-      await transporter.sendMail(mailOptions);
+      await sendMail(mailOptions);
     } catch (mailError) {
-      console.warn(`⚠️ SMTP failed to send verification email to ${email}. You can check the OTP in the console log above.`, mailError);
+      console.warn(`⚠️ failed to send verification email to ${email}. You can check the OTP in the console log above.`, mailError);
     }
 
     return { success: true, message: "Verification OTP sent successfully" };
@@ -80,7 +113,7 @@ export const sendResetPasswordVerification = async (
     };
 
     try {
-      await transporter.sendMail(mailOptions);
+      await sendMail(mailOptions);
     } catch (mailError) {
       console.warn(`⚠️ SMTP failed to send password reset email to ${email}. You can check the OTP in the console log.`, mailError);
     }
@@ -102,7 +135,7 @@ export const emailVerificationAlert = async (email: string) => {
     };
 
     try {
-      await transporter.sendMail(mailOptions);
+      await sendMail(mailOptions);
       console.log(`✅ Email Verification Alert sent to: ${email}`);
     } catch (mailError) {
       console.warn(`⚠️ SMTP failed to send email verification alert to ${email}.`, mailError);
@@ -123,7 +156,7 @@ export const sendGoogleAuthPasswordMail = async (email: string, password: string
       html: EMAIL_TEMPLATES.WELCOME_WITH_PASSWORD(password),
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendMail(mailOptions);
 
     console.log(`🔐 Google Auth - Temporary Password sent to ${email}`);
     return { success: true, message: "Password sent successfully" };
@@ -142,7 +175,7 @@ export const sendGithubAuthPasswordMail = async (email: string, password: string
       html: EMAIL_TEMPLATES.WELCOME_WITH_PASSWORD(password),
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendMail(mailOptions);
 
     console.log(`🔐 GitHub Auth - Temporary Password sent to ${email}`);
     return { success: true, message: "Password sent successfully" };
@@ -161,7 +194,7 @@ export const sendNotificationEmail = async (email: string, subject: string, mess
       html: EMAIL_TEMPLATES.GENERAL_NOTIFICATION(subject, message, actionUrl),
     };
 
-    const mailResponse = await transporter.sendMail(mailOptions);
+    const mailResponse = await sendMail(mailOptions);
     return mailResponse;
   } catch (error) {
     console.error('Error sending notification email:', error);
@@ -181,7 +214,7 @@ export const sendCourseEnrollmentEmail = async (email: string, courseName: strin
       html: EMAIL_TEMPLATES.COURSE_ENROLLMENT(courseName, courseUrl),
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendMail(mailOptions);
     console.log(`✅ Course enrollment email sent to: ${email}`);
     return { success: true, message: "Course enrollment email sent successfully" };
   } catch (error) {
@@ -202,7 +235,7 @@ export const sendCertificateIssuedEmail = async (email: string, courseName: stri
       html: EMAIL_TEMPLATES.CERTIFICATE_ISSUED(courseName, certificateUrl),
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendMail(mailOptions);
     console.log(`✅ Certificate email sent to: ${email}`);
     return { success: true, message: "Certificate email sent successfully" };
   } catch (error) {
@@ -223,7 +256,7 @@ export const sendPasswordResetSuccessEmail = async (email: string) => {
       html: EMAIL_TEMPLATES.PASSWORD_RESET_SUCCESS(),
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendMail(mailOptions);
 
     console.log(`✅ Password reset success email sent to: ${email}`);
     return { success: true, message: "Password reset success email sent successfully" };
@@ -232,4 +265,3 @@ export const sendPasswordResetSuccessEmail = async (email: string) => {
     throw new Error('Failed to send password reset success email');
   }
 };
-
