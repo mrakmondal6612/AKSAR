@@ -19,6 +19,7 @@ import CommunityIcon from "@/Icons/CommunityIcon";
 import TeacherIcon from "@/Icons/TeacherIcon";
 import StudentsIcon from "@/Icons/StudentsIcon.tsx";
 import InstructorIcon from "@/Icons/TeacherIcon";
+import MailIcon from "@/Icons/MailIcon";
 
 
 export const NavItemsArray = [
@@ -46,6 +47,16 @@ export const NavItemsArray = [
         id: 5,
         name: "Contact-us",
         href: "/contact"
+    },
+    {
+        id: 6,
+        name: "Verify",
+        href: "/verify-certificate"
+    },
+    {
+        id: 7,
+        name: "News",
+        href: "/news"
     },
 ]
 
@@ -618,17 +629,18 @@ export const DashBoardNavItems: DashboardNavItemProps[] = [
 ]
 
 export const DashBoardAdminNavItems: DashboardNavItemProps[] = [
-    { theme: "dark", Icon: CourseIcon, title: "Courses Management", link: "/user/admin/courses-management" },
-    { theme: "dark", Icon: StudentsIcon, title: "Student Management", link: "/user/admin/student-management" },
-    { theme: "dark", Icon: ExamTestIcon, title: "Tests", link: "/user/admin/tests" },
-    { theme: "dark", Icon: InterviewIcon, title: "Interview", link: "/user/admin/interview" },
-    { theme: "dark", Icon: CertificateIcon, title: "Certificate", link: "/user/admin/certificate" },
-    { theme: "dark", Icon: CommunityIcon, title: "Community Manage", link: "/user/admin/community" },
-    { theme: "dark", Icon: TeacherIcon, title: "Teacher Management", link: "/user/admin/teacher-management" },
+    { theme: "dark", Icon: CourseIcon, title: "Courses Management", link: "/admin/courses-management" },
+    { theme: "dark", Icon: StudentsIcon, title: "Student Management", link: "/admin/student-management" },
+    { theme: "dark", Icon: ExamTestIcon, title: "Test Management", link: "/admin/test-panel" },
+    { theme: "dark", Icon: InterviewIcon, title: "Interview", link: "/admin/interview" },
+    { theme: "dark", Icon: CertificateIcon, title: "Certificate", link: "/admin/certificate" },
+    { theme: "dark", Icon: CommunityIcon, title: "Community Manage", link: "/admin/community" },
+    { theme: "dark", Icon: TeacherIcon, title: "Teacher Management", link: "/admin/teacher-management" },
+    { theme: "dark", Icon: MailIcon, title: "Mail Templates", link: "/admin/mail-templates" },
 ]
 
 export const DashBoardInstructorNavItems: DashboardNavItemProps[] = [
-    { theme: "dark", Icon: CourseIcon, title: "Courses Management", link: "/user/admin/courses-management" },
+    { theme: "dark", Icon: CourseIcon, title: "Courses Management", link: "/admin/courses-management" },
     { theme: "dark", Icon: AddIcon, title: "Add Courses", link: "/user/add-courses" },
     { theme: "dark", Icon: AddIcon, title: "Add Videos", link: "/user/add-videos" },
     { theme: "dark", Icon: AddIcon, title: "Add Tests", link: "/user/add-tests" },

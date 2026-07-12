@@ -10,6 +10,7 @@ exports.handleDeleteStudent = handleDeleteStudent;
 exports.handleGetStudentStats = handleGetStudentStats;
 exports.handleToggleStudentEmailVerification = handleToggleStudentEmailVerification;
 exports.handleGetStudentEnrolledCourses = handleGetStudentEnrolledCourses;
+exports.handleCreateStudent = handleCreateStudent;
 const User_model_1 = __importDefault(require("../../models/User.model"));
 // Get all students (for admin/instructor)
 async function handleGetAllStudents(req, res) {
@@ -201,6 +202,43 @@ async function handleGetStudentEnrolledCourses(req, res) {
                 enrolledIn: student.enrolledIn,
                 progress: student.progress,
             },
+        });
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+}
+// Create new student (admin only)
+async function handleCreateStudent(req, res) {
+    try {
+        const { firstName, lastName, userName, email, password, bio, userDob, address, phoneNumber } = req.body;
+        // Check if user already exists
+        const existingUser = await User_model_1.default.findOne({ $or: [{ email }, { userName }] });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: "User with this email or username already exists" });
+        }
+        const bcrypt = require("bcryptjs");
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newStudent = new User_model_1.default({
+            firstName,
+            lastName,
+            userName,
+            email,
+            password: hashedPassword,
+            role: "STUDENT",
+            bio,
+            userDob,
+            address,
+            phoneNumber,
+            emailVerificationStatus: false,
+            phoneNumberVerificationStatus: false,
+        });
+        await newStudent.save();
+        return res.status(201).json({
+            success: true,
+            message: "Student created successfully",
+            data: newStudent,
         });
     }
     catch (error) {

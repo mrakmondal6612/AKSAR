@@ -7,6 +7,7 @@ import userRoute from "./routes/user.route";
 import courseRoute from "./routes/course.route";
 import videoRoute from "./routes/video.route";
 import testRoute from "./routes/test.route";
+import newsRoute from "./routes/news.route";
 import { startNotificationScheduler } from "./services/notificationJob.service";
 import { startRecurringTodoScheduler } from "./services/recurringTodoJob.service";
 
@@ -34,6 +35,7 @@ app.use("/api/v1/user", userRoute);
 app.use("/api/v1/course", courseRoute);
 app.use("/api/v1/video", videoRoute);
 app.use("/api/v1/test", testRoute);
+app.use("/api/v1/news", newsRoute);
 
 async function startServer() {
     try {

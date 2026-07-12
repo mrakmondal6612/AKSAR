@@ -8,6 +8,7 @@ const Marksheet_model_1 = __importDefault(require("../../models/Marksheet.model"
 const User_model_1 = __importDefault(require("../../models/User.model"));
 const Test_model_1 = __importDefault(require("../../models/Test.model"));
 const Course_model_1 = __importDefault(require("../../models/Course.model"));
+const TestAttempt_model_1 = __importDefault(require("../../models/TestAttempt.model"));
 const Marksheet_model_2 = require("../../models/Marksheet.model");
 const handleGetAllCertificates = async (req, res) => {
     try {
@@ -22,19 +23,55 @@ const handleGetAllCertificates = async (req, res) => {
             ];
         }
         const skip = (Number(page) - 1) * Number(limit);
-        const [certificates, total] = await Promise.all([
-            Marksheet_model_1.default.find(query)
-                .populate("user", "firstName lastName email userName")
-                .populate("test", "title difficulty")
-                .populate("course", "courseName")
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(Number(limit)),
-            Marksheet_model_1.default.countDocuments(query),
+        const certificates = await Marksheet_model_1.default.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(Number(limit));
+        const total = await Marksheet_model_1.default.countDocuments(query);
+        // Manually populate related fields
+        const userIds = certificates.map((c) => c.user).filter(Boolean);
+        const testIds = certificates.map((c) => c.test).filter(Boolean);
+        const courseIds = certificates.map((c) => c.course).filter(Boolean);
+        const [users, tests, courses] = await Promise.all([
+            User_model_1.default.find({ _id: { $in: userIds } }),
+            Test_model_1.default.find({ testId: { $in: testIds } }),
+            Course_model_1.default.find({ courseId: { $in: courseIds } }),
         ]);
+        const userMap = new Map(users.map((u) => [u._id.toString(), u]));
+        const testMap = new Map(tests.map((t) => [t.testId, t]));
+        const courseMap = new Map(courses.map((c) => [c.courseId, c]));
+        const populatedCertificates = certificates.map((cert) => {
+            const obj = cert.toObject();
+            const userDoc = userMap.get(cert.user?.toString() || "");
+            const testDoc = testMap.get(cert.test || "");
+            const courseDoc = courseMap.get(cert.course);
+            obj.user = userDoc
+                ? {
+                    _id: userDoc._id.toString(),
+                    firstName: userDoc.firstName,
+                    lastName: userDoc.lastName,
+                    email: userDoc.email,
+                    userName: userDoc.userName,
+                }
+                : null;
+            obj.test = testDoc
+                ? {
+                    _id: testDoc._id.toString(),
+                    title: testDoc.title,
+                    difficulty: testDoc.difficulty,
+                }
+                : null;
+            obj.course = courseDoc
+                ? {
+                    _id: courseDoc._id.toString(),
+                    courseName: courseDoc.courseName,
+                }
+                : null;
+            return obj;
+        });
         res.status(200).json({
             success: true,
-            data: certificates,
+            data: populatedCertificates,
             pagination: {
                 page: Number(page),
                 limit: Number(limit),
@@ -172,20 +209,48 @@ exports.handleGetCertificateStats = handleGetCertificateStats;
 const handleGetCertificateById = async (req, res) => {
     try {
         const { marksheetId } = req.params;
-        const marksheet = await Marksheet_model_1.default.findOne({ marksheetId })
-            .populate("user", "firstName lastName email userName")
-            .populate("test", "title description difficulty")
-            .populate("course", "courseName")
-            .populate("testAttempt");
+        const marksheet = await Marksheet_model_1.default.findOne({ marksheetId });
         if (!marksheet) {
             return res.status(404).json({
                 success: false,
                 message: "Certificate not found",
             });
         }
+        // Manually populate related fields
+        const [userDoc, testDoc, courseDoc, attemptDoc] = await Promise.all([
+            marksheet.user ? User_model_1.default.findById(marksheet.user) : null,
+            marksheet.test ? Test_model_1.default.findOne({ testId: marksheet.test }) : null,
+            marksheet.course ? Course_model_1.default.findOne({ courseId: marksheet.course }) : null,
+            marksheet.testAttempt ? TestAttempt_model_1.default.findOne({ attemptId: marksheet.testAttempt }) : null,
+        ]);
+        const marksheetObj = marksheet.toObject();
+        marksheetObj.user = userDoc
+            ? {
+                _id: userDoc._id.toString(),
+                firstName: userDoc.firstName,
+                lastName: userDoc.lastName,
+                email: userDoc.email,
+                userName: userDoc.userName,
+            }
+            : null;
+        marksheetObj.test = testDoc
+            ? {
+                _id: testDoc._id.toString(),
+                title: testDoc.title,
+                description: testDoc.description,
+                difficulty: testDoc.difficulty,
+            }
+            : null;
+        marksheetObj.course = courseDoc
+            ? {
+                _id: courseDoc._id.toString(),
+                courseName: courseDoc.courseName,
+            }
+            : null;
+        marksheetObj.testAttempt = attemptDoc ? attemptDoc.toObject() : null;
         res.status(200).json({
             success: true,
-            data: marksheet,
+            data: marksheetObj,
         });
     }
     catch (error) {

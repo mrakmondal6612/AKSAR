@@ -53,6 +53,7 @@ var TestDifficulty;
     TestDifficulty["ADVANCED"] = "ADVANCED";
 })(TestDifficulty || (exports.TestDifficulty = TestDifficulty = {}));
 const questionSchema = new mongoose_1.Schema({
+    questionId: { type: String },
     questionText: { type: String, required: true },
     questionType: {
         type: String,

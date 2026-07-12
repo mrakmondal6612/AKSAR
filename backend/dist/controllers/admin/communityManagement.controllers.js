@@ -3,8 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleGetPostById = exports.handleGetCommunityStats = exports.handleFlagPost = exports.handleDeletePost = exports.handleRejectPost = exports.handleApprovePost = exports.handleGetAllPosts = void 0;
+exports.handleUpdatePost = exports.handleCreatePost = exports.handleGetPostById = exports.handleGetCommunityStats = exports.handleFlagPost = exports.handleDeletePost = exports.handleRejectPost = exports.handleApprovePost = exports.handleGetAllPosts = void 0;
 const CommunityPost_model_1 = __importDefault(require("../../models/CommunityPost.model"));
+const User_model_1 = __importDefault(require("../../models/User.model"));
 const CommunityPost_model_2 = require("../../models/CommunityPost.model");
 const handleGetAllPosts = async (req, res) => {
     try {
@@ -256,3 +257,85 @@ const handleGetPostById = async (req, res) => {
     }
 };
 exports.handleGetPostById = handleGetPostById;
+const handleCreatePost = async (req, res) => {
+    try {
+        const { content, images, tags, category } = req.body;
+        const userId = req.userId;
+        const user = await User_model_1.default.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        const postId = `POST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const newPost = new CommunityPost_model_1.default({
+            postId,
+            user: userId,
+            content,
+            images: images || [],
+            tags: tags || [],
+            category: category || "General",
+            status: CommunityPost_model_2.PostStatus.APPROVED,
+            likes: [],
+            comments: [],
+        });
+        await newPost.save();
+        const populatedPost = await CommunityPost_model_1.default.findById(newPost._id)
+            .populate("user", "firstName lastName email userName profileImageUrl");
+        res.status(201).json({
+            success: true,
+            message: "Post created successfully",
+            data: populatedPost,
+        });
+    }
+    catch (error) {
+        console.error("Error creating post:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error instanceof Error ? error.message : "Unknown error",
+        });
+    }
+};
+exports.handleCreatePost = handleCreatePost;
+const handleUpdatePost = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { content, images, tags, category, status } = req.body;
+        const post = await CommunityPost_model_1.default.findOne({ postId });
+        if (!post) {
+            return res.status(404).json({
+                success: false,
+                message: "Post not found",
+            });
+        }
+        if (content !== undefined)
+            post.content = content;
+        if (images !== undefined)
+            post.images = images;
+        if (tags !== undefined)
+            post.tags = tags;
+        if (category !== undefined)
+            post.category = category;
+        if (status !== undefined)
+            post.status = status;
+        await post.save();
+        const populatedPost = await CommunityPost_model_1.default.findById(post._id)
+            .populate("user", "firstName lastName email userName profileImageUrl");
+        res.status(200).json({
+            success: true,
+            message: "Post updated successfully",
+            data: populatedPost,
+        });
+    }
+    catch (error) {
+        console.error("Error updating post:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error instanceof Error ? error.message : "Unknown error",
+        });
+    }
+};
+exports.handleUpdatePost = handleUpdatePost;

@@ -1,26 +1,67 @@
 import { Response, Request } from "express";
 import Marksheet from "../../models/Marksheet.model";
 import User from "../../models/User.model";
+import Course from "../../models/Course.model";
+import Test from "../../models/Test.model";
+import TestAttempt from "../../models/TestAttempt.model";
 
 export const handleGetUserMarksheetsFunction = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const userId = (req as any).user?.uniqueId || (req as any).userUniqueId;
+    const userId = (req as any).user?._id?.toString() || (req as any).userUniqueId;
     const { courseId } = req.query;
+
+    console.log("Fetching marksheets for userId:", userId);
+    console.log("Request user object:", (req as any).user);
 
     const filter: any = { user: userId };
     if (courseId) filter.course = courseId;
 
-    const marksheets = await Marksheet.find(filter)
-      .sort({ completionDate: -1 })
-      .populate("test", "title description difficulty")
-      .populate("course", "courseName thumbnail");
+    const marksheets = await Marksheet.find(filter).sort({ completionDate: -1 });
+    console.log("Found marksheets:", marksheets.length);
+
+    // Manually populate test & course details by matching custom string IDs
+    const testIds = marksheets.map((m) => m.test).filter(Boolean);
+    const courseIds = marksheets.map((m) => m.course).filter(Boolean);
+
+    const [tests, courses] = await Promise.all([
+      Test.find({ testId: { $in: testIds } }),
+      Course.find({ courseId: { $in: courseIds } }),
+    ]);
+
+    const testMap = new Map(tests.map((t) => [t.testId, t]));
+    const courseMap = new Map(courses.map((c) => [c.courseId, c]));
+
+    const populatedMarksheets = marksheets.map((m) => {
+      const marksheetObj = m.toObject();
+      const testDoc = testMap.get(m.test || "");
+      const courseDoc = courseMap.get(m.course);
+
+      marksheetObj.test = testDoc
+        ? {
+            _id: testDoc.testId,
+            title: testDoc.title,
+            description: testDoc.description,
+            difficulty: testDoc.difficulty,
+          }
+        : null;
+
+      marksheetObj.course = courseDoc
+        ? {
+            _id: courseDoc.courseId,
+            courseName: courseDoc.courseName,
+            thumbnail: courseDoc.thumbnail,
+          }
+        : null;
+
+      return marksheetObj;
+    });
 
     res.status(200).json({
       success: true,
-      data: marksheets,
+      data: populatedMarksheets,
     });
   } catch (error) {
     console.error("Error fetching marksheets:", error);
@@ -40,11 +81,7 @@ export const handleGetMarksheetByIdFunction = async (
     const { marksheetId } = req.params;
     const userId = (req as any).user?.uniqueId;
 
-    const marksheet = await Marksheet.findOne({ marksheetId })
-      .populate("test")
-      .populate("course")
-      .populate("testAttempt")
-      .populate("user", "firstName lastName email profileImageUrl");
+    const marksheet = await Marksheet.findOne({ marksheetId });
 
     if (!marksheet) {
       return res.status(404).json({
@@ -64,9 +101,31 @@ export const handleGetMarksheetByIdFunction = async (
       }
     }
 
+    // Manually query and populate: test, course, testAttempt, user
+    const [testDoc, courseDoc, attemptDoc, userDoc] = await Promise.all([
+      marksheet.test ? Test.findOne({ testId: marksheet.test }) : null,
+      marksheet.course ? Course.findOne({ courseId: marksheet.course }) : null,
+      marksheet.testAttempt ? TestAttempt.findOne({ attemptId: marksheet.testAttempt }) : null,
+      User.findOne({ uniqueId: marksheet.user }),
+    ]);
+
+    const marksheetObj = marksheet.toObject();
+
+    marksheetObj.test = testDoc ? testDoc.toObject() : null;
+    marksheetObj.course = courseDoc ? courseDoc.toObject() : null;
+    marksheetObj.testAttempt = attemptDoc ? attemptDoc.toObject() : null;
+    marksheetObj.user = userDoc
+      ? {
+          firstName: userDoc.firstName,
+          lastName: userDoc.lastName,
+          email: userDoc.email,
+          profileImageUrl: userDoc.profileImageUrl,
+        }
+      : null;
+
     res.status(200).json({
       success: true,
-      data: marksheet,
+      data: marksheetObj,
     });
   } catch (error) {
     console.error("Error fetching marksheet:", error);
@@ -145,14 +204,63 @@ export const handleGetLeaderboardFunction = async (
 
     const leaderboard = await Marksheet.find(filter)
       .sort({ percentage: -1, completionDate: 1 })
-      .limit(Number(limit))
-      .populate("user", "firstName lastName userName profileImageUrl")
-      .populate("test", "title")
-      .populate("course", "courseName");
+      .limit(Number(limit));
+
+    // Manually populate leaderboard entry fields
+    const userIds = leaderboard.map((l) => l.user).filter(Boolean);
+    const testIds = leaderboard.map((l) => l.test).filter(Boolean);
+    const courseIds = leaderboard.map((l) => l.course).filter(Boolean);
+
+    const [users, tests, courses] = await Promise.all([
+      User.find({ _id: { $in: userIds } }),
+      Test.find({ testId: { $in: testIds } }),
+      Course.find({ courseId: { $in: courseIds } }),
+    ]);
+
+    const userMap = new Map(users.map((u) => [u._id.toString(), u]));
+    const testMap = new Map(tests.map((t) => [t.testId, t]));
+    const courseMap = new Map(courses.map((c) => [c.courseId, c]));
+
+    const populatedLeaderboard = leaderboard.map((l) => {
+      const obj = l.toObject();
+      const userDoc = userMap.get(l.user?.toString() || "");
+      const testDoc = testMap.get(l.test || "");
+      const courseDoc = courseMap.get(l.course);
+
+      obj.user = userDoc
+        ? {
+            firstName: userDoc.firstName,
+            lastName: userDoc.lastName,
+            userName: userDoc.userName,
+            profileImageUrl: userDoc.profileImageUrl,
+          }
+        : {
+            firstName: "Unknown",
+            lastName: "User",
+            userName: "unknown",
+            profileImageUrl: null,
+          };
+
+      obj.test = testDoc
+        ? {
+            _id: testDoc.testId,
+            title: testDoc.title,
+          }
+        : null;
+
+      obj.course = courseDoc
+        ? {
+            _id: courseDoc.courseId,
+            courseName: courseDoc.courseName,
+          }
+        : null;
+
+      return obj;
+    });
 
     res.status(200).json({
       success: true,
-      data: leaderboard,
+      data: populatedLeaderboard,
     });
   } catch (error) {
     console.error("Error fetching leaderboard:", error);

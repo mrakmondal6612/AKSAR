@@ -7,6 +7,7 @@ exports.handleGetTestForAttemptFunction = exports.handleGetTestsByInstructorFunc
 const Test_model_1 = __importDefault(require("../../models/Test.model"));
 const TestAttempt_model_1 = __importDefault(require("../../models/TestAttempt.model"));
 const User_model_1 = __importDefault(require("../../models/User.model"));
+const Course_model_1 = __importDefault(require("../../models/Course.model"));
 const handleGetTestByIdFunction = async (req, res) => {
     try {
         const { testId } = req.params;
@@ -91,9 +92,22 @@ const handleGetAllTestsFunction = async (req, res) => {
                 filteredTests = tests.filter(test => test.status === "PUBLISHED");
             }
         }
+        // Manually populate course details using courseId
+        const courseIds = filteredTests.map(t => t.course).filter(Boolean);
+        const courses = await Course_model_1.default.find({ courseId: { $in: courseIds } });
+        const courseMap = new Map(courses.map(c => [c.courseId, c]));
+        const populatedTests = filteredTests.map(t => {
+            const testObj = t.toObject();
+            const courseDoc = courseMap.get(t.course);
+            testObj.course = courseDoc ? {
+                _id: courseDoc.courseId,
+                courseName: courseDoc.courseName
+            } : null;
+            return testObj;
+        });
         res.status(200).json({
             success: true,
-            data: filteredTests,
+            data: populatedTests,
         });
     }
     catch (error) {

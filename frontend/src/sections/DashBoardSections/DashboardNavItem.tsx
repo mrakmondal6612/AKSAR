@@ -3,7 +3,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Tooltip } from "@nextui-org/react"; // Optional: You can replace it with your custom tooltip if needed
 
-import { useDashboardContext } from "@/context/dashboardContext";
 
 interface DashBoardIconProps {
   fillColor?: string;
@@ -29,15 +28,12 @@ const DashboardNavItem: React.FC<DashboardNavItemProps> = ({
   isActive,
   isSideBarOpen,
 }) => {
-  const { setIsSideBarOpen } = useDashboardContext();
+
   const isHot = title === "Community" || title === "Modern Todo List";
   const isNew = title === "Certificate";
 
   const handleClick = () => {
-    // Automatically close sidebar on smaller screens when navigating
-    if (window.innerWidth < 768 && isSideBarOpen) {
-      setIsSideBarOpen(false);
-    }
+    // Sidebar stays open unless manually closed by user
   };
 
   const getQuestInfo = (title: string) => {

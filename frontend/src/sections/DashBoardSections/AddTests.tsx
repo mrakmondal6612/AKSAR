@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Clock, Award, CheckCircle, Sparkles, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, Award, CheckCircle, Sparkles, FileText, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,8 @@ import {
   getTestsByInstructor,
   generateTestWithAI,
   getAllActiveCourses,
-  getCourseById
+  getCourseById,
+  getTestById
 } from '@/lib/testService';
 import LoadingScreen from '@/components/LoadingScreen';
 
@@ -40,6 +41,11 @@ interface Test {
   difficulty: string;
   status: string;
   questions: Question[];
+  instructions?: string;
+  allowRetake?: boolean;
+  maxAttempts?: number;
+  shuffleQuestions?: boolean;
+  showResults?: boolean;
 }
 
 const AddTests = () => {
@@ -78,9 +84,47 @@ const AddTests = () => {
   });
 
   useEffect(() => {
-    loadTests();
-    loadCourses();
+    const initialize = async () => {
+      await loadTests();
+      await loadCourses();
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const editTestId = urlParams.get('edit');
+      if (editTestId) {
+        await handleLoadTestForEdit(editTestId);
+      }
+    };
+    initialize();
   }, []);
+
+  const handleLoadTestForEdit = async (testId: string) => {
+    try {
+      setLoading(true);
+      const test = await getTestById(testId);
+      if (test) {
+        setEditingTest(test);
+        setFormData({
+          title: test.title,
+          description: test.description,
+          course: test.course,
+          duration: test.duration,
+          passingScore: test.passingScore,
+          difficulty: test.difficulty,
+          instructions: test.instructions || '',
+          allowRetake: test.allowRetake || false,
+          maxAttempts: test.maxAttempts || 1,
+          shuffleQuestions: test.shuffleQuestions || false,
+          showResults: test.showResults !== undefined ? test.showResults : true,
+          questions: test.questions || [],
+        });
+        setIsDialogOpen(true);
+      }
+    } catch (error) {
+      console.error('Failed to fetch test for editing:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadTests = async () => {
     try {
@@ -302,6 +346,20 @@ const AddTests = () => {
       }}
       transition={{ duration: 0.3 }}
     >
+      {/* Header with Back Button */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.href = '/admin/test-panel'}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Test Management
+          </Button>
+        </div>
+      </div>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

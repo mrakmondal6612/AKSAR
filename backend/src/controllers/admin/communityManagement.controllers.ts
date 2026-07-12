@@ -2,6 +2,7 @@ import { Response, Request } from "express";
 import CommunityPost from "../../models/CommunityPost.model";
 import User from "../../models/User.model";
 import { PostStatus } from "../../models/CommunityPost.model";
+import { AuthenticatedRequest } from "../../middleware/auth.middleware";
 
 export const handleGetAllPosts = async (req: Request, res: Response) => {
   try {
@@ -267,6 +268,93 @@ export const handleGetPostById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching post:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+export const handleCreatePost = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { content, images, tags, category } = req.body;
+    const userId = req.userId;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const postId = `POST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const newPost = new CommunityPost({
+      postId,
+      user: userId,
+      content,
+      images: images || [],
+      tags: tags || [],
+      category: category || "General",
+      status: PostStatus.APPROVED,
+      likes: [],
+      comments: [],
+    });
+
+    await newPost.save();
+
+    const populatedPost = await CommunityPost.findById(newPost._id)
+      .populate("user", "firstName lastName email userName profileImageUrl");
+
+    res.status(201).json({
+      success: true,
+      message: "Post created successfully",
+      data: populatedPost,
+    });
+  } catch (error) {
+    console.error("Error creating post:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+export const handleUpdatePost = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { postId } = req.params;
+    const { content, images, tags, category, status } = req.body;
+
+    const post = await CommunityPost.findOne({ postId });
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    if (content !== undefined) post.content = content;
+    if (images !== undefined) post.images = images;
+    if (tags !== undefined) post.tags = tags;
+    if (category !== undefined) post.category = category;
+    if (status !== undefined) post.status = status;
+
+    await post.save();
+
+    const populatedPost = await CommunityPost.findById(post._id)
+      .populate("user", "firstName lastName email userName profileImageUrl");
+
+    res.status(200).json({
+      success: true,
+      message: "Post updated successfully",
+      data: populatedPost,
+    });
+  } catch (error) {
+    console.error("Error updating post:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",

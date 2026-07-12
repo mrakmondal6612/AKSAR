@@ -1,5 +1,6 @@
 import React from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { Copy, Check } from "lucide-react";
 
 interface CertificateTemplateProps {
   certificate: {
@@ -16,6 +17,14 @@ interface CertificateTemplateProps {
 }
 
 const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }) => {
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopyNo = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(certNo());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
   /* ── Helpers ─────────────────────────────────────────────── */
   const fmt = (d: string) => {
     if (!d) return "DD MMM YYYY";
@@ -29,7 +38,7 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
     `${window.location.origin}/verify-certificate?id=${certificate.marksheetId}`;
 
   const sid = () => {
-    const n = certificate.user.firstName.substring(0, 3).toUpperCase().padEnd(3, "X");
+    const n = certificate.user?.firstName?.substring(0, 3).toUpperCase().padEnd(3, "X") || "XXX";
     const h = (certificate.marksheetId ?? "0000").slice(-4).toUpperCase();
     return `STU-${n}${h}`;
   };
@@ -55,7 +64,7 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
     return "OF COMPLETION";
   };
 
-  const name = `${certificate.user.firstName} ${certificate.user.lastName}`;
+  const name = certificate.user ? `${certificate.user.firstName || ""} ${certificate.user.lastName || ""}`.trim() || "Student Name" : "Student Name";
   const course = certificate.test?.title ?? certificate.course?.courseName ?? "Course Name";
 
   /* ── Enhanced Palette ──────────────────────────────────────── */
@@ -196,7 +205,6 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
           {/* AKSAR Logo */}
           <div style={{
             width: "12cqw", height: "12cqw",
-            filter: "drop-shadow(0 4px 8px rgba(30,64,175,0.25))",
           }}>
             <img
               src="/logo/logos.png"
@@ -205,6 +213,7 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
                 width: "100%", height: "100%",
                 objectFit: "contain",
                 userSelect: "none", pointerEvents: "none",
+                filter: "drop-shadow(0 3px 6px rgba(30,64,175,0.18))",
               }}
             />
           </div>
@@ -213,7 +222,7 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
         {/* ── Enhanced "CERTIFICATE" heading ── */}
         <div style={{ textAlign: "center", flexShrink: 0, marginTop: "1.5cqw" }}>
           <h1 className="c-ser" style={{
-            fontSize: "5.5cqw", color: NAVY,
+            fontSize: "4.5cqw", color: NAVY,
             letterSpacing: "0.08em", margin: 0,
             lineHeight: 1, fontWeight: 800,
             textShadow: "0 2px 4px rgba(15,23,42,0.1)",
@@ -270,14 +279,14 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
 
           {/* ★ Enhanced STUDENT NAME – dynamic */}
           <h2 className="name-font c-sel" style={{
-            fontSize: "7.8cqw",
+            fontSize: "7.2cqw",
             color: NAME_BLUE,
-            margin: "0.5cqw 0 0",
-            lineHeight: 1.1,
+            margin: "0.2cqw 0 0",
+            lineHeight: 1.4,
             fontWeight: 400,
-            overflow: "hidden", textOverflow: "ellipsis",
+            overflow: "visible",
             whiteSpace: "nowrap", maxWidth: "95%",
-            padding: "0 1cqw",
+            padding: "0 1cqw 0.4cqw",
             textShadow: "0 3px 6px rgba(37,99,235,0.2), 0 1px 2px rgba(37,99,235,0.1)",
           }}>
             {name}
@@ -311,11 +320,12 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
 
           {/* ★ Enhanced COURSE NAME – dynamic */}
           <h3 className="c-bod c-sel" style={{
-            fontSize: "2.8cqw", color: CRS_BLUE,
-            fontWeight: 700, margin: "0.8cqw 0 0",
-            lineHeight: 1.2, overflow: "hidden",
-            textOverflow: "ellipsis", whiteSpace: "nowrap",
+            fontSize: "2.6cqw", color: CRS_BLUE,
+            fontWeight: 700, margin: "0.5cqw 0 0",
+            lineHeight: 1.4, overflow: "visible",
+            whiteSpace: "nowrap",
             maxWidth: "90%", letterSpacing: "0.04em",
+            paddingBottom: "0.2cqw",
             textShadow: "0 1px 2px rgba(29,78,216,0.1)",
           }}>
             {course}
@@ -326,9 +336,36 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
             fontSize: "1.5cqw", color: GRAY,
             fontWeight: 700, letterSpacing: "0.1em",
             textTransform: "uppercase", margin: "1.5cqw 0 0", lineHeight: 1,
+            display: "flex", alignItems: "center", justifyItems: "center", gap: "0.8cqw",
           }}>
-            Certificate No:{" "}
-            <span style={{ color: NAVY, fontWeight: 800 }}>{certNo()}</span>
+            <span>
+              Certificate No:{" "}
+              <span style={{ color: NAVY, fontWeight: 800 }}>{certNo()}</span>
+            </span>
+            <button
+              onClick={handleCopyNo}
+              data-html2canvas-ignore="true"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "2px",
+                display: "inline-flex",
+                alignItems: "center",
+                color: copied ? "#10b981" : GRAY,
+                transition: "color 0.2s ease, transform 0.1s ease",
+                pointerEvents: "auto",
+              }}
+              title="Copy Certificate Number"
+              onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.9)"}
+              onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+            >
+              {copied ? (
+                <Check style={{ width: "1.6cqw", height: "1.6cqw" }} />
+              ) : (
+                <Copy style={{ width: "1.6cqw", height: "1.6cqw" }} />
+              )}
+            </button>
           </p>
         </div>
 
@@ -380,28 +417,41 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
           marginTop: "1.5cqw",
         }}>
 
-          {/* ★ Enhanced Grade Badge – dynamic */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "12cqw" }}>
+          {/* ★ Premium Grade Badge – dynamic */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "13cqw" }}>
             <div style={{
+              position: "relative",
               width: "13cqw", height: "13cqw",
               borderRadius: "50%",
-              border: "2.5px dotted #d4a017",
               display: "flex", flexDirection: "column",
               alignItems: "center", justifyContent: "center",
-              background: "linear-gradient(135deg, rgba(212,160,23,0.05), rgba(212,160,23,0.1))",
-              boxShadow: "0 4px 12px rgba(212,160,23,0.2)",
+              background: "linear-gradient(135deg, #ffffff, #fffdf2)",
+              border: `2px solid ${GOLD}`,
+              boxShadow: "0 6px 16px rgba(212,160,23,0.2), inset 0 2px 4px rgba(255,255,255,0.9)",
             }}>
+              {/* Inner dotted border */}
+              <div style={{
+                position: "absolute",
+                inset: "4px",
+                borderRadius: "50%",
+                border: `1.2px dashed ${GOLD}`,
+                opacity: 0.85,
+                pointerEvents: "none",
+              }} />
               <span className="c-bod" style={{
-                fontSize: "1.5cqw", color: GRAY,
+                fontSize: "1.4cqw", color: GRAY,
                 fontWeight: 700, letterSpacing: "0.2em",
                 textTransform: "uppercase", lineHeight: 1,
+                zIndex: 1,
               }}>
                 GRADE
               </span>
               <span className="c-bod c-sel" style={{
-                fontSize: "3cqw", color: "#1e3a8a",
+                fontSize: "3.4cqw", color: "#1e3a8a",
                 fontWeight: 900, lineHeight: 1,
                 marginTop: "0.2cqw",
+                zIndex: 1,
+                textShadow: "0 2px 4px rgba(30,58,138,0.12)",
               }}>
                 {certificate.grade}
               </span>
@@ -414,7 +464,7 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
               src="/images/certificateStiker.png"
               alt="Gold Medal"
               style={{
-                width: "24cqw", height: "19cqw",
+                width: "20cqw", height: "16cqw",
                 objectFit: "contain",
                 userSelect: "none", pointerEvents: "none",
                 filter: "drop-shadow(0 6px 12px rgba(212,160,23,0.3))",
@@ -423,11 +473,11 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
           </div>
 
           {/* ★ Enhanced QR Code – dynamic with elegant frame */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "12cqw" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "13cqw" }}>
             <div style={{
               position: "relative",
               background: "#fff",
-              borderRadius: "6px",
+              borderRadius: "8px",
               padding: "0.8cqw",
               display: "inline-flex",
               pointerEvents: "auto",
@@ -487,7 +537,7 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({ certificate }
                 fgColor="#000000"
                 level="L"
                 includeMargin={false}
-                style={{ width: "14cqw", height: "14cqw" }}
+                style={{ width: "13cqw", height: "13cqw" }}
               />
             </div>
             <span className="c-bod" style={{

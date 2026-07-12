@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendNotificationEmail = exports.sendGithubAuthPasswordMail = exports.sendGoogleAuthPasswordMail = exports.emailVerificationAlert = exports.sendResetPasswordVerification = exports.sendEmailVerification = void 0;
+exports.sendCertificateIssuedEmail = exports.sendCourseEnrollmentEmail = exports.sendNotificationEmail = exports.sendGithubAuthPasswordMail = exports.sendGoogleAuthPasswordMail = exports.emailVerificationAlert = exports.sendResetPasswordVerification = exports.sendEmailVerification = void 0;
 const User_model_1 = __importDefault(require("../models/User.model"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const mail_config_1 = require("../utils/mail.config");
+const emailTemplates_1 = require("./emailTemplates");
 dotenv_1.default.config();
 const sendEmailVerification = async (email, userId) => {
     try {
@@ -21,16 +22,10 @@ const sendEmailVerification = async (email, userId) => {
         }, { new: true });
         console.log(`✅ OTP Saved to DB: ${emailUser?.emailVerificationOTP}`);
         const mailOptions = {
-            from: `"Course Yuga" <${process.env.PUBLIC_GMAIL}>`,
+            from: `"AKSAR" <${process.env.PUBLIC_GMAIL}>`,
             to: email,
-            subject: "Verify your email",
-            html: `
-        <div style="font-family: Arial, sans-serif; color: #222;">
-          <h2>Email Verification OTP</h2>
-          <p>Your verification code is: <strong>${emailVerificationOTP}</strong></p>
-          <p>This code will expire in 10 minutes.</p>
-        </div>
-      `,
+            subject: "Verify Your Email - AKSAR",
+            html: emailTemplates_1.EMAIL_TEMPLATES.VERIFICATION_OTP(emailVerificationOTP),
         };
         await mail_config_1.transporter.sendMail(mailOptions);
         return { success: true, message: "Verification OTP sent successfully" };
@@ -49,33 +44,54 @@ const sendResetPasswordVerification = async (email, userId) => {
             $set: {
                 passwordResetOTP: passwordResetOTP,
                 passwordResetOTPExpires: Date.now() + 600000,
-                passwordSendTime: Date.now() + 3600000,
+                passwordSendTime: Date.now() + 60000,
             },
         }, { new: true });
         console.log(`✅ Password Reset OTP Saved to DB: ${emailUser?.passwordResetOTP}`);
-        return { success: true, message: "OTP logged to console" };
+        const mailOptions = {
+            from: `"AKSAR" <${process.env.PUBLIC_GMAIL}>`,
+            to: email,
+            subject: "Reset Your Password - AKSAR",
+            html: emailTemplates_1.EMAIL_TEMPLATES.PASSWORD_RESET_OTP(passwordResetOTP),
+        };
+        await mail_config_1.transporter.sendMail(mailOptions);
+        return { success: true, message: "Password reset OTP sent successfully" };
     }
     catch (error) {
         console.log(error);
-        throw new Error();
+        throw new Error("Failed to send password reset email");
     }
 };
 exports.sendResetPasswordVerification = sendResetPasswordVerification;
 const emailVerificationAlert = async (email) => {
     try {
-        console.log(`✅ Email Verification Alert for: ${email}`);
-        return { success: true, message: "Alert logged to console" };
+        const mailOptions = {
+            from: `"AKSAR" <${process.env.PUBLIC_GMAIL}>`,
+            to: email,
+            subject: "Email Verified Successfully - AKSAR",
+            html: emailTemplates_1.EMAIL_TEMPLATES.VERIFICATION_SUCCESS(),
+        };
+        await mail_config_1.transporter.sendMail(mailOptions);
+        console.log(`✅ Email Verification Alert sent to: ${email}`);
+        return { success: true, message: "Verification alert sent successfully" };
     }
     catch (error) {
         console.error("Error:", error);
-        throw new Error("Failed to process");
+        throw new Error("Failed to send verification alert");
     }
 };
 exports.emailVerificationAlert = emailVerificationAlert;
 const sendGoogleAuthPasswordMail = async (email, password) => {
     try {
-        console.log(`🔐 Google Auth - Temporary Password for ${email}: ${password}`);
-        return { success: true, message: "Password logged to console" };
+        const mailOptions = {
+            from: `"AKSAR" <${process.env.PUBLIC_GMAIL}>`,
+            to: email,
+            subject: "Welcome to AKSAR - Your Temporary Password",
+            html: emailTemplates_1.EMAIL_TEMPLATES.WELCOME_WITH_PASSWORD(password),
+        };
+        await mail_config_1.transporter.sendMail(mailOptions);
+        console.log(`🔐 Google Auth - Temporary Password sent to ${email}`);
+        return { success: true, message: "Password sent successfully" };
     }
     catch (error) {
         console.error("Error:", error);
@@ -85,8 +101,15 @@ const sendGoogleAuthPasswordMail = async (email, password) => {
 exports.sendGoogleAuthPasswordMail = sendGoogleAuthPasswordMail;
 const sendGithubAuthPasswordMail = async (email, password) => {
     try {
-        console.log(`🔐 GitHub Auth - Temporary Password for ${email}: ${password}`);
-        return { success: true, message: "Password logged to console" };
+        const mailOptions = {
+            from: `"AKSAR" <${process.env.PUBLIC_GMAIL}>`,
+            to: email,
+            subject: "Welcome to AKSAR - Your Temporary Password",
+            html: emailTemplates_1.EMAIL_TEMPLATES.WELCOME_WITH_PASSWORD(password),
+        };
+        await mail_config_1.transporter.sendMail(mailOptions);
+        console.log(`🔐 GitHub Auth - Temporary Password sent to ${email}`);
+        return { success: true, message: "Password sent successfully" };
     }
     catch (error) {
         console.error("Error:", error);
@@ -94,50 +117,13 @@ const sendGithubAuthPasswordMail = async (email, password) => {
     }
 };
 exports.sendGithubAuthPasswordMail = sendGithubAuthPasswordMail;
-const sendNotificationEmail = async (email, subject, message) => {
+const sendNotificationEmail = async (email, subject, message, actionUrl) => {
     try {
-        const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${subject}</title>
-        <style>
-          body { font-family: Arial, sans-serif; background-color: #f2f4f7; color: #333; margin: 0; padding: 0; }
-          .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; padding: 0; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); overflow: hidden; }
-          .header { text-align: center; background-color: #2196F3; color: #ffffff; padding: 20px; }
-          .header h1 { margin: 0; font-size: 24px; }
-          .logo { width: 120px; margin: 0 auto; display: block; }
-          .content { padding: 30px; }
-          .content p { font-size: 16px; line-height: 1.6; color: #555555; }
-          .footer { text-align: center; padding: 20px; font-size: 12px; color: #999999; background-color: #f4f4f4; }
-          .footer p { margin: 0; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <img src="${process.env.PUBLIC_FRONTEND_DOMAIN}/images/course-yuga-logo-light-mode-5.png" alt="Course-Yuga Logo" class="logo" />
-            <h1>${subject}</h1>
-          </div>
-          <div class="content">
-            <p>${message}</p>
-            <p>Log in to your account to view more details and take action.</p>
-          </div>
-          <div class="footer">
-            <p>© 2024 Course-Yuga. All rights reserved.</p>
-            <p><a href="${process.env.PUBLIC_FRONTEND_DOMAIN}">Go to Course-Yuga</a></p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
         const mailOptions = {
-            from: `"Course Yuga" <${process.env.PUBLIC_GMAIL}>`,
+            from: `"AKSAR" <${process.env.PUBLIC_GMAIL}>`,
             to: email,
             subject: subject,
-            html: htmlContent,
+            html: emailTemplates_1.EMAIL_TEMPLATES.GENERAL_NOTIFICATION(subject, message, actionUrl),
         };
         const mailResponse = await mail_config_1.transporter.sendMail(mailOptions);
         return mailResponse;
@@ -148,3 +134,45 @@ const sendNotificationEmail = async (email, subject, message) => {
     }
 };
 exports.sendNotificationEmail = sendNotificationEmail;
+/**
+ * Send Course Enrollment Email with link
+ */
+const sendCourseEnrollmentEmail = async (email, courseName, courseUrl) => {
+    try {
+        const mailOptions = {
+            from: `"AKSAR" <${process.env.PUBLIC_GMAIL}>`,
+            to: email,
+            subject: "Course Enrolled Successfully - AKSAR",
+            html: emailTemplates_1.EMAIL_TEMPLATES.COURSE_ENROLLMENT(courseName, courseUrl),
+        };
+        await mail_config_1.transporter.sendMail(mailOptions);
+        console.log(`✅ Course enrollment email sent to: ${email}`);
+        return { success: true, message: "Course enrollment email sent successfully" };
+    }
+    catch (error) {
+        console.error('Error sending course enrollment email:', error);
+        throw new Error('Failed to send course enrollment email');
+    }
+};
+exports.sendCourseEnrollmentEmail = sendCourseEnrollmentEmail;
+/**
+ * Send Certificate Issued Email with link
+ */
+const sendCertificateIssuedEmail = async (email, courseName, certificateUrl) => {
+    try {
+        const mailOptions = {
+            from: `"AKSAR" <${process.env.PUBLIC_GMAIL}>`,
+            to: email,
+            subject: "Certificate Earned - AKSAR",
+            html: emailTemplates_1.EMAIL_TEMPLATES.CERTIFICATE_ISSUED(courseName, certificateUrl),
+        };
+        await mail_config_1.transporter.sendMail(mailOptions);
+        console.log(`✅ Certificate email sent to: ${email}`);
+        return { success: true, message: "Certificate email sent successfully" };
+    }
+    catch (error) {
+        console.error('Error sending certificate email:', error);
+        throw new Error('Failed to send certificate email');
+    }
+};
+exports.sendCertificateIssuedEmail = sendCertificateIssuedEmail;

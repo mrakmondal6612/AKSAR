@@ -83,7 +83,7 @@ export async function handleEmailVerificationOTP(req: Request, res: Response) {
       }
   
       if (user?.emailSendTime) {
-        const emailTime = user.emailSendTime.getTime();
+        const emailTime = Number(user.emailSendTime);
         const currentTime = Date.now();
         const remainingTime = emailTime - currentTime;
         const minutes = Math.floor(

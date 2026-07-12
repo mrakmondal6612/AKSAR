@@ -16,6 +16,7 @@ const razorpay_controllers_1 = require("../controllers/payment/razorpay.controll
 const getSuggestedCourses_controllers_1 = require("../controllers/course/getSuggestedCourses.controllers");
 const multer_1 = __importDefault(require("multer"));
 const courseRoute = express_1.default.Router();
+console.log("Course routes loaded!");
 const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage() });
 // courseRoute.get("/" , handleFetchAllCourseFunction);
 // courseRoute.get("/:slug" , handleSelectedCourseFunction);

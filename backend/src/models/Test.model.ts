@@ -18,6 +18,7 @@ export enum TestDifficulty {
 }
 
 export interface IQuestion extends Document {
+  questionId?: string;
   questionText: string;
   questionType: QuestionType;
   options?: string[]; // For MCQ
@@ -51,6 +52,7 @@ export interface ITest extends Document {
 
 const questionSchema = new Schema<IQuestion>(
   {
+    questionId: { type: String },
     questionText: { type: String, required: true },
     questionType: {
       type: String,

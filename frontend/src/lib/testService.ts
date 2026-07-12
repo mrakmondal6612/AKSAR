@@ -470,6 +470,70 @@ export const getUserTestHistoryAdmin = async (userId: string) => {
   }
 };
 
+export const getAllAttemptsAdmin = async (params?: any) => {
+  try {
+    const response = await axios.get(`${TEST_API}/admin/attempts`, {
+      headers: getAuthHeaders(),
+      params,
+    });
+    if (response.data.success) {
+      return response.data.data;
+    }
+    throw new Error(response.data.message);
+  } catch (error: any) {
+    ErrorToast(error.response?.data?.message || "Failed to fetch attempts");
+    throw error;
+  }
+};
+
+export const deleteAttemptAdmin = async (attemptId: string) => {
+  try {
+    const response = await axios.delete(`${TEST_API}/admin/attempts/${attemptId}`, {
+      headers: getAuthHeaders(),
+    });
+    if (response.data.success) {
+      SuccessToast("Attempt deleted successfully");
+      return response.data;
+    }
+    throw new Error(response.data.message);
+  } catch (error: any) {
+    ErrorToast(error.response?.data?.message || "Failed to delete attempt");
+    throw error;
+  }
+};
+
+export const createAttemptAdmin = async (attemptData: any) => {
+  try {
+    const response = await axios.post(`${TEST_API}/admin/attempts`, attemptData, {
+      headers: getAuthHeaders(),
+    });
+    if (response.data.success) {
+      SuccessToast("Attempt created successfully");
+      return response.data.data;
+    }
+    throw new Error(response.data.message);
+  } catch (error: any) {
+    ErrorToast(error.response?.data?.message || "Failed to create attempt");
+    throw error;
+  }
+};
+
+export const updateAttemptAdmin = async (attemptId: string, attemptData: any) => {
+  try {
+    const response = await axios.put(`${TEST_API}/admin/attempts/${attemptId}`, attemptData, {
+      headers: getAuthHeaders(),
+    });
+    if (response.data.success) {
+      SuccessToast("Attempt updated successfully");
+      return response.data.data;
+    }
+    throw new Error(response.data.message);
+  } catch (error: any) {
+    ErrorToast(error.response?.data?.message || "Failed to update attempt");
+    throw error;
+  }
+};
+
 // Public Certificate Verification
 export const verifyCertificatePublic = async (certificateId: string) => {
   try {
@@ -489,15 +553,38 @@ export const verifyCertificatePublic = async (certificateId: string) => {
 export const getAllActiveCourses = async () => {
   try {
     const COURSE_API = import.meta.env.VITE_PUBLIC_COURSE_AKSAR_COURSE_API || "http://localhost:8080/api/v1/course";
-    const response = await axios.get(`${COURSE_API}/get-all-courses`);
-    if (response.data.success) {
-      // Return all courses without filtering by isVerified
-      return response.data.data;
+    
+    console.log("[testService] Fetching courses from:", `${COURSE_API}/get-course-filter`);
+
+    try {
+      const response = await axios.get(`${COURSE_API}/get-course-filter`);
+      console.log("[testService] Course filter response:", response.data);
+      if (response.data?.success) {
+        console.log("[testService] Successfully loaded", response.data.data?.length, "courses");
+        return response.data.data;
+      }
+    } catch (e: any) {
+      console.warn("[testService] Course filter failed, trying all courses:", e);
+      console.warn("[testService] Error response:", e.response?.data);
     }
-    throw new Error(response.data.message);
+
+    try {
+      const response = await axios.get(`${COURSE_API}/get-all-courses`);
+      console.log("[testService] All courses response:", response.data);
+      if (response.data?.success && response.data.data?.length > 0) {
+        console.log("[testService] Successfully loaded", response.data.data?.length, "courses");
+        return response.data.data;
+      }
+    } catch (e: any) {
+      console.error("[testService] All courses fetch failed:", e);
+      console.error("[testService] Error response:", e.response?.data);
+    }
+
+    console.warn("[testService] No courses found from any endpoint");
+    return [];
   } catch (error: any) {
-    ErrorToast(error.response?.data?.message || "Failed to fetch courses");
-    throw error;
+    console.error("[testService] Failed to fetch courses:", error);
+    return [];
   }
 };
 

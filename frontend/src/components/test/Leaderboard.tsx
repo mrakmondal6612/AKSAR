@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Trophy, Medal, Award, TrendingUp } from "lucide-react";
+import { Trophy, Medal, Award, TrendingUp, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,19 @@ const Leaderboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header with Back Button */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.href = "/user/dashboard"}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-lg">
@@ -145,14 +158,14 @@ const Leaderboard: React.FC = () => {
                   {/* User Info */}
                   <div className="flex items-center gap-3 flex-1">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-                      {entry.user.firstName[0]}{entry.user.lastName[0]}
+                      {entry.user?.firstName?.[0] || "?"}{entry.user?.lastName?.[0] || "?"}
                     </div>
                     <div>
                       <div className="font-semibold text-slate-900 dark:text-slate-100">
-                        {entry.user.firstName} {entry.user.lastName}
+                        {entry.user?.firstName || "Unknown"} {entry.user?.lastName || ""}
                       </div>
                       <div className="text-sm text-slate-600 dark:text-slate-400">
-                        @{entry.user.userName}
+                        @{entry.user?.userName || "unknown"}
                       </div>
                     </div>
                   </div>

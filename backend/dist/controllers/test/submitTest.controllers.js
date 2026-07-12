@@ -122,7 +122,7 @@ const handleSubmitTestAttemptFunction = async (req, res) => {
         // Calculate score
         let totalScore = 0;
         const processedAnswers = answers.map((answer) => {
-            const question = test.questions.find((q) => q._id.toString() === answer.questionId);
+            const question = test.questions.find((q) => q._id.toString() === answer.questionId || q.questionId === answer.questionId);
             if (!question) {
                 return {
                     ...answer,
@@ -267,12 +267,24 @@ const handleGetUserAttemptsFunction = async (req, res) => {
         const filter = { user: userId };
         if (testId)
             filter.test = testId;
-        const attempts = await TestAttempt_model_1.default.find(filter)
-            .sort({ createdAt: -1 })
-            .populate("test", "title description");
+        const attempts = await TestAttempt_model_1.default.find(filter).sort({ createdAt: -1 });
+        // Manually populate test details using testId string matching
+        const testIds = attempts.map(a => a.test).filter(Boolean);
+        const tests = await Test_model_1.default.find({ testId: { $in: testIds } });
+        const testMap = new Map(tests.map(t => [t.testId, t]));
+        const populatedAttempts = attempts.map(a => {
+            const attemptObj = a.toObject();
+            const testDoc = testMap.get(a.test);
+            attemptObj.test = testDoc ? {
+                _id: testDoc.testId,
+                title: testDoc.title,
+                description: testDoc.description
+            } : null;
+            return attemptObj;
+        });
         res.status(200).json({
             success: true,
-            data: attempts,
+            data: populatedAttempts,
         });
     }
     catch (error) {

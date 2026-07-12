@@ -4,7 +4,7 @@ export interface INotification extends Document {
   user: string;
   todo?: string;
   course?: string;
-  type: 'todo_overdue' | 'todo_due_soon' | 'course_start' | 'course_end' | 'deadline_approaching';
+  type: 'todo_overdue' | 'todo_due_soon' | 'course_start' | 'course_end' | 'deadline_approaching' | 'test_assigned';
   title: string;
   message: string;
   read: boolean;
@@ -18,7 +18,7 @@ const notificationSchema = new mongoose.Schema<INotification>(
     course: { type: String, ref: 'Course' },
     type: {
       type: String,
-      enum: ['todo_overdue', 'todo_due_soon', 'course_start', 'course_end', 'deadline_approaching'],
+      enum: ['todo_overdue', 'todo_due_soon', 'course_start', 'course_end', 'deadline_approaching', 'test_assigned'],
       required: true,
     },
     title: { type: String, required: true },

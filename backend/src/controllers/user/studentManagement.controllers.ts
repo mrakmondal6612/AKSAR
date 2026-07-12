@@ -223,3 +223,45 @@ export async function handleGetStudentEnrolledCourses(req: AuthenticatedAdminReq
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
+
+// Create new student (admin only)
+export async function handleCreateStudent(req: AuthenticatedAdminRequest, res: Response) {
+  try {
+    const { firstName, lastName, userName, email, password, bio, userDob, address, phoneNumber } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ $or: [{ email }, { userName }] });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "User with this email or username already exists" });
+    }
+
+    const bcrypt = require("bcryptjs");
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newStudent = new User({
+      firstName,
+      lastName,
+      userName,
+      email,
+      password: hashedPassword,
+      role: "STUDENT",
+      bio,
+      userDob,
+      address,
+      phoneNumber,
+      emailVerificationStatus: false,
+      phoneNumberVerificationStatus: false,
+    });
+
+    await newStudent.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Student created successfully",
+      data: newStudent,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+}

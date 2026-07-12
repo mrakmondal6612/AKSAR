@@ -148,7 +148,7 @@ const DashBoardNavbar: React.FC = () => {
                             Icon={item.Icon}
                             title={item.title}
                             link={item.link}
-                            isActive={item.link.split("/")[3] === location.pathname.split("/")[3]}
+                            isActive={item.link.split("/")[2] === locName}
                             isSideBarOpen={isSideBarOpen}
                         />
                     ))}

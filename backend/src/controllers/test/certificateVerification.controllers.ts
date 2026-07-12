@@ -4,6 +4,65 @@ import User from "../../models/User.model";
 import Test from "../../models/Test.model";
 import Course from "../../models/Course.model";
 
+const findMarksheetByIdOrNo = async (input: string) => {
+  const cleanInput = input.trim();
+  
+  // 1. Try exact match
+  let marksheet = await Marksheet.findOne({ marksheetId: cleanInput });
+  
+  // 2. Try case-insensitive exact match
+  if (!marksheet) {
+    marksheet = await Marksheet.findOne({ marksheetId: { $regex: new RegExp("^" + cleanInput.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "$", "i") } });
+  }
+  
+  // 3. Try parsing AKSAR-YYYY-SUFFIX format
+  if (!marksheet && cleanInput.toUpperCase().startsWith("AKSAR-")) {
+    const parts = cleanInput.split("-");
+    if (parts.length >= 3) {
+      const suffix = parts.slice(2).join("-");
+      const escapedSuffix = suffix.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      marksheet = await Marksheet.findOne({ marksheetId: { $regex: new RegExp(escapedSuffix + "$", "i") } });
+    }
+  }
+  
+  // 4. Try suffix match if input is at least 6 characters
+  if (!marksheet && cleanInput.length >= 6) {
+    const escapedSuffix = cleanInput.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    marksheet = await Marksheet.findOne({ marksheetId: { $regex: new RegExp(escapedSuffix + "$", "i") } });
+  }
+
+  if (!marksheet) return null;
+
+  // Manually populate user, test, course
+  const [userDoc, testDoc, courseDoc] = await Promise.all([
+    User.findOne({ uniqueId: marksheet.user }),
+    marksheet.test ? Test.findOne({ testId: marksheet.test }) : null,
+    Course.findOne({ courseId: marksheet.course }),
+  ]);
+
+  const marksheetObj = marksheet.toObject();
+
+  marksheetObj.user = userDoc ? {
+    firstName: userDoc.firstName,
+    lastName: userDoc.lastName,
+    userName: userDoc.userName,
+  } : null;
+
+  marksheetObj.test = testDoc ? {
+    _id: testDoc.testId,
+    title: testDoc.title,
+    description: testDoc.description,
+    difficulty: testDoc.difficulty,
+  } : null;
+
+  marksheetObj.course = courseDoc ? {
+    _id: courseDoc.courseId,
+    courseName: courseDoc.courseName,
+  } : null;
+
+  return marksheetObj as any;
+};
+
 export const handleVerifyCertificateFunction = async (
   req: Request,
   res: Response
@@ -18,10 +77,7 @@ export const handleVerifyCertificateFunction = async (
       });
     }
 
-    const marksheet = await Marksheet.findOne({ marksheetId: certificateId })
-      .populate("user", "firstName lastName userName")
-      .populate("test", "title description difficulty")
-      .populate("course", "courseName");
+    const marksheet = await findMarksheetByIdOrNo(certificateId);
 
     if (!marksheet) {
       return res.status(404).json({
@@ -70,11 +126,11 @@ export const handleVerifyCertificateFunction = async (
           name: `${marksheet.user.firstName} ${marksheet.user.lastName}`,
           userName: marksheet.user.userName,
         },
-        test: {
+        test: marksheet.test ? {
           title: marksheet.test.title,
           description: marksheet.test.description,
           difficulty: marksheet.test.difficulty,
-        },
+        } : undefined,
         course: {
           name: marksheet.course.courseName,
         },
@@ -122,10 +178,7 @@ export const handlePublicVerifyCertificateFunction = async (
       });
     }
 
-    const marksheet = await Marksheet.findOne({ marksheetId: certificateId })
-      .populate("user", "firstName lastName")
-      .populate("test", "title")
-      .populate("course", "courseName");
+    const marksheet = await findMarksheetByIdOrNo(certificateId);
 
     if (!marksheet) {
       return res.status(404).json({
@@ -164,7 +217,7 @@ export const handlePublicVerifyCertificateFunction = async (
       message: "Certificate is valid",
       data: {
         studentName: `${marksheet.user.firstName} ${marksheet.user.lastName}`,
-        testName: marksheet.test.title,
+        testName: marksheet.test?.title || "N/A",
         courseName: marksheet.course.courseName,
         grade: marksheet.grade,
         percentage: marksheet.percentage,
