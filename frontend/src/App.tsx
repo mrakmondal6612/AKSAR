@@ -17,6 +17,7 @@ const CourseDetailsPage = lazy(() => import("./sections/CourseDetailsPage"));
 import { useAuthContext } from "./context/authContext";
 const DashboardRoutes = lazy(() => import("./sections/DashBoardSections/DashBoardRoutes"));
 const Navbar = lazy(() => import("./sections/Navbar"));
+const Footer = lazy(() => import("./sections/Footer"));
 const HelpSection = lazy(() => import("./sections/HelpSection"));
 const UnauthenticatedPage = lazy(() => import("./components/UnauthenticatedPage"));
 const PageNotFound = lazy(() => import("@/components/PageNotFound"));
@@ -111,6 +112,12 @@ function App() {
           memoizedRoutes
         )}
       </Suspense>
+
+      {!isUserRoute && (
+        <Suspense fallback={<div className="h-10" />}>
+          <Footer />
+        </Suspense>
+      )}
 
       <div className="fixed bottom-0 right-0 p-4">
         <ToastContainer

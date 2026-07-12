@@ -28,6 +28,16 @@ import { handleRemoveHistoryVideo, handleRemoveUserEntireHistory, handleRemoveHi
 import { handleChangeRoleRequestFunction } from "../controllers/user/userChangeRole.controllers";
 import { handleUpdateInterestsFunction } from "../controllers/user/userInterests.controllers";
 import {
+  handleGetApprovedPosts,
+  handleCreateUserPost,
+  handleToggleLikePost,
+  handleAddCommentPost
+} from "../controllers/user/community.controllers";
+import {
+  handleCreateFeedback,
+  handleGetFeedbacks
+} from "../controllers/user/feedback.controllers";
+import {
   handleGetAllPosts,
   handleApprovePost,
   handleRejectPost,
@@ -188,5 +198,15 @@ userRoute.put("/admin/teachers/:teacherId", authenticateAdminOrInstructorToken, 
 userRoute.patch("/admin/teachers/:teacherId/email-verification", authenticateAdminOrInstructorToken, handleToggleTeacherEmailVerification);
 userRoute.delete("/admin/teachers/:teacherId", authenticateAdminOrInstructorToken, handleDeleteTeacher);
 userRoute.post("/admin/send-test-email", authenticateAdminOrInstructorToken, handleSendTestEmailFunction);
+
+// User Community routes (authenticated general users)
+userRoute.get("/community/posts", handleGetApprovedPosts);
+userRoute.post("/community/posts", authenticateToken, handleCreateUserPost);
+userRoute.patch("/community/posts/:postId/like", authenticateToken, handleToggleLikePost);
+userRoute.post("/community/posts/:postId/comment", authenticateToken, handleAddCommentPost);
+
+// User Feedback/Testimonial routes
+userRoute.post("/feedback", authenticateToken, handleCreateFeedback);
+userRoute.get("/feedback", handleGetFeedbacks);
 
 export default userRoute;

@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "@/context/ThemeProvider";
+import { useNavigate } from "react-router-dom";
 import AnimatedCounter from "./AnimatedCounter";
 
 interface StatCardProps {
@@ -74,6 +75,7 @@ const StatCard: React.FC<StatCardProps> = ({ number, label, icon, delay }) => {
 
 const CommunityStatistics: React.FC = () => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
 
   const statistics = [
     {
@@ -209,6 +211,7 @@ const CommunityStatistics: React.FC = () => {
             bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600
             transition-all duration-300 shadow-lg hover:shadow-2xl
           `}
+            onClick={() => navigate("/community")}
           >
             Become Part of Our Community
           </motion.button>
