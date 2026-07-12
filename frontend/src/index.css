@@ -81,14 +81,14 @@
     }
 
     .nav-ul {
-        @apply flex flex-col items-end justify-center gap-4 sm:flex-row md:gap-4 relative z-20 max-sm:gap-1;
+        @apply flex flex-col items-end justify-center gap-1 sm:flex-row lg:gap-3 xl:gap-6 relative z-20 max-sm:gap-1;
     }
 
     .nav-li {
-        @apply font-noto-sans text-base relative overflow-hidden max-sm:py-3 max-sm:rounded-xl max-sm:w-full max-sm:px-1;
-        min-width: 110px;
+        @apply font-noto-sans text-sm relative overflow-hidden max-sm:py-3 max-sm:rounded-xl max-sm:w-full max-sm:px-1 whitespace-nowrap;
+        min-width: 75px;
         /* Set a minimum width to avoid resizing */
-        min-height: 26px;
+        min-height: 24px;
         text-align: center;
     }
 

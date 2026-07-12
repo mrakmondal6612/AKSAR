@@ -4,6 +4,7 @@ import User from "../../models/User.model";
 import mongoose from "mongoose";
 import VideoModel from "../../models/Video.model";
 import CourseModel from "../../models/Course.model";
+import { assignTestToUser } from "../test/autoAssignTest.controllers";
 
 export async function handleUserCourseBookmarkfunction(req: AuthenticatedRequest , res: Response){
     const userId = req.userId
@@ -332,6 +333,13 @@ export async function handleUserCourseProgress(req: AuthenticatedRequest, res: R
     if (updateCount.count === 100 && !updateCount.completedAt) {
       updateCount.completedAt = new Date();
       console.log("🎉 Course completed:", courseId);
+      
+      // Auto-assign course test automatically
+      try {
+        await assignTestToUser(courseId, user.uniqueId);
+      } catch (assignError) {
+        console.error("Auto-assign test failed during video completion check:", assignError);
+      }
     }
     
     await user.save();

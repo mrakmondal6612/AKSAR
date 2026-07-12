@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectItem } from "@nextui-org/react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import CertificateView from "./CertificateView";
 import {
   Shield,
@@ -151,10 +152,12 @@ const CertificateManagement: React.FC = () => {
       );
 
       if (response.data.success) {
+        console.log("Certificates loaded:", response.data.data);
         setCertificates(response.data.data);
-        setTotalPages(response.data.pagination.pages);
+        setTotalPages(response.data.pagination?.pages || 1);
       }
     } catch (error: any) {
+      console.error("Failed to load certificates:", error);
       ErrorToast(error?.response?.data?.message || "Failed to load certificates");
     } finally {
       setLoading(false);
@@ -360,6 +363,26 @@ const CertificateManagement: React.FC = () => {
     }
   };
 
+  const getGradeBadge = (grade: string) => {
+    const gradeUpper = grade.toUpperCase();
+    switch (gradeUpper) {
+      case "A+":
+        return <Badge className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-bold text-lg px-3 py-1">A+</Badge>;
+      case "A":
+        return <Badge className="bg-gradient-to-r from-green-400 to-emerald-500 text-white font-bold text-lg px-3 py-1">A</Badge>;
+      case "B":
+        return <Badge className="bg-gradient-to-r from-blue-400 to-cyan-500 text-white font-bold text-lg px-3 py-1">B</Badge>;
+      case "C":
+        return <Badge className="bg-gradient-to-r from-purple-400 to-violet-500 text-white font-bold text-lg px-3 py-1">C</Badge>;
+      case "D":
+        return <Badge className="bg-gradient-to-r from-orange-400 to-amber-500 text-white font-bold text-lg px-3 py-1">D</Badge>;
+      case "F":
+        return <Badge className="bg-gradient-to-r from-red-400 to-rose-500 text-white font-bold text-lg px-3 py-1">F</Badge>;
+      default:
+        return <Badge className="bg-gray-500/20 text-gray-600 dark:text-gray-400 font-bold text-lg px-3 py-1">{grade}</Badge>;
+    }
+  };
+
   return (
     <motion.div
       className="dark:bg-white/5 bg-black/5 rounded-lg p-6"
@@ -432,32 +455,31 @@ const CertificateManagement: React.FC = () => {
       )}
 
       {/* Filters */}
-      <Card className="mb-6">
+      <Card className="mb-6 border-2 border-purple-200 dark:border-purple-800">
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search by certificate ID..."
+                  placeholder="Search by user name, email, or certificate ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <Select
-              label="Status"
-              selectedKeys={[statusFilter]}
-              onSelectionChange={(keys) => setStatusFilter(Array.from(keys)[0] as string)}
-              className="w-[180px]"
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm"
             >
-              <SelectItem key="ALL">All Status</SelectItem>
-              <SelectItem key="GENERATED">Generated</SelectItem>
-              <SelectItem key="DOWNLOADED">Downloaded</SelectItem>
-              <SelectItem key="REVOKED">Revoked</SelectItem>
-            </Select>
-            <Button onClick={loadCertificates} variant="outline">
+              <option value="ALL">All Status</option>
+              <option value="GENERATED">Generated</option>
+              <option value="DOWNLOADED">Downloaded</option>
+              <option value="REVOKED">Revoked</option>
+            </select>
+            <Button onClick={() => { loadCertificates(); loadStats(); }} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
@@ -466,111 +488,137 @@ const CertificateManagement: React.FC = () => {
       </Card>
 
       {/* Certificates Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Certificates</CardTitle>
+      <Card className="border-2 border-slate-200 dark:border-slate-700 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            Certificates
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">Loading certificates...</p>
             </div>
           ) : certificates.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              No certificates found
+            <div className="text-center py-12">
+              <Award className="h-16 w-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 text-lg">No certificates found</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Create a certificate to get started</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {certificates.map((cert) => (
-                <div
+                <motion.div
                   key={cert._id}
-                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="group flex flex-col p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-                        {cert.user.firstName.charAt(0)}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                          {cert.user?.firstName?.charAt(0) || "?"}
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800" />
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">
-                          {cert.user.firstName} {cert.user.lastName}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 dark:text-white text-lg truncate">
+                          {cert.user?.firstName || "Unknown"} {cert.user?.lastName || "User"}
                         </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{cert.user.email}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{cert.user?.email || "No email"}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                      {cert.test && (
-                        <span className="flex items-center gap-1">
-                          <FileText className="h-4 w-4" />
+                    <div className="flex flex-wrap items-center gap-2 text-sm mb-3">
+                      {cert.test?.title && (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs">
+                          <FileText className="h-3 w-3" />
                           {cert.test.title}
                         </span>
                       )}
-                      <span className="flex items-center gap-1">
-                        <Award className="h-4 w-4" />
-                        {cert.course.courseName}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
+                      {cert.course?.courseName && (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs">
+                          <Award className="h-3 w-3" />
+                          {cert.course.courseName}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm mb-3">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-xs">
+                        <Calendar className="h-3 w-3" />
                         {formatDate(cert.completionDate)}
                       </span>
+                      {getStatusBadge(cert.certificateStatus)}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-lg font-bold text-gray-900 dark:text-white">
+                  <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                           {cert.percentage.toFixed(0)}%
                         </span>
-                        {getStatusBadge(cert.certificateStatus)}
+                        {getGradeBadge(cert.grade)}
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Grade: {cert.grade}</p>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleView(cert.marksheetId)}
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-300 dark:border-blue-700 flex-1"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleDownload(cert.marksheetId)}
+                        className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 border-purple-300 dark:border-purple-700 flex-1"
                       >
-                        <Download className="h-4 w-4" />
+                        <Download className="h-4 w-4 mr-1" />
+                        Download
                       </Button>
                       {cert.certificateStatus === "REVOKED" ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRestore(cert.marksheetId)}
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRestore(cert.marksheetId)}
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 border-green-300 dark:border-green-700 flex-1"
+                          >
+                            <RefreshCw className="h-4 w-4 mr-1" />
+                            Restore
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDelete(cert.marksheetId)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-300 dark:border-red-700 flex-1"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                        </>
                       ) : (
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-red-600 dark:text-red-400"
                           onClick={() => handleRevoke(cert.marksheetId)}
+                          className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 border-orange-300 dark:border-orange-700 flex-1"
                         >
-                          <Ban className="h-4 w-4" />
+                          <Ban className="h-4 w-4 mr-1" />
+                          Revoke
                         </Button>
                       )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-red-600 dark:text-red-400"
-                        onClick={() => handleDelete(cert.marksheetId)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
@@ -640,10 +688,12 @@ const CertificateManagement: React.FC = () => {
                     <p className="font-semibold text-gray-900 dark:text-white">{selectedCertificate.test.title}</p>
                   </div>
                 )}
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Course</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">{selectedCertificate.course.courseName}</p>
-                </div>
+                {selectedCertificate.course && (
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Course</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">{selectedCertificate.course.courseName}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Score</p>
                   <p className="font-semibold text-gray-900 dark:text-white">{selectedCertificate.percentage.toFixed(0)}%</p>
@@ -667,177 +717,141 @@ const CertificateManagement: React.FC = () => {
       )}
 
       {/* Create Certificate Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Create Certificate</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setShowCreateModal(false)}>
-                  ✕
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleCreate} className="space-y-4">
-                {loadingDropdowns ? (
-                  <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto" />
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create Certificate</DialogTitle>
+            <DialogDescription>Create a new certificate for a user who has completed a test or course.</DialogDescription>
+          </DialogHeader>
+          <CardContent>
+            <form onSubmit={handleCreate} className="space-y-4">
+              {loadingDropdowns ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto" />
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <Label>Certificate Type *</Label>
+                    <select
+                      value={createFormData.certificateType}
+                      onChange={(e) => setCreateFormData({ ...createFormData, certificateType: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm mt-1"
+                    >
+                      <option value="COURSE_COMPLETE">Course Completion</option>
+                      <option value="TEST_PASS">Test Pass</option>
+                      <option value="ACHIEVEMENT">Achievement</option>
+                    </select>
                   </div>
-                ) : (
-                  <>
-                    <div>
-                      <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Certificate Type *</label>
-                      <Select
-                        label="Select Certificate Type"
-                        placeholder="Choose certificate type"
-                        defaultSelectedKeys={["COURSE_COMPLETE"]}
-                        selectedKeys={createFormData.certificateType ? [createFormData.certificateType] : ["COURSE_COMPLETE"]}
-                        onSelectionChange={(keys) => {
-                          const newType = Array.from(keys)[0] as string;
-                          setCreateFormData({ 
-                            ...createFormData, 
-                            certificateType: newType,
-                            testId: newType !== "TEST_RESULT" ? "" : createFormData.testId
-                          });
-                        }}
-                        className="w-full"
-                      >
-                        <SelectItem key="COURSE_COMPLETE" value="COURSE_COMPLETE" textValue="Course Complete">
-                          Course Complete
-                        </SelectItem>
-                        <SelectItem key="TEST_RESULT" value="TEST_RESULT" textValue="Test Result">
-                          Test Result
-                        </SelectItem>
-                        <SelectItem key="OTHERS" value="OTHERS" textValue="Others">
-                          Others
-                        </SelectItem>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">User *</label>
-                      <Select
-                        label="Select User"
-                        placeholder="Choose a user"
-                        selectedKeys={createFormData.userId ? [createFormData.userId] : []}
-                        onSelectionChange={(keys) => {
-                          const selectedKey = Array.from(keys)[0];
-                          console.log("User selected:", selectedKey);
-                          setCreateFormData({ ...createFormData, userId: selectedKey as string });
-                        }}
-                        className="w-full"
-                      >
-                        {users.map((user) => (
-                          <SelectItem key={user._id} value={user._id} textValue={`${user.firstName} ${user.lastName}`}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{user.firstName} {user.lastName}</span>
-                              <span className="text-xs text-gray-500">{user.email}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </Select>
-                    </div>
-                    {createFormData.certificateType === "TEST_RESULT" && (
-                      <div>
-                        <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Test *</label>
-                        <Select
-                          label="Select Test"
-                          placeholder="Choose a test"
-                          selectedKeys={createFormData.testId ? [createFormData.testId] : []}
-                          onSelectionChange={(keys) => {
-                            const selectedKey = Array.from(keys)[0];
-                            console.log("Test selected:", selectedKey);
-                            setCreateFormData({ ...createFormData, testId: selectedKey as string });
-                          }}
-                          className="w-full"
-                        >
-                          {tests.map((test) => (
-                            <SelectItem key={test._id} value={test._id} textValue={test.title}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{test.title}</span>
-                                <span className="text-xs text-gray-500">{test.difficulty}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </Select>
-                      </div>
-                    )}
-                    <div>
-                      <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Course *</label>
-                      <Select
-                        label="Select Course"
-                        placeholder="Choose a course"
-                        selectedKeys={createFormData.courseId ? [createFormData.courseId] : []}
-                        onSelectionChange={(keys) => {
-                          const selectedKey = Array.from(keys)[0];
-                          console.log("Course selected:", selectedKey);
-                          setCreateFormData({ ...createFormData, courseId: selectedKey as string });
-                        }}
-                        className="w-full"
-                      >
-                        {courses.map((course) => (
-                          <SelectItem key={course._id} value={course._id} textValue={course.courseName}>
-                            {course.courseName}
-                          </SelectItem>
-                        ))}
-                      </Select>
-                    </div>
-                  </>
-                )}
-                <div>
-                  <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Score</label>
-                  <Input
-                    type="number"
-                    value={createFormData.score}
-                    onChange={(e) => setCreateFormData({ ...createFormData, score: e.target.value })}
-                    placeholder="Enter score (0-100)"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Grade</label>
-                  <Input
-                    value={createFormData.grade}
-                    onChange={(e) => setCreateFormData({ ...createFormData, grade: e.target.value })}
-                    placeholder="Enter grade (e.g., A, B, C)"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Skills Demonstrated</label>
-                  <Input
-                    value={createFormData.skillsDemonstrated}
-                    onChange={(e) => setCreateFormData({ ...createFormData, skillsDemonstrated: e.target.value })}
-                    placeholder="Enter skills separated by commas"
-                  />
-                </div>
-                <div className="flex gap-2 justify-end pt-4">
-                  <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit">Create Certificate</Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+
+                  <div>
+                    <Label>User *</Label>
+                    <select
+                      value={createFormData.userId}
+                      onChange={(e) => setCreateFormData({ ...createFormData, userId: e.target.value })}
+                      required
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm mt-1"
+                    >
+                      <option value="">Select User</option>
+                      {users.map((user) => (
+                        <option key={user._id} value={user._id}>
+                          {user.firstName} {user.lastName} ({user.email})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label>Course *</Label>
+                    <select
+                      value={createFormData.courseId}
+                      onChange={(e) => setCreateFormData({ ...createFormData, courseId: e.target.value })}
+                      required
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm mt-1"
+                    >
+                      <option value="">Select Course</option>
+                      {courses.map((course) => (
+                        <option key={course._id} value={course._id}>
+                          {course.courseName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label>Test (Optional)</Label>
+                    <select
+                      value={createFormData.testId}
+                      onChange={(e) => setCreateFormData({ ...createFormData, testId: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm mt-1"
+                    >
+                      <option value="">Select Test (Optional)</option>
+                      {tests.map((test) => (
+                        <option key={test._id} value={test._id}>
+                          {test.title} ({test.difficulty})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label>Score *</Label>
+                    <Input
+                      type="number"
+                      value={createFormData.score}
+                      onChange={(e) => setCreateFormData({ ...createFormData, score: e.target.value })}
+                      required
+                      min="0"
+                      max="100"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Grade *</Label>
+                    <Input
+                      value={createFormData.grade}
+                      onChange={(e) => setCreateFormData({ ...createFormData, grade: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Skills Demonstrated (comma-separated)</Label>
+                    <Input
+                      value={createFormData.skillsDemonstrated}
+                      onChange={(e) => setCreateFormData({ ...createFormData, skillsDemonstrated: e.target.value })}
+                      placeholder="e.g., JavaScript, React, Node.js"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 justify-end pt-4">
+                    <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">
+                      Create Certificate
+                    </Button>
+                  </div>
+                </>
+              )}
+            </form>
+          </CardContent>
+        </DialogContent>
+      </Dialog>
 
       {/* Certificate View Modal */}
       {showCertificateModal && selectedCertificateId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Certificate View</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setShowCertificateModal(false)}>
-                  ✕
-                </Button>
-              </div>
-            </CardHeader>
+        <Dialog open={showCertificateModal} onOpenChange={setShowCertificateModal}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Certificate View</DialogTitle>
+              <DialogDescription>View and download the certificate details.</DialogDescription>
+            </DialogHeader>
             <CardContent>
               <CertificateView marksheetId={selectedCertificateId} />
             </CardContent>
-          </Card>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
     </motion.div>
   );

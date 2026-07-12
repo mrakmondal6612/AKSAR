@@ -39,6 +39,10 @@ import {
   handleRevokeCertificateFunction,
   handleUpdateGamificationSettingsFunction,
   handleGetUserTestHistoryAdminFunction,
+  handleGetAllAttemptsAdminFunction,
+  handleDeleteAttemptAdminFunction,
+  handleCreateAttemptAdminFunction,
+  handleUpdateAttemptAdminFunction,
 } from "../controllers/test/adminTest.controllers";
 import {
   handleVerifyCertificateFunction,
@@ -62,6 +66,18 @@ import {
   handleEvaluateSAQWithAI,
   handleGenerateQuestionsWithAI,
 } from "../controllers/test/aiTestGeneration.controllers";
+import {
+  testEmailConnection,
+  sendTestEmail,
+} from "../controllers/test/emailTest.controllers";
+import {
+  testSMSVerification,
+  testSMSPasswordReset,
+  testSMSNotification,
+} from "../controllers/test/smsTest.controllers";
+import {
+  sendTestNotification,
+} from "../controllers/test/notificationTest.controllers";
 
 const testRoute = express.Router();
 
@@ -106,6 +122,10 @@ testRoute.get("/admin/marksheets", authenticateAdminToken, handleGetAllMarksheet
 testRoute.patch("/admin/revoke/:marksheetId", authenticateAdminToken, handleRevokeCertificateFunction);
 testRoute.put("/admin/gamification", authenticateAdminToken, handleUpdateGamificationSettingsFunction);
 testRoute.get("/admin/user-history/:userId", authenticateAdminToken, handleGetUserTestHistoryAdminFunction);
+testRoute.get("/admin/attempts", authenticateAdminToken, handleGetAllAttemptsAdminFunction);
+testRoute.delete("/admin/attempts/:attemptId", authenticateAdminToken, handleDeleteAttemptAdminFunction);
+testRoute.post("/admin/attempts", authenticateAdminToken, handleCreateAttemptAdminFunction);
+testRoute.put("/admin/attempts/:attemptId", authenticateAdminToken, handleUpdateAttemptAdminFunction);
 
 // Certificate Verification Routes (Public)
 testRoute.post("/verify/public", handlePublicVerifyCertificateFunction);
@@ -128,5 +148,17 @@ testRoute.get("/admin/certificates/dropdown/users", authenticateAdminToken, hand
 testRoute.get("/admin/certificates/dropdown/tests", authenticateAdminToken, handleGetTestsForCertificate);
 testRoute.get("/admin/certificates/dropdown/courses", authenticateAdminToken, handleGetCoursesForCertificate);
 testRoute.post("/admin/certificates/:marksheetId/download", authenticateAdminToken, handleDownloadCertificate);
+
+// Email Test Routes (Admin only - for testing SMTP configuration)
+testRoute.get("/email/test-connection", authenticateAdminToken, testEmailConnection);
+testRoute.post("/email/send-test", authenticateAdminToken, sendTestEmail);
+
+// SMS Test Routes (Admin only - for testing SMS)
+testRoute.post("/sms/test-verification", authenticateToken, testSMSVerification);
+testRoute.post("/sms/test-password-reset", authenticateToken, testSMSPasswordReset);
+testRoute.post("/sms/test-notification", authenticateToken, testSMSNotification);
+
+// Notification Test Routes (for testing different notification types via email)
+testRoute.post("/notification/test", authenticateAdminToken, sendTestNotification);
 
 export default testRoute;

@@ -35,6 +35,8 @@ import {
   handleFlagPost,
   handleGetCommunityStats,
   handleGetPostById,
+  handleCreatePost,
+  handleUpdatePost,
 } from "../controllers/admin/communityManagement.controllers";
 import {
   handleGetAllStudents,
@@ -44,7 +46,18 @@ import {
   handleGetStudentStats,
   handleToggleStudentEmailVerification,
   handleGetStudentEnrolledCourses,
+  handleCreateStudent,
 } from "../controllers/user/studentManagement.controllers";
+import { handleSendTestEmailFunction } from "../controllers/admin/mailTest.controllers";
+import {
+  handleGetAllTeachers,
+  handleGetTeacherById,
+  handleUpdateTeacher,
+  handleDeleteTeacher,
+  handleGetTeacherStats,
+  handleToggleTeacherEmailVerification,
+  handleCreateTeacher,
+} from "../controllers/user/teacherManagement.controllers";
 import { loginRateLimiter, userUpdateRateLimiter } from "../validchecks/rateLimiters";
 import multer from "multer";
 
@@ -149,6 +162,8 @@ userRoute.post("/course-enrollment", authenticateToken, handleCreateCourseEnroll
 userRoute.get("/admin/community/posts", authenticateAdminOrInstructorToken, handleGetAllPosts);
 userRoute.get("/admin/community/stats", authenticateAdminOrInstructorToken, handleGetCommunityStats);
 userRoute.get("/admin/community/posts/:postId", authenticateAdminOrInstructorToken, handleGetPostById);
+userRoute.post("/admin/community/posts", authenticateAdminOrInstructorToken, handleCreatePost);
+userRoute.put("/admin/community/posts/:postId", authenticateAdminOrInstructorToken, handleUpdatePost);
 userRoute.patch("/admin/community/posts/:postId/approve", authenticateAdminOrInstructorToken, handleApprovePost);
 userRoute.patch("/admin/community/posts/:postId/reject", authenticateAdminOrInstructorToken, handleRejectPost);
 userRoute.delete("/admin/community/posts/:postId", authenticateAdminOrInstructorToken, handleDeletePost);
@@ -159,8 +174,19 @@ userRoute.get("/admin/students", authenticateAdminOrInstructorToken, handleGetAl
 userRoute.get("/admin/students/stats", authenticateAdminOrInstructorToken, handleGetStudentStats);
 userRoute.get("/admin/students/:studentId", authenticateAdminOrInstructorToken, handleGetStudentById);
 userRoute.get("/admin/students/:studentId/courses", authenticateAdminOrInstructorToken, handleGetStudentEnrolledCourses);
+userRoute.post("/admin/students", authenticateAdminOrInstructorToken, handleCreateStudent);
 userRoute.put("/admin/students/:studentId", authenticateAdminOrInstructorToken, handleUpdateStudent);
 userRoute.patch("/admin/students/:studentId/email-verification", authenticateAdminOrInstructorToken, handleToggleStudentEmailVerification);
 userRoute.delete("/admin/students/:studentId", authenticateAdminOrInstructorToken, handleDeleteStudent);
+
+// Teacher Management routes (Admin/Instructor only)
+userRoute.get("/admin/teachers", authenticateAdminOrInstructorToken, handleGetAllTeachers);
+userRoute.get("/admin/teachers/stats", authenticateAdminOrInstructorToken, handleGetTeacherStats);
+userRoute.get("/admin/teachers/:teacherId", authenticateAdminOrInstructorToken, handleGetTeacherById);
+userRoute.post("/admin/teachers", authenticateAdminOrInstructorToken, handleCreateTeacher);
+userRoute.put("/admin/teachers/:teacherId", authenticateAdminOrInstructorToken, handleUpdateTeacher);
+userRoute.patch("/admin/teachers/:teacherId/email-verification", authenticateAdminOrInstructorToken, handleToggleTeacherEmailVerification);
+userRoute.delete("/admin/teachers/:teacherId", authenticateAdminOrInstructorToken, handleDeleteTeacher);
+userRoute.post("/admin/send-test-email", authenticateAdminOrInstructorToken, handleSendTestEmailFunction);
 
 export default userRoute;

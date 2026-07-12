@@ -3,23 +3,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleCompleteCourseAndAssignTestFunction = exports.handleCheckCourseCompletionFunction = exports.handleAutoAssignTestFunction = void 0;
+exports.handleCompleteCourseAndAssignTestFunction = exports.handleCheckCourseCompletionFunction = exports.handleAutoAssignTestFunction = exports.assignTestToUser = void 0;
 const Test_model_1 = __importDefault(require("../../models/Test.model"));
 const TestAttempt_model_1 = __importDefault(require("../../models/TestAttempt.model"));
 const CourseEnrollment_model_1 = __importDefault(require("../../models/CourseEnrollment.model"));
 const User_model_1 = __importDefault(require("../../models/User.model"));
 const Course_model_1 = __importDefault(require("../../models/Course.model"));
 const Notification_model_1 = __importDefault(require("../../models/Notification.model"));
-const handleAutoAssignTestFunction = async (req, res) => {
+/**
+ * Assigns the first unattempted published test for a course to the specified user.
+ */
+const assignTestToUser = async (courseId, userId) => {
     try {
-        const { courseId, userId } = req.body;
         // Find the course
         const course = await Course_model_1.default.findOne({ courseId });
         if (!course) {
-            return res.status(404).json({
+            return {
                 success: false,
                 message: "Course not found",
-            });
+            };
         }
         // Find published tests for this course
         const tests = await Test_model_1.default.find({
@@ -27,18 +29,18 @@ const handleAutoAssignTestFunction = async (req, res) => {
             status: "PUBLISHED",
         });
         if (tests.length === 0) {
-            return res.status(404).json({
+            return {
                 success: false,
                 message: "No tests available for this course",
-            });
+            };
         }
         // Check if user has already been assigned or taken tests for this course
         const user = await User_model_1.default.findOne({ uniqueId: userId });
         if (!user) {
-            return res.status(404).json({
+            return {
                 success: false,
                 message: "User not found",
-            });
+            };
         }
         // Get test IDs the user has already attempted
         const userAttempts = await TestAttempt_model_1.default.find({
@@ -49,32 +51,29 @@ const handleAutoAssignTestFunction = async (req, res) => {
         // Filter out tests the user has already attempted
         const availableTests = tests.filter((test) => !attemptedTestIds.includes(test.testId));
         if (availableTests.length === 0) {
-            return res.status(200).json({
+            return {
                 success: true,
                 message: "All tests for this course have been attempted",
                 data: [],
-            });
+            };
         }
-        // Assign the first available test (or could implement logic to assign based on difficulty)
+        // Assign the first available test
         const assignedTest = availableTests[0];
         // Create notification for test assignment
         try {
             const notification = new Notification_model_1.default({
                 user: userId,
-                type: "TEST_ASSIGNED",
+                type: "test_assigned",
                 title: "Test Assigned",
                 message: `You have been assigned a new test for ${course.courseName}: ${assignedTest.title}`,
-                relatedId: assignedTest.testId,
-                relatedType: "TEST",
-                isRead: false,
+                read: false,
             });
             await notification.save();
         }
         catch (notificationError) {
             console.error("Failed to create notification:", notificationError);
-            // Continue even if notification fails
         }
-        res.status(200).json({
+        return {
             success: true,
             message: "Test assigned successfully",
             data: {
@@ -87,7 +86,25 @@ const handleAutoAssignTestFunction = async (req, res) => {
                 difficulty: assignedTest.difficulty,
                 courseName: course.courseName,
             },
-        });
+        };
+    }
+    catch (error) {
+        console.error("Error in assignTestToUser helper:", error);
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "Failed to assign test",
+        };
+    }
+};
+exports.assignTestToUser = assignTestToUser;
+const handleAutoAssignTestFunction = async (req, res) => {
+    try {
+        const { courseId, userId } = req.body;
+        const result = await (0, exports.assignTestToUser)(courseId, userId);
+        if (!result.success) {
+            return res.status(404).json(result);
+        }
+        return res.status(200).json(result);
     }
     catch (error) {
         console.error("Error auto-assigning test:", error);
@@ -135,7 +152,7 @@ const handleCheckCourseCompletionFunction = async (req, res) => {
         if (isCompleted) {
             await CourseEnrollment_model_1.default.findOneAndUpdate({ user: userId, course: courseId }, { status: "completed", endDate: new Date() });
         }
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             isCompleted,
             completedVideos,
@@ -157,8 +174,25 @@ const handleCompleteCourseAndAssignTestFunction = async (req, res) => {
     try {
         const { courseId } = req.params;
         const userId = req.user?.uniqueId || req.userUniqueId;
+        // Mock response object to safely handle Express response chaining (.status().json())
+        const createMockResponse = () => {
+            const resObj = {
+                statusCode: 200,
+                status: (code) => {
+                    resObj.statusCode = code;
+                    return resObj;
+                },
+                json: (data) => {
+                    resObj.data = data;
+                    return data;
+                }
+            };
+            return resObj;
+        };
         // First check if course is completed
-        const completionCheck = await (0, exports.handleCheckCourseCompletionFunction)({ params: { courseId, userId } }, { status: () => { }, json: (data) => data });
+        const mockRes1 = createMockResponse();
+        await (0, exports.handleCheckCourseCompletionFunction)({ params: { courseId, userId } }, mockRes1);
+        const completionCheck = mockRes1.data;
         if (!completionCheck || !completionCheck.isCompleted) {
             return res.status(400).json({
                 success: false,
@@ -167,7 +201,9 @@ const handleCompleteCourseAndAssignTestFunction = async (req, res) => {
             });
         }
         // Auto-assign test
-        const testAssignment = await (0, exports.handleAutoAssignTestFunction)({ body: { courseId, userId } }, { status: () => { }, json: (data) => data });
+        const mockRes2 = createMockResponse();
+        await (0, exports.handleAutoAssignTestFunction)({ body: { courseId, userId } }, mockRes2);
+        const testAssignment = mockRes2.data;
         res.status(200).json({
             success: true,
             message: "Course completed and test assigned",

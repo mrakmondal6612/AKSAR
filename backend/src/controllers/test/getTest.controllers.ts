@@ -3,6 +3,7 @@ import Test from "../../models/Test.model";
 import TestAttempt from "../../models/TestAttempt.model";
 import Marksheet from "../../models/Marksheet.model";
 import User from "../../models/User.model";
+import Course from "../../models/Course.model";
 
 export const handleGetTestByIdFunction = async (
   req: Request,
@@ -103,9 +104,24 @@ export const handleGetAllTestsFunction = async (
       }
     }
 
+    // Manually populate course details using courseId
+    const courseIds = filteredTests.map(t => t.course).filter(Boolean);
+    const courses = await Course.find({ courseId: { $in: courseIds } });
+    const courseMap = new Map(courses.map(c => [c.courseId, c]));
+
+    const populatedTests = filteredTests.map(t => {
+      const testObj = t.toObject();
+      const courseDoc = courseMap.get(t.course);
+      testObj.course = courseDoc ? {
+        _id: courseDoc.courseId,
+        courseName: courseDoc.courseName
+      } : null;
+      return testObj;
+    });
+
     res.status(200).json({
       success: true,
-      data: filteredTests,
+      data: populatedTests,
     });
   } catch (error) {
     console.error("Error fetching all tests:", error);

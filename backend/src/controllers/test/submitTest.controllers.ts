@@ -139,7 +139,7 @@ export const handleSubmitTestAttemptFunction = async (
     let totalScore = 0;
     const processedAnswers = answers.map((answer: any) => {
       const question = test.questions.find(
-        (q: any) => q._id.toString() === answer.questionId
+        (q: any) => q._id.toString() === answer.questionId || q.questionId === answer.questionId
       );
 
       if (!question) {
@@ -312,13 +312,27 @@ export const handleGetUserAttemptsFunction = async (
     const filter: any = { user: userId };
     if (testId) filter.test = testId;
 
-    const attempts = await TestAttempt.find(filter)
-      .sort({ createdAt: -1 })
-      .populate("test", "title description");
+    const attempts = await TestAttempt.find(filter).sort({ createdAt: -1 });
+
+    // Manually populate test details using testId string matching
+    const testIds = attempts.map(a => a.test).filter(Boolean);
+    const tests = await Test.find({ testId: { $in: testIds } });
+    const testMap = new Map(tests.map(t => [t.testId, t]));
+
+    const populatedAttempts = attempts.map(a => {
+      const attemptObj = a.toObject();
+      const testDoc = testMap.get(a.test);
+      attemptObj.test = testDoc ? {
+        _id: testDoc.testId,
+        title: testDoc.title,
+        description: testDoc.description
+      } : null;
+      return attemptObj;
+    });
 
     res.status(200).json({
       success: true,
-      data: attempts,
+      data: populatedAttempts,
     });
   } catch (error) {
     console.error("Error fetching user attempts:", error);

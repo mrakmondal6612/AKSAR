@@ -3,11 +3,11 @@ import { motion } from "framer-motion";
 import React from "react";
 import { Link } from "react-router-dom";
 
-interface LogoProps{
-    theme : string,
-    className: string,
+interface LogoProps {
+  theme: string,
+  className: string,
 }
-const Logo: React.FC<LogoProps> = ({theme , className}) => {
+const Logo: React.FC<LogoProps> = ({ theme, className }) => {
   return (
     <div className="flex items-center justify-between space-x-2">
       <Link to="/" className="">
@@ -19,7 +19,7 @@ const Logo: React.FC<LogoProps> = ({theme , className}) => {
             src="/images/course-yuga-logo-dark-mode-5.png"
             alt="cryptoBag"
             // className={cn(`object-cover w-32 ` , className)}
-            className={cn(`object-contain w-52 h-14` , className)}
+            className={cn(`object-contain w-36 h-10`, className)}
           />
         ) : (
           <motion.img
@@ -29,7 +29,7 @@ const Logo: React.FC<LogoProps> = ({theme , className}) => {
             src="/images/course-yuga-logo-light-mode-5.png"
             alt="cryptoBag"
             // className={cn(`object-cover w-32 ` , className)}
-             className={cn(`object-contain w-52 h-14`, className)}
+            className={cn(`object-contain w-36 h-10`, className)}
           />
         )}
       </Link>

@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, ReactNode} from "react";
+import { createContext, useState, useContext, ReactNode, useEffect} from "react";
 import React from "react";
 
 interface DashboardContextType {
@@ -18,7 +18,15 @@ export const useDashboardContext = () => {
 };
 
 export const DashboardContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isSideBarOpen , setIsSideBarOpen] = useState<boolean>(false);
+  const [isSideBarOpen , setIsSideBarOpen] = useState<boolean>(() => {
+    const saved = localStorage.getItem('sidebarOpen');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sidebarOpen', JSON.stringify(isSideBarOpen));
+  }, [isSideBarOpen]);
+
  return (
     <DashboardContext.Provider
       value={{

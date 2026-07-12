@@ -25,6 +25,8 @@ const userChangeRole_controllers_1 = require("../controllers/user/userChangeRole
 const userInterests_controllers_1 = require("../controllers/user/userInterests.controllers");
 const communityManagement_controllers_1 = require("../controllers/admin/communityManagement.controllers");
 const studentManagement_controllers_1 = require("../controllers/user/studentManagement.controllers");
+const mailTest_controllers_1 = require("../controllers/admin/mailTest.controllers");
+const teacherManagement_controllers_1 = require("../controllers/user/teacherManagement.controllers");
 const rateLimiters_1 = require("../validchecks/rateLimiters");
 const multer_1 = __importDefault(require("multer"));
 const userRoute = express_1.default.Router();
@@ -106,6 +108,8 @@ userRoute.post("/course-enrollment", auth_middleware_1.authenticateToken, notifi
 userRoute.get("/admin/community/posts", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleGetAllPosts);
 userRoute.get("/admin/community/stats", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleGetCommunityStats);
 userRoute.get("/admin/community/posts/:postId", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleGetPostById);
+userRoute.post("/admin/community/posts", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleCreatePost);
+userRoute.put("/admin/community/posts/:postId", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleUpdatePost);
 userRoute.patch("/admin/community/posts/:postId/approve", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleApprovePost);
 userRoute.patch("/admin/community/posts/:postId/reject", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleRejectPost);
 userRoute.delete("/admin/community/posts/:postId", auth_middleware_1.authenticateAdminOrInstructorToken, communityManagement_controllers_1.handleDeletePost);
@@ -115,7 +119,17 @@ userRoute.get("/admin/students", auth_middleware_1.authenticateAdminOrInstructor
 userRoute.get("/admin/students/stats", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleGetStudentStats);
 userRoute.get("/admin/students/:studentId", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleGetStudentById);
 userRoute.get("/admin/students/:studentId/courses", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleGetStudentEnrolledCourses);
+userRoute.post("/admin/students", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleCreateStudent);
 userRoute.put("/admin/students/:studentId", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleUpdateStudent);
 userRoute.patch("/admin/students/:studentId/email-verification", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleToggleStudentEmailVerification);
 userRoute.delete("/admin/students/:studentId", auth_middleware_1.authenticateAdminOrInstructorToken, studentManagement_controllers_1.handleDeleteStudent);
+// Teacher Management routes (Admin/Instructor only)
+userRoute.get("/admin/teachers", auth_middleware_1.authenticateAdminOrInstructorToken, teacherManagement_controllers_1.handleGetAllTeachers);
+userRoute.get("/admin/teachers/stats", auth_middleware_1.authenticateAdminOrInstructorToken, teacherManagement_controllers_1.handleGetTeacherStats);
+userRoute.get("/admin/teachers/:teacherId", auth_middleware_1.authenticateAdminOrInstructorToken, teacherManagement_controllers_1.handleGetTeacherById);
+userRoute.post("/admin/teachers", auth_middleware_1.authenticateAdminOrInstructorToken, teacherManagement_controllers_1.handleCreateTeacher);
+userRoute.put("/admin/teachers/:teacherId", auth_middleware_1.authenticateAdminOrInstructorToken, teacherManagement_controllers_1.handleUpdateTeacher);
+userRoute.patch("/admin/teachers/:teacherId/email-verification", auth_middleware_1.authenticateAdminOrInstructorToken, teacherManagement_controllers_1.handleToggleTeacherEmailVerification);
+userRoute.delete("/admin/teachers/:teacherId", auth_middleware_1.authenticateAdminOrInstructorToken, teacherManagement_controllers_1.handleDeleteTeacher);
+userRoute.post("/admin/send-test-email", auth_middleware_1.authenticateAdminOrInstructorToken, mailTest_controllers_1.handleSendTestEmailFunction);
 exports.default = userRoute;

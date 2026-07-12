@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Clock, ChevronRight, ChevronLeft, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +35,6 @@ interface TestData {
 
 const TestPortal: React.FC = () => {
   const { testId } = useParams<{ testId: string }>();
-  const navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
   const [testData, setTestData] = useState<TestData | null>(null);
@@ -110,8 +109,8 @@ const TestPortal: React.FC = () => {
       
       // Prepare answers with time spent
       const answersArray = testData.questions.map((q) => ({
-        questionId: q.questionId,
-        selectedAnswer: answers[q.questionId] || "",
+        questionId: q.questionId || (q as any)._id?.toString(),
+        selectedAnswer: answers[q.questionId || (q as any)._id?.toString()] || "",
         timeSpent: Math.floor(Math.random() * 60), // Simplified time tracking
       }));
 
@@ -149,13 +148,14 @@ const TestPortal: React.FC = () => {
     );
   }
   if (showResults && results) {
-    return <TestResults results={results} onBack={() => navigate("/dashboard")} />;
+    return <TestResults results={results} />;
   }
   if (!testData) return null;
 
   const currentQuestion = testData.questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === testData.questions.length - 1;
-  const isAnswered = answers[currentQuestion.questionId] !== undefined;
+  const currentQuestionId = currentQuestion.questionId || (currentQuestion as any)._id?.toString();
+  const isAnswered = answers[currentQuestionId] !== undefined;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
@@ -210,14 +210,14 @@ const TestPortal: React.FC = () => {
             {currentQuestion.questionType === "MCQ" ? (
               <MCQQuestion
                 question={currentQuestion}
-                answer={answers[currentQuestion.questionId] as string[]}
-                onAnswerChange={(answer: string | string[]) => handleAnswerChange(currentQuestion.questionId, answer)}
+                answer={answers[currentQuestion.questionId || (currentQuestion as any)._id?.toString()] as string[]}
+                onAnswerChange={(answer: string | string[]) => handleAnswerChange(currentQuestion.questionId || (currentQuestion as any)._id?.toString(), answer)}
               />
             ) : (
               <SAQQuestion
                 question={currentQuestion}
-                answer={answers[currentQuestion.questionId] as string}
-                onAnswerChange={(answer: string) => handleAnswerChange(currentQuestion.questionId, answer)}
+                answer={answers[currentQuestion.questionId || (currentQuestion as any)._id?.toString()] as string}
+                onAnswerChange={(answer: string) => handleAnswerChange(currentQuestion.questionId || (currentQuestion as any)._id?.toString(), answer)}
               />
             )}
           </CardContent>
@@ -236,21 +236,24 @@ const TestPortal: React.FC = () => {
           </Button>
 
           <div className="flex items-center gap-2">
-            {testData.questions.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentQuestionIndex(index)}
-                className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                  index === currentQuestionIndex
-                    ? "bg-blue-600 text-white"
-                    : answers[testData.questions[index].questionId]
-                    ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
-                }`}
-              >
-                {index + 1}
-              </button>
-            ))}
+            {testData.questions.map((_, index) => {
+              const qId = testData.questions[index].questionId || (testData.questions[index] as any)._id?.toString();
+              return (
+                <button
+                  key={index}
+                  onClick={() => setCurrentQuestionIndex(index)}
+                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                    index === currentQuestionIndex
+                      ? "bg-blue-600 text-white"
+                      : answers[qId]
+                      ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              );
+            })}
           </div>
 
           {isLastQuestion ? (

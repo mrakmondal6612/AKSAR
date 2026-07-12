@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useTheme } from "@/context/ThemeProvider";
+import { DashboardContextProvider } from "@/context/dashboardContext";
 const HeroSection = lazy(() => import("@/sections/HeroSection"));
 const Courses = lazy(() => import("@/sections/Courses"));
 const Community = lazy(() => import("@/sections/Community"));
@@ -22,7 +23,9 @@ const PageNotFound = lazy(() => import("@/components/PageNotFound"));
 const ResetPasswordModal = lazy(() => import("./components/modals/ResetPasswordModal"));
 const VerifyCourses = lazy(() => import("./sections/VerifyCourses"));
 const CertificateVerification = lazy(() => import("@/sections/CertificateVerification"));
-const CertificateView = lazy(() => import("@/sections/DashBoardSections/CertificateView"));
+
+const News = lazy(() => import("@/sections/News"));
+const NewsDetails = lazy(() => import("@/sections/NewsDetails"));
 import LoadingScreen from "@/components/LoadingScreen";
 
 function App() {
@@ -32,7 +35,7 @@ function App() {
 
   const queryParams = new URLSearchParams(location.search);
   const email = queryParams.get("email");
-  const isUserRoute = location.pathname.startsWith("/user");
+  const isUserRoute = location.pathname.startsWith("/user") || location.pathname.startsWith("/admin");
 
   const memoizedRoutes = React.useMemo(() => {
     const authenticatedRoutes = (
@@ -49,10 +52,12 @@ function App() {
         <Route path="/reset-password" element={<ResetPasswordModal />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/verify-courses" element={<VerifyCourses />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/news/:id" element={<NewsDetails />} />
         <Route path="/verify-certificate" element={<Suspense fallback={<LoadingScreen />}><CertificateVerification /></Suspense>} />
         <Route path="/verify-email" element={email && <HeroSection route="verify-email" propEmail={email} />} />
-        <Route path="/admin/certificate/:marksheetId" element={<Suspense fallback={<LoadingScreen />}><CertificateView /></Suspense>} />
         <Route path="/user/*" element={<DashboardRoutes />} />
+        <Route path="/admin/*" element={<DashboardRoutes />} />
       </>
     );
 
@@ -69,16 +74,19 @@ function App() {
         <Route path="/community" element={<Community />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/news/:id" element={<NewsDetails />} />
         <Route path="/reset-password" element={<ResetPasswordModal />} />
         <Route path="/verify-certificate" element={<Suspense fallback={<LoadingScreen />}><CertificateVerification /></Suspense>} />
         <Route path="/user/*" element={<UnauthenticatedPage />} />
+        <Route path="/admin/*" element={<UnauthenticatedPage />} />
         <Route path="/edit-profile" element={<UnauthenticatedPage />} />
         <Route path="/verify-courses" element={<UnauthenticatedPage />} />
       </>
     );
 
     return (
-        <Routes location={location} key={location.pathname}>
+        <Routes location={location}>
           {isLoggedIn ? authenticatedRoutes : unauthenticatedRoutes}
           <Route path="/*" element={<PageNotFound />} />
         </Routes>
@@ -95,7 +103,13 @@ function App() {
       )}
 
       <Suspense fallback={<LoadingScreen />}>
-        {memoizedRoutes}
+        {isUserRoute ? (
+          <DashboardContextProvider>
+            {memoizedRoutes}
+          </DashboardContextProvider>
+        ) : (
+          memoizedRoutes
+        )}
       </Suspense>
 
       <div className="fixed bottom-0 right-0 p-4">

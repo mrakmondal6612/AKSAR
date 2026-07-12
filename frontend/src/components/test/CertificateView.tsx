@@ -53,8 +53,9 @@ const CertificateView: React.FC = () => {
       setLoading(true);
       const data = await getMarksheetById(marksheetId!);
       setCertificate(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to load certificate:", error);
+      console.error("Error details:", error.response?.data);
     } finally {
       setLoading(false);
     }

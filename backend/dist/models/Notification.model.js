@@ -10,7 +10,7 @@ const notificationSchema = new mongoose_1.default.Schema({
     course: { type: String, ref: 'Course' },
     type: {
         type: String,
-        enum: ['todo_overdue', 'todo_due_soon', 'course_start', 'course_end', 'deadline_approaching'],
+        enum: ['todo_overdue', 'todo_due_soon', 'course_start', 'course_end', 'deadline_approaching', 'test_assigned'],
         required: true,
     },
     title: { type: String, required: true },

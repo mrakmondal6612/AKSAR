@@ -15,6 +15,7 @@ exports.calculateProgress = calculateProgress;
 const User_model_1 = __importDefault(require("../../models/User.model"));
 const Video_model_1 = __importDefault(require("../../models/Video.model"));
 const Course_model_1 = __importDefault(require("../../models/Course.model"));
+const autoAssignTest_controllers_1 = require("../test/autoAssignTest.controllers");
 async function handleUserCourseBookmarkfunction(req, res) {
     const userId = req.userId;
     if (!userId) {
@@ -276,6 +277,13 @@ async function handleUserCourseProgress(req, res) {
         if (updateCount.count === 100 && !updateCount.completedAt) {
             updateCount.completedAt = new Date();
             console.log("🎉 Course completed:", courseId);
+            // Auto-assign course test automatically
+            try {
+                await (0, autoAssignTest_controllers_1.assignTestToUser)(courseId, user.uniqueId);
+            }
+            catch (assignError) {
+                console.error("Auto-assign test failed during video completion check:", assignError);
+            }
         }
         await user.save();
         return res.status(200).json({

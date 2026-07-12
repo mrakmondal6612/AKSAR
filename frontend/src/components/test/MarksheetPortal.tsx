@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Download, Calendar, Award, TrendingUp, Filter } from "lucide-react";
+import { FileText, Download, Calendar, Award, TrendingUp, Filter, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,7 @@ const MarksheetPortal: React.FC = () => {
     try {
       setLoading(true);
       const data = await getUserMarksheets();
+      console.log("Marksheets data received:", data);
       
       let filtered = data;
       if (filter === "passed") {
@@ -100,6 +101,19 @@ const MarksheetPortal: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header with Back Button */}
+        <div className="flex items-center gap-4 mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.href = "/user/dashboard"}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -190,7 +204,10 @@ const MarksheetPortal: React.FC = () => {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={() => navigate(`/marksheet/${marksheet.marksheetId}`)}
+                      onClick={() => {
+                        console.log("Navigating to marksheet:", marksheet.marksheetId);
+                        navigate(`/marksheet/${marksheet.marksheetId}`);
+                      }}
                     >
                       View Details
                     </Button>

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Award, Clock, CheckCircle, XCircle, Download, Share2 } from "lucide-react";
+import { Trophy, Award, Clock, CheckCircle, XCircle, Download, Share2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,10 +11,9 @@ interface TestResultsProps {
     attempt: any;
     marksheet: any;
   };
-  onBack: () => void;
 }
 
-const TestResults: React.FC<TestResultsProps> = ({ results, onBack }) => {
+const TestResults: React.FC<TestResultsProps> = ({ results }) => {
   const navigate = useNavigate();
   const { attempt, marksheet } = results;
 
@@ -162,8 +161,16 @@ const TestResults: React.FC<TestResultsProps> = ({ results, onBack }) => {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={onBack} variant="outline" className="flex items-center gap-2">
+          <Button onClick={() => navigate("/dashboard")} variant="outline" className="flex items-center gap-2">
             Back to Dashboard
+          </Button>
+          <Button
+            onClick={() => navigate("/user/marksheet")}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            View Marksheets
           </Button>
           {marksheet.passed && (
             <Button
@@ -175,7 +182,7 @@ const TestResults: React.FC<TestResultsProps> = ({ results, onBack }) => {
             </Button>
           )}
           <Button
-            onClick={() => navigate(`/leaderboard/${attempt.test}`)}
+            onClick={() => navigate("/user/leaderboard")}
             variant="outline"
             className="flex items-center gap-2"
           >

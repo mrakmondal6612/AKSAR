@@ -73,13 +73,14 @@ const StudentsManagement: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
     const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
-    const { isOpen: isCoursesOpen, onOpen: onCoursesOpen, onClose: onCoursesClose } = useDisclosure();
+    const { isOpen: isCoursesOpen, onClose: onCoursesClose } = useDisclosure();
     const { isOpen: isBulkDeleteOpen, onOpen: onBulkDeleteOpen, onClose: onBulkDeleteClose } = useDisclosure();
     const { isOpen: isFilterOpen, onOpen: onFilterOpen, onClose: onFilterClose } = useDisclosure();
     const { isOpen: isAnalyticsOpen, onOpen: onAnalyticsOpen, onClose: onAnalyticsClose } = useDisclosure();
     const { isOpen: isNotificationOpen, onOpen: onNotificationOpen, onClose: onNotificationClose } = useDisclosure();
-    const { isOpen: isActivityOpen, onOpen: onActivityOpen, onClose: onActivityClose } = useDisclosure();
-    const { isOpen: isNotesOpen, onOpen: onNotesOpen, onClose: onNotesClose } = useDisclosure();
+    const { isOpen: isActivityOpen, onClose: onActivityClose } = useDisclosure();
+    const { isOpen: isNotesOpen, onClose: onNotesClose } = useDisclosure();
+    const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure();
 
     // Advanced filter states
     const [selectedStudents, setSelectedStudents] = React.useState<Set<string>>(new Set());
@@ -90,7 +91,7 @@ const StudentsManagement: React.FC = () => {
     const [filterDateTo, setFilterDateTo] = React.useState("");
     const [sortBy, setSortBy] = React.useState("createdAt");
     const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
-    
+
     // Notification and notes states
     const [notificationSubject, setNotificationSubject] = React.useState("");
     const [notificationMessage, setNotificationMessage] = React.useState("");
@@ -102,6 +103,22 @@ const StudentsManagement: React.FC = () => {
         lastName: "",
         userName: "",
         email: "",
+        bio: "",
+        userDob: "",
+        country: "",
+        state: "",
+        city: "",
+        phoneCode: "",
+        phoneNumber: "",
+    });
+
+    // Add form state
+    const [addForm, setAddForm] = React.useState({
+        firstName: "",
+        lastName: "",
+        userName: "",
+        email: "",
+        password: "",
         bio: "",
         userDob: "",
         country: "",
@@ -301,10 +318,7 @@ const StudentsManagement: React.FC = () => {
         onViewOpen();
     };
 
-    const openCoursesModal = async (student: IStudent) => {
-        setSelectedStudent(student);
-        onCoursesOpen();
-    };
+
 
     // Bulk operations
     const toggleSelectStudent = (studentId: string) => {
@@ -461,23 +475,77 @@ const StudentsManagement: React.FC = () => {
     };
 
     // Activity logs handler (mock data for now)
-    const openActivityModal = (student: IStudent) => {
-        setSelectedStudent(student);
-        onActivityOpen();
-    };
+
 
     // Notes handler
-    const openNotesModal = (student: IStudent) => {
-        setSelectedStudent(student);
-        setStudentNotes({ ...studentNotes, [student._id]: studentNotes[student._id] || "" });
-        onNotesOpen();
-    };
+
 
     const saveNotes = () => {
         if (selectedStudent) {
             setStudentNotes({ ...studentNotes, [selectedStudent._id]: studentNotes[selectedStudent._id] || "" });
             SuccessToast("Notes saved successfully!");
             onNotesClose();
+        }
+    };
+
+    const handleAddStudent = async () => {
+        const jwt = getVerifiedToken();
+        try {
+            const createData: any = {
+                firstName: addForm.firstName,
+                lastName: addForm.lastName,
+                userName: addForm.userName,
+                email: addForm.email,
+                password: addForm.password,
+                bio: addForm.bio,
+                userDob: addForm.userDob,
+            };
+
+            if (addForm.country || addForm.state || addForm.city) {
+                createData.address = {
+                    country: addForm.country,
+                    state: addForm.state,
+                    city: addForm.city,
+                };
+            }
+
+            if (addForm.phoneCode || addForm.phoneNumber) {
+                createData.phoneNumber = {
+                    code: addForm.phoneCode,
+                    number: addForm.phoneNumber,
+                };
+            }
+
+            const res = await axios.post(
+                `${USER_API}/admin/students`,
+                createData,
+                { headers: { Authorization: `Bearer ${jwt}`, "Content-Type": "application/json" } }
+            );
+
+            if (res.data?.success) {
+                SuccessToast(res.data.message);
+                fetchStudents();
+                fetchStats();
+                onAddClose();
+                setAddForm({
+                    firstName: "",
+                    lastName: "",
+                    userName: "",
+                    email: "",
+                    password: "",
+                    bio: "",
+                    userDob: "",
+                    country: "",
+                    state: "",
+                    city: "",
+                    phoneCode: "",
+                    phoneNumber: "",
+                });
+            } else {
+                ErrorToast(res.data.message);
+            }
+        } catch (err: any) {
+            ErrorToast(err?.response?.data?.message || "Failed to add student");
         }
     };
 
@@ -506,15 +574,15 @@ const StudentsManagement: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                    <StudentsIcon fillColor="rgb(139 92 246)" size={28} />
-                    <h1 className="text-2xl sm:text-3xl font-bold font-ubuntu bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+                    <StudentsIcon fillColor="rgb(139 92 246)" size={24} />
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-ubuntu bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
                         Students Management
                     </h1>
                 </div>
             </div>
 
             {/* Stats row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
                 {stats && [
                     { label: "Total Students", value: stats.totalStudents, color: "from-indigo-500 to-purple-500" },
                     { label: "Verified Emails", value: stats.verifiedEmails, color: "from-green-400 to-emerald-500" },
@@ -523,12 +591,12 @@ const StudentsManagement: React.FC = () => {
                 ].map((stat) => (
                     <div
                         key={stat.label}
-                        className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700"
+                        className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 dark:border-gray-700"
                     >
-                        <p className={`text-2xl font-bold font-ubuntu bg-clip-text text-transparent bg-gradient-to-r ${stat.color}`}>
+                        <p className={`text-xl sm:text-2xl font-bold font-ubuntu bg-clip-text text-transparent bg-gradient-to-r ${stat.color}`}>
                             {stat.value}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 font-ubuntu mt-1">{stat.label}</p>
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-ubuntu mt-1">{stat.label}</p>
                     </div>
                 ))}
             </div>
@@ -540,25 +608,32 @@ const StudentsManagement: React.FC = () => {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="flex-1"
+                    size="sm"
                     classNames={{
-                        input: "font-ubuntu text-sm",
+                        input: "font-ubuntu text-xs sm:text-sm",
                         inputWrapper: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                     }}
                 />
                 <div className="flex gap-2 flex-wrap">
+                    <Button
+                        size="sm"
+                        className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-ubuntu text-xs sm:text-sm"
+                        onClick={onAddOpen}
+                    >
+                        + Add Student
+                    </Button>
                     {filters.map((f) => (
                         <button
                             key={f}
                             onClick={() => setActiveFilter(f)}
-                            className={`px-3 py-2 rounded-lg text-sm font-ubuntu font-medium transition-all duration-200 flex items-center gap-1 ${
-                                activeFilter === f
+                            className={`px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-ubuntu font-medium transition-all duration-200 flex items-center gap-1 ${activeFilter === f
                                     ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md"
                                     : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-purple-400"
-                            }`}
+                                }`}
                         >
-                            {f === "All" && <FilterIcon fillColor={activeFilter === f ? "white" : "gray"} size={14} />}
-                            {f === "VERIFIED" && <VerificationIcon fillColor={activeFilter === f ? "white" : "green"} size={14} />}
-                            {f === "UNVERIFIED" && <WarningIcon fillColor={activeFilter === f ? "white" : "red"} size={14} />}
+                            {f === "All" && <FilterIcon fillColor={activeFilter === f ? "white" : "gray"} size={12} />}
+                            {f === "VERIFIED" && <VerificationIcon fillColor={activeFilter === f ? "white" : "green"} size={12} />}
+                            {f === "UNVERIFIED" && <WarningIcon fillColor={activeFilter === f ? "white" : "red"} size={12} />}
                             {f === "All" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
                         </button>
                     ))}
@@ -566,7 +641,7 @@ const StudentsManagement: React.FC = () => {
                         size="sm"
                         variant="bordered"
                         onClick={onFilterOpen}
-                        className="font-ubuntu"
+                        className="font-ubuntu text-xs sm:text-sm"
                     >
                         Advanced Filters
                     </Button>
@@ -574,7 +649,7 @@ const StudentsManagement: React.FC = () => {
                         size="sm"
                         variant="bordered"
                         onClick={exportToCSV}
-                        className="font-ubuntu"
+                        className="font-ubuntu text-xs sm:text-sm"
                     >
                         Export CSV
                     </Button>
@@ -583,17 +658,17 @@ const StudentsManagement: React.FC = () => {
 
             {/* Bulk Actions Bar */}
             {selectedStudents.size > 0 && (
-                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3 flex items-center justify-between">
-                    <p className="text-sm font-ubuntu text-purple-700 dark:text-purple-300">
+                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-2 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <p className="text-xs sm:text-sm font-ubuntu text-purple-700 dark:text-purple-300">
                         {selectedStudents.size} student{selectedStudents.size > 1 ? "s" : ""} selected
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                         <Button
                             size="sm"
                             color="danger"
                             variant="flat"
                             onClick={onBulkDeleteOpen}
-                            className="font-ubuntu"
+                            className="font-ubuntu text-xs sm:text-sm"
                         >
                             Delete Selected
                         </Button>
@@ -601,7 +676,7 @@ const StudentsManagement: React.FC = () => {
                             size="sm"
                             variant="flat"
                             onClick={() => setSelectedStudents(new Set())}
-                            className="font-ubuntu"
+                            className="font-ubuntu text-xs sm:text-sm"
                         >
                             Clear Selection
                         </Button>
@@ -610,7 +685,7 @@ const StudentsManagement: React.FC = () => {
                             color="primary"
                             variant="flat"
                             onClick={onNotificationOpen}
-                            className="font-ubuntu"
+                            className="font-ubuntu text-xs sm:text-sm"
                             isDisabled={selectedStudents.size === 0}
                         >
                             Send Notification
@@ -620,8 +695,8 @@ const StudentsManagement: React.FC = () => {
             )}
 
             {/* Results count + Select All */}
-            <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-ubuntu">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-ubuntu">
                     Showing <span className="font-bold text-purple-500">{filtered.length}</span> of {students.length} students
                 </p>
                 {filtered.length > 0 && (
@@ -631,7 +706,7 @@ const StudentsManagement: React.FC = () => {
                             onValueChange={toggleSelectAll}
                             size="sm"
                         >
-                            <span className="text-sm font-ubuntu text-gray-600 dark:text-gray-400">Select All</span>
+                            <span className="text-xs sm:text-sm font-ubuntu text-gray-600 dark:text-gray-400">Select All</span>
                         </Checkbox>
                     </div>
                 )}
@@ -639,133 +714,134 @@ const StudentsManagement: React.FC = () => {
 
             {/* Empty state */}
             {filtered.length === 0 && (
-                <div className="w-full flex flex-col items-center justify-center py-16 gap-3">
-                    <StudentsIcon fillColor="rgb(139 92 246)" size={48} />
-                    <p className="text-lg font-ubuntu text-gray-500 dark:text-gray-400">
+                <div className="w-full flex flex-col items-center justify-center py-12 sm:py-16 gap-3">
+                    <StudentsIcon fillColor="rgb(139 92 246)" size={36} />
+                    <p className="text-sm sm:text-lg font-ubuntu text-gray-500 dark:text-gray-400">
                         No students match your search.
                     </p>
                 </div>
             )}
 
-            {/* Student cards */}
-            <div className="flex flex-col gap-3">
+            {/* Student cards - Grid Layout */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 {filtered.map((student, i) => (
                     <motion.div
                         key={student._id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.04, duration: 0.3 }}
-                        className={`w-full bg-white dark:bg-gray-800 rounded-2xl shadow-sm border transition-shadow duration-300 overflow-hidden ${
-                            student.emailVerificationStatus
-                                ? "border-gray-100 dark:border-gray-700"
-                                : "border-red-200 dark:border-red-500/30"
-                        }`}
+                        className={`w-full bg-white dark:bg-gray-800 rounded-2xl shadow-sm border transition-all duration-300 hover:shadow-lg overflow-hidden ${student.emailVerificationStatus
+                                ? "border-gray-100 dark:border-gray-700 hover:border-purple-300"
+                                : "border-red-200 dark:border-red-500/30 hover:border-red-400"
+                            }`}
                     >
-                        <div className="flex flex-col md:flex-row gap-4 p-4">
-                            {/* Checkbox for bulk selection */}
-                            <div className="md:w-8 w-full shrink-0 flex items-start pt-1">
+                        <div className="flex flex-col gap-2 sm:gap-3 p-3 sm:p-4">
+                            {/* Header with Checkbox and Profile */}
+                            <div className="flex items-start gap-2 sm:gap-3">
                                 <Checkbox
                                     isSelected={selectedStudents.has(student._id)}
                                     onValueChange={() => toggleSelectStudent(student._id)}
-                                    size="md"
+                                    size="sm"
+                                    className="mt-1"
                                 />
-                            </div>
-
-                            {/* Profile Image */}
-                            <div className="md:w-20 w-full shrink-0 relative">
-                                <Image
-                                    isBlurred
-                                    src={student.profileImageUrl || "https://via.placeholder.com/80"}
-                                    alt={student.firstName}
-                                    className="object-cover aspect-square rounded-xl w-full"
-                                />
-                                {/* Verification badge */}
-                                <span className={`absolute top-1 right-1 px-2 py-0.5 rounded-full text-xs font-ubuntu font-bold z-10 ${
-                                    student.emailVerificationStatus
+                                <div className="w-12 h-12 sm:w-16 sm:h-16 shrink-0 relative">
+                                    <Image
+                                        isBlurred
+                                        src={student.profileImageUrl || "https://via.placeholder.com/80"}
+                                        alt={student.firstName}
+                                        className="object-cover aspect-square rounded-xl w-full h-full"
+                                    />
+                                    <span className={`absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-ubuntu font-bold z-10 ${student.emailVerificationStatus
                                         ? "bg-green-500 text-white"
                                         : "bg-red-500 text-white"
-                                }`}>
-                                    {student.emailVerificationStatus ? "Verified" : "Unverified"}
-                                </span>
-                            </div>
-
-                            {/* Info */}
-                            <div className="flex-1 flex flex-col justify-between gap-2 min-w-0">
-                                <div className="flex flex-wrap items-start justify-between gap-2">
-                                    <div>
-                                        <h2 className="text-lg font-bold font-ubuntu bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 line-clamp-1">
-                                            {student.firstName} {student.lastName}
-                                        </h2>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 font-ubuntu">
-                                            @{student.userName}
-                                        </p>
-                                    </div>
-                                    <div className="flex gap-2">
+                                    }`}>
+                                        {student.emailVerificationStatus ? "✓" : "!"}
+                                    </span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h2 className="text-sm sm:text-base font-bold font-ubuntu bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 line-clamp-1">
+                                        {student.firstName} {student.lastName}
+                                    </h2>
+                                    <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-ubuntu line-clamp-1">
+                                        @{student.userName}
+                                    </p>
+                                    <div className="flex gap-1 mt-1 flex-wrap">
                                         {student.emailVerificationStatus && (
-                                            <Chip size="sm" color="success" variant="flat" className="font-ubuntu text-xs">
-                                                Email Verified
+                                            <Chip size="sm" color="success" variant="flat" className="font-ubuntu text-[10px] h-5">
+                                                Email
                                             </Chip>
                                         )}
                                         {student.phoneNumberVerificationStatus && (
-                                            <Chip size="sm" color="primary" variant="flat" className="font-ubuntu text-xs">
-                                                Phone Verified
+                                            <Chip size="sm" color="primary" variant="flat" className="font-ubuntu text-[10px] h-5">
+                                                Phone
                                             </Chip>
                                         )}
                                     </div>
                                 </div>
+                            </div>
 
-                                <p className="text-sm text-gray-500 dark:text-gray-400 font-ubuntu">
+                            {/* Email and Location */}
+                            <div className="space-y-1">
+                                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-ubuntu line-clamp-1">
                                     {student.email}
                                 </p>
-
-                                <div className="flex items-center gap-4 flex-wrap text-xs text-gray-500 dark:text-gray-400 font-ubuntu">
+                                <div className="flex items-center gap-2 text-[10px] text-gray-500 dark:text-gray-400 font-ubuntu">
                                     {student.address && (
-                                        <span>
+                                        <span className="line-clamp-1">
                                             {student.address.city}, {student.address.country}
                                         </span>
                                     )}
                                     {student.enrolledIn && student.enrolledIn.length > 0 && (
-                                        <span>{student.enrolledIn.length} courses enrolled</span>
+                                        <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full">
+                                            {student.enrolledIn.length} courses
+                                        </span>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Actions */}
-                            <div className="flex md:flex-col flex-row flex-wrap gap-2 md:w-44 w-full shrink-0 items-stretch">
-                                {/* Analytics Button */}
-                                <Button
-                                    size="sm"
-                                    variant="flat"
-                                    color="primary"
-                                    className="font-ubuntu text-xs"
-                                    onClick={() => openAnalyticsModal(student)}
-                                >
-                                    Analytics
-                                </Button>
-
-                                {/* Notes Button */}
-                                <Button
-                                    size="sm"
-                                    variant="flat"
-                                    className="font-ubuntu text-xs"
-                                    onClick={() => openNotesModal(student)}
-                                >
-                                    Notes
-                                </Button>
-
-                                {/* Activity Button */}
-                                <Button
-                                    size="sm"
-                                    variant="flat"
-                                    className="font-ubuntu text-xs"
-                                    onClick={() => openActivityModal(student)}
-                                >
-                                    Activity
-                                </Button>
-
-                                {/* Email Verification Toggle */}
-                                <div className="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2 w-full">
-                                    <span className="text-xs font-ubuntu text-gray-600 dark:text-gray-300">
+                            {/* Action Buttons */}
+                            <div className="flex flex-col gap-1.5 sm:gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                <div className="flex gap-1.5 sm:gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="flat"
+                                        color="primary"
+                                        className="font-ubuntu text-[10px] sm:text-xs flex-1"
+                                        onClick={() => openViewModal(student)}
+                                    >
+                                        View
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="flat"
+                                        className="font-ubuntu text-[10px] sm:text-xs flex-1"
+                                        onClick={() => openEditModal(student)}
+                                    >
+                                        Edit
+                                    </Button>
+                                </div>
+                                <div className="flex gap-1.5 sm:gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="flat"
+                                        color="default"
+                                        className="font-ubuntu text-[10px] sm:text-xs flex-1"
+                                        onClick={() => openAnalyticsModal(student)}
+                                    >
+                                        Analytics
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="flat"
+                                        color="danger"
+                                        className="font-ubuntu text-[10px] sm:text-xs flex-1"
+                                        onClick={() => openDeleteModal(student)}
+                                    >
+                                        Delete
+                                    </Button>
+                                </div>
+                                <div className="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-2 py-1 sm:py-1.5">
+                                    <span className="text-[10px] font-ubuntu text-gray-600 dark:text-gray-300">
                                         Email Verified
                                     </span>
                                     <Switch
@@ -776,41 +852,6 @@ const StudentsManagement: React.FC = () => {
                                         onChange={() => handleToggleEmailVerification(student)}
                                     />
                                 </div>
-
-                                <Button
-                                    size="sm"
-                                    className="bg-indigo-500 hover:bg-indigo-600 text-white font-ubuntu text-xs w-full"
-                                    onClick={() => openViewModal(student)}
-                                >
-                                    View Details
-                                </Button>
-
-                                <Button
-                                    size="sm"
-                                    className="bg-purple-500 hover:bg-purple-600 text-white font-ubuntu text-xs w-full"
-                                    onClick={() => openEditModal(student)}
-                                >
-                                    Edit Student
-                                </Button>
-
-                                {student.enrolledIn && student.enrolledIn.length > 0 && (
-                                    <Button
-                                        size="sm"
-                                        className="bg-blue-500 hover:bg-blue-600 text-white font-ubuntu text-xs w-full"
-                                        onClick={() => openCoursesModal(student)}
-                                    >
-                                        View Courses ({student.enrolledIn.length})
-                                    </Button>
-                                )}
-
-                                <Button
-                                    size="sm"
-                                    className="bg-red-400/70 dark:bg-red-500/50 hover:bg-red-500 text-white font-ubuntu text-xs w-full"
-                                    onClick={() => openDeleteModal(student)}
-                                >
-                                    <WarningIcon fillColor="white" size={14} />
-                                    Delete
-                                </Button>
                             </div>
                         </div>
                     </motion.div>
@@ -824,18 +865,18 @@ const StudentsManagement: React.FC = () => {
                         size="sm"
                         isDisabled={page === 1}
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        className="font-ubuntu"
+                        className="font-ubuntu text-xs sm:text-sm"
                     >
                         Previous
                     </Button>
-                    <span className="flex items-center px-4 text-sm font-ubuntu text-gray-600 dark:text-gray-400">
+                    <span className="flex items-center px-2 sm:px-4 text-xs sm:text-sm font-ubuntu text-gray-600 dark:text-gray-400">
                         Page {page} of {totalPages}
                     </span>
                     <Button
                         size="sm"
                         isDisabled={page === totalPages}
                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        className="font-ubuntu"
+                        className="font-ubuntu text-xs sm:text-sm"
                     >
                         Next
                     </Button>
@@ -843,23 +884,23 @@ const StudentsManagement: React.FC = () => {
             )}
 
             {/* Delete Modal */}
-            <Modal backdrop="opaque" isOpen={isOpen} onClose={() => { onClose(); setDeletePassword(""); }}>
+            <Modal backdrop="opaque" isOpen={isOpen} onClose={() => { onClose(); setDeletePassword(""); }} size="sm">
                 <ModalContent>
                     <ModalHeader className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                             <WarningIcon fillColor="red" />
-                            <span className="font-ubuntu text-xl font-bold text-red-600 dark:text-red-400">
+                            <span className="font-ubuntu text-lg sm:text-xl font-bold text-red-600 dark:text-red-400">
                                 Delete Student
                             </span>
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 font-ubuntu mt-1">
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-ubuntu mt-1">
                             Permanently delete{" "}
                             <span className="font-bold text-purple-500">{selectedStudent?.firstName} {selectedStudent?.lastName}</span>?
                         </p>
                     </ModalHeader>
 
                     <ModalBody>
-                        <ul className="w-full bg-gray-50 dark:bg-gray-900 text-sm p-4 rounded-lg border border-gray-200 dark:border-gray-700 space-y-1 mb-3">
+                        <ul className="w-full bg-gray-50 dark:bg-gray-900 text-xs sm:text-sm p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 space-y-1 mb-3">
                             {[
                                 "This action cannot be undone.",
                                 "All student data will be permanently removed.",
@@ -873,7 +914,7 @@ const StudentsManagement: React.FC = () => {
                             ))}
                         </ul>
                         <div className="flex flex-col gap-2">
-                            <p className="text-sm font-ubuntu text-gray-600 dark:text-gray-400">
+                            <p className="text-xs sm:text-sm font-ubuntu text-gray-600 dark:text-gray-400">
                                 Enter your <span className="font-bold text-red-500">password</span> to confirm
                             </p>
                             <Input
@@ -881,13 +922,14 @@ const StudentsManagement: React.FC = () => {
                                 placeholder="Enter your password"
                                 value={deletePassword}
                                 onChange={(e) => setDeletePassword(e.target.value)}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-xs sm:text-sm" }}
+                                size="sm"
                             />
                         </div>
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button color="default" onPress={() => { onClose(); setDeletePassword(""); }}>
+                        <Button color="default" onPress={() => { onClose(); setDeletePassword(""); }} size="sm">
                             Cancel
                         </Button>
                         <Button
@@ -895,6 +937,7 @@ const StudentsManagement: React.FC = () => {
                             variant="solid"
                             isDisabled={deletePassword.length < 8}
                             onClick={handleDeleteConfirm}
+                            size="sm"
                         >
                             Confirm Delete
                         </Button>
@@ -903,79 +946,89 @@ const StudentsManagement: React.FC = () => {
             </Modal>
 
             {/* Edit Student Modal */}
-            <Modal backdrop="opaque" isOpen={isEditOpen} onClose={onEditClose} size="2xl">
+            <Modal backdrop="opaque" isOpen={isEditOpen} onClose={onEditClose} size="lg">
                 <ModalContent>
                     <ModalHeader>
-                        <span className="font-ubuntu text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
+                        <span className="font-ubuntu text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
                             Edit Student
                         </span>
                     </ModalHeader>
 
                     <ModalBody>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <Input
                                 label="First Name"
                                 value={editForm.firstName}
                                 onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
                             />
                             <Input
                                 label="Last Name"
                                 value={editForm.lastName}
                                 onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
                             />
                             <Input
                                 label="Username"
                                 value={editForm.userName}
                                 onChange={(e) => setEditForm({ ...editForm, userName: e.target.value })}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
                             />
                             <Input
                                 label="Email"
                                 type="email"
                                 value={editForm.email}
                                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
                             />
                             <Input
                                 label="Date of Birth"
                                 type="date"
                                 value={editForm.userDob}
                                 onChange={(e) => setEditForm({ ...editForm, userDob: e.target.value })}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
                             />
                             <Input
                                 label="Phone Code"
                                 placeholder="+91"
                                 value={editForm.phoneCode}
                                 onChange={(e) => setEditForm({ ...editForm, phoneCode: e.target.value })}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
                             />
                             <Input
                                 label="Phone Number"
                                 placeholder="1234567890"
                                 value={editForm.phoneNumber}
                                 onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
                             />
                             <Input
                                 label="Country"
                                 value={editForm.country}
                                 onChange={(e) => setEditForm({ ...editForm, country: e.target.value })}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
                             />
                             <Input
                                 label="State"
                                 value={editForm.state}
                                 onChange={(e) => setEditForm({ ...editForm, state: e.target.value })}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
                             />
                             <Input
                                 label="City"
                                 value={editForm.city}
                                 onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
                             />
                         </div>
                         <div className="mt-4">
@@ -984,20 +1037,22 @@ const StudentsManagement: React.FC = () => {
                                 placeholder="Student bio..."
                                 value={editForm.bio}
                                 onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                                classNames={{ input: "font-ubuntu" }}
+                                classNames={{ input: "font-ubuntu text-sm" }}
                                 maxRows={3}
+                                size="sm"
                             />
                         </div>
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button color="default" onPress={onEditClose}>
+                        <Button color="default" onPress={onEditClose} size="sm">
                             Cancel
                         </Button>
                         <Button
                             color="primary"
                             variant="solid"
                             onClick={handleUpdateStudent}
+                            size="sm"
                         >
                             Update Student
                         </Button>
@@ -1006,34 +1061,34 @@ const StudentsManagement: React.FC = () => {
             </Modal>
 
             {/* View Student Details Modal */}
-            <Modal backdrop="opaque" isOpen={isViewOpen} onClose={onViewClose} size="2xl">
+            <Modal backdrop="opaque" isOpen={isViewOpen} onClose={onViewClose} size="lg">
                 <ModalContent>
                     <ModalHeader>
-                        <span className="font-ubuntu text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
+                        <span className="font-ubuntu text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
                             Student Details
                         </span>
                     </ModalHeader>
 
                     <ModalBody>
                         {selectedStudent && (
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-4">
+                            <div className="space-y-3 sm:space-y-4">
+                                <div className="flex items-center gap-3 sm:gap-4">
                                     <Image
                                         src={selectedStudent.profileImageUrl || "https://via.placeholder.com/80"}
                                         alt={selectedStudent.firstName}
-                                        className="w-20 h-20 rounded-full object-cover"
+                                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover"
                                     />
                                     <div>
-                                        <h3 className="text-xl font-bold font-ubuntu">
+                                        <h3 className="text-lg sm:text-xl font-bold font-ubuntu">
                                             {selectedStudent.firstName} {selectedStudent.lastName}
                                         </h3>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 font-ubuntu">
+                                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-ubuntu">
                                             @{selectedStudent.userName}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 font-ubuntu">Email</p>
                                         <p className="text-sm font-ubuntu">{selectedStudent.email}</p>
@@ -1101,7 +1156,7 @@ const StudentsManagement: React.FC = () => {
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button color="default" onPress={onViewClose}>
+                        <Button color="default" onPress={onViewClose} size="sm">
                             Close
                         </Button>
                     </ModalFooter>
@@ -1109,10 +1164,10 @@ const StudentsManagement: React.FC = () => {
             </Modal>
 
             {/* View Enrolled Courses Modal */}
-            <Modal backdrop="opaque" isOpen={isCoursesOpen} onClose={onCoursesClose} size="2xl">
+            <Modal backdrop="opaque" isOpen={isCoursesOpen} onClose={onCoursesClose} size="lg">
                 <ModalContent>
                     <ModalHeader>
-                        <span className="font-ubuntu text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
+                        <span className="font-ubuntu text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
                             Enrolled Courses
                         </span>
                     </ModalHeader>
@@ -1122,11 +1177,11 @@ const StudentsManagement: React.FC = () => {
                                 {selectedStudent.enrolledIn && selectedStudent.enrolledIn.length > 0 ? (
                                     selectedStudent.enrolledIn.map((courseId, i) => (
                                         <div key={i} className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                                            <p className="text-sm font-ubuntu text-gray-700 dark:text-gray-300">Course ID: {courseId}</p>
+                                            <p className="text-xs sm:text-sm font-ubuntu text-gray-700 dark:text-gray-300">Course ID: {courseId}</p>
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 font-ubuntu text-center py-4">
+                                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-ubuntu text-center py-4">
                                         No courses enrolled yet.
                                     </p>
                                 )}
@@ -1134,7 +1189,7 @@ const StudentsManagement: React.FC = () => {
                         )}
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="default" onPress={onCoursesClose}>
+                        <Button color="default" onPress={onCoursesClose} size="sm">
                             Close
                         </Button>
                     </ModalFooter>
@@ -1142,16 +1197,16 @@ const StudentsManagement: React.FC = () => {
             </Modal>
 
             {/* Bulk Delete Modal */}
-            <Modal backdrop="opaque" isOpen={isBulkDeleteOpen} onClose={onBulkDeleteClose}>
+            <Modal backdrop="opaque" isOpen={isBulkDeleteOpen} onClose={onBulkDeleteClose} size="sm">
                 <ModalContent>
                     <ModalHeader>
-                        <span className="font-ubuntu text-xl font-bold text-red-500">
+                        <span className="font-ubuntu text-lg sm:text-xl font-bold text-red-500">
                             Delete Selected Students
                         </span>
                     </ModalHeader>
                     <ModalBody>
                         <div className="flex flex-col gap-4">
-                            <p className="text-sm text-gray-600 dark:text-gray-400 font-ubuntu">
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-ubuntu">
                                 Are you sure you want to delete <span className="font-bold text-red-500">{selectedStudents.size}</span> student(s)? This action cannot be undone.
                             </p>
                             <Input
@@ -1161,17 +1216,18 @@ const StudentsManagement: React.FC = () => {
                                 value={deletePassword}
                                 onChange={(e) => setDeletePassword(e.target.value)}
                                 classNames={{
-                                    input: "font-ubuntu text-sm",
+                                    input: "font-ubuntu text-xs sm:text-sm",
                                     inputWrapper: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                                 }}
+                                size="sm"
                             />
                         </div>
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="default" onPress={onBulkDeleteClose}>
+                        <Button color="default" onPress={onBulkDeleteClose} size="sm">
                             Cancel
                         </Button>
-                        <Button color="danger" onPress={handleBulkDelete}>
+                        <Button color="danger" onPress={handleBulkDelete} size="sm">
                             Delete {selectedStudents.size} Student(s)
                         </Button>
                     </ModalFooter>
@@ -1182,22 +1238,23 @@ const StudentsManagement: React.FC = () => {
             <Modal backdrop="opaque" isOpen={isFilterOpen} onClose={onFilterClose} size="lg">
                 <ModalContent>
                     <ModalHeader>
-                        <span className="font-ubuntu text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
+                        <span className="font-ubuntu text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
                             Advanced Filters
                         </span>
                     </ModalHeader>
                     <ModalBody>
                         <div className="flex flex-col gap-4">
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <Input
                                     label="Country"
                                     placeholder="Filter by country"
                                     value={filterCountry}
                                     onChange={(e) => setFilterCountry(e.target.value)}
                                     classNames={{
-                                        input: "font-ubuntu text-sm",
+                                        input: "font-ubuntu text-xs sm:text-sm",
                                         inputWrapper: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                                     }}
+                                    size="sm"
                                 />
                                 <Input
                                     label="City"
@@ -1205,21 +1262,23 @@ const StudentsManagement: React.FC = () => {
                                     value={filterCity}
                                     onChange={(e) => setFilterCity(e.target.value)}
                                     classNames={{
-                                        input: "font-ubuntu text-sm",
+                                        input: "font-ubuntu text-xs sm:text-sm",
                                         inputWrapper: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                                     }}
+                                    size="sm"
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <Input
                                     type="date"
                                     label="Joined From"
                                     value={filterDateFrom}
                                     onChange={(e) => setFilterDateFrom(e.target.value)}
                                     classNames={{
-                                        input: "font-ubuntu text-sm",
+                                        input: "font-ubuntu text-xs sm:text-sm",
                                         inputWrapper: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                                     }}
+                                    size="sm"
                                 />
                                 <Input
                                     type="date"
@@ -1227,9 +1286,10 @@ const StudentsManagement: React.FC = () => {
                                     value={filterDateTo}
                                     onChange={(e) => setFilterDateTo(e.target.value)}
                                     classNames={{
-                                        input: "font-ubuntu text-sm",
+                                        input: "font-ubuntu text-xs sm:text-sm",
                                         inputWrapper: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                                     }}
+                                    size="sm"
                                 />
                             </div>
                             <Select
@@ -1240,12 +1300,13 @@ const StudentsManagement: React.FC = () => {
                                 classNames={{
                                     trigger: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                                 }}
+                                size="sm"
                             >
                                 <SelectItem key="">All</SelectItem>
                                 <SelectItem key="yes">Enrolled</SelectItem>
                                 <SelectItem key="no">Not Enrolled</SelectItem>
                             </Select>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <Select
                                     label="Sort By"
                                     placeholder="Select field to sort"
@@ -1254,6 +1315,7 @@ const StudentsManagement: React.FC = () => {
                                     classNames={{
                                         trigger: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                                     }}
+                                    size="sm"
                                 >
                                     <SelectItem key="createdAt">Join Date</SelectItem>
                                     <SelectItem key="firstName">First Name</SelectItem>
@@ -1268,6 +1330,7 @@ const StudentsManagement: React.FC = () => {
                                     classNames={{
                                         trigger: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                                     }}
+                                    size="sm"
                                 >
                                     <SelectItem key="asc">Ascending</SelectItem>
                                     <SelectItem key="desc">Descending</SelectItem>
@@ -1276,10 +1339,10 @@ const StudentsManagement: React.FC = () => {
                         </div>
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="default" onPress={clearFilters}>
+                        <Button color="default" onPress={clearFilters} size="sm">
                             Clear All
                         </Button>
-                        <Button color="primary" onPress={applyFilters}>
+                        <Button color="primary" onPress={applyFilters} size="sm">
                             Apply Filters
                         </Button>
                     </ModalFooter>
@@ -1287,61 +1350,61 @@ const StudentsManagement: React.FC = () => {
             </Modal>
 
             {/* Analytics Modal */}
-            <Modal backdrop="opaque" isOpen={isAnalyticsOpen} onClose={onAnalyticsClose} size="2xl">
+            <Modal backdrop="opaque" isOpen={isAnalyticsOpen} onClose={onAnalyticsClose} size="lg">
                 <ModalContent>
                     <ModalHeader>
-                        <span className="font-ubuntu text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
+                        <span className="font-ubuntu text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
                             Student Analytics
                         </span>
                     </ModalHeader>
                     <ModalBody>
                         {selectedStudent && (
-                            <div className="flex flex-col gap-4">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-4">
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 font-ubuntu">Enrolled Courses</p>
-                                        <p className="text-2xl font-bold font-ubuntu text-indigo-600 dark:text-indigo-400">
+                            <div className="flex flex-col gap-3 sm:gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-3 sm:p-4">
+                                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-ubuntu">Enrolled Courses</p>
+                                        <p className="text-xl sm:text-2xl font-bold font-ubuntu text-indigo-600 dark:text-indigo-400">
                                             {selectedStudent.enrolledIn?.length || 0}
                                         </p>
                                     </div>
-                                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4">
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 font-ubuntu">Email Status</p>
-                                        <p className={`text-2xl font-bold font-ubuntu ${
-                                            selectedStudent.emailVerificationStatus ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                                        }`}>
+                                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-3 sm:p-4">
+                                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-ubuntu">Email Status</p>
+                                        <p className={`text-xl sm:text-2xl font-bold font-ubuntu ${selectedStudent.emailVerificationStatus ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                                            }`}>
                                             {selectedStudent.emailVerificationStatus ? "Verified" : "Unverified"}
                                         </p>
                                     </div>
-                                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl p-4">
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 font-ubuntu">Phone Status</p>
-                                        <p className={`text-2xl font-bold font-ubuntu ${
-                                            selectedStudent.phoneNumberVerificationStatus ? "text-blue-600 dark:text-blue-400" : "text-gray-400"
-                                        }`}>
+                                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl p-3 sm:p-4">
+                                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-ubuntu">Phone Status</p>
+                                        <p className={`text-xl sm:text-2xl font-bold font-ubuntu ${selectedStudent.phoneNumberVerificationStatus ? "text-blue-600 dark:text-blue-400" : "text-gray-400"
+                                            }`}>
                                             {selectedStudent.phoneNumberVerificationStatus ? "Verified" : "Not Set"}
                                         </p>
                                     </div>
-                                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl p-4">
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 font-ubuntu">Member Since</p>
-                                        <p className="text-lg font-bold font-ubuntu text-orange-600 dark:text-orange-400">
+                                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl p-3 sm:p-4">
+                                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-ubuntu">Member Since</p>
+                                        <p className="text-base sm:text-lg font-bold font-ubuntu text-orange-600 dark:text-orange-400">
                                             {new Date(selectedStudent.createdAt).toLocaleDateString()}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
-                                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 font-ubuntu mb-2">Profile Completion</p>
+                                <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-3 sm:p-4">
+                                    <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 font-ubuntu mb-2">Profile Completion</p>
                                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                        <div 
+                                        <div
                                             className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all"
-                                            style={{ width: `${Math.min(100, (
-                                                (selectedStudent.firstName ? 20 : 0) +
-                                                (selectedStudent.lastName ? 20 : 0) +
-                                                (selectedStudent.emailVerificationStatus ? 20 : 0) +
-                                                (selectedStudent.phoneNumberVerificationStatus ? 20 : 0) +
-                                                (selectedStudent.bio ? 20 : 0)
-                                            ))}%` }}
+                                            style={{
+                                                width: `${Math.min(100, (
+                                                    (selectedStudent.firstName ? 20 : 0) +
+                                                    (selectedStudent.lastName ? 20 : 0) +
+                                                    (selectedStudent.emailVerificationStatus ? 20 : 0) +
+                                                    (selectedStudent.phoneNumberVerificationStatus ? 20 : 0) +
+                                                    (selectedStudent.bio ? 20 : 0)
+                                                ))}%`
+                                            }}
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 font-ubuntu mt-2">
+                                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-ubuntu mt-2">
                                         {Math.min(100, (
                                             (selectedStudent.firstName ? 20 : 0) +
                                             (selectedStudent.lastName ? 20 : 0) +
@@ -1355,7 +1418,7 @@ const StudentsManagement: React.FC = () => {
                         )}
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="default" onPress={onAnalyticsClose}>
+                        <Button color="default" onPress={onAnalyticsClose} size="sm">
                             Close
                         </Button>
                     </ModalFooter>
@@ -1366,13 +1429,13 @@ const StudentsManagement: React.FC = () => {
             <Modal backdrop="opaque" isOpen={isNotificationOpen} onClose={onNotificationClose} size="lg">
                 <ModalContent>
                     <ModalHeader>
-                        <span className="font-ubuntu text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
+                        <span className="font-ubuntu text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
                             Send Notification
                         </span>
                     </ModalHeader>
                     <ModalBody>
                         <div className="flex flex-col gap-4">
-                            <p className="text-sm text-gray-600 dark:text-gray-400 font-ubuntu">
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-ubuntu">
                                 Send notification to <span className="font-bold text-purple-500">{selectedStudents.size}</span> selected student(s)
                             </p>
                             <Input
@@ -1381,9 +1444,10 @@ const StudentsManagement: React.FC = () => {
                                 value={notificationSubject}
                                 onChange={(e) => setNotificationSubject(e.target.value)}
                                 classNames={{
-                                    input: "font-ubuntu text-sm",
+                                    input: "font-ubuntu text-xs sm:text-sm",
                                     inputWrapper: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                                 }}
+                                size="sm"
                             />
                             <Textarea
                                 label="Message"
@@ -1392,20 +1456,22 @@ const StudentsManagement: React.FC = () => {
                                 onChange={(e) => setNotificationMessage(e.target.value)}
                                 minRows={4}
                                 classNames={{
-                                    input: "font-ubuntu text-sm",
+                                    input: "font-ubuntu text-xs sm:text-sm",
                                     inputWrapper: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                                 }}
+                                size="sm"
                             />
                         </div>
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="default" onPress={onNotificationClose}>
+                        <Button color="default" onPress={onNotificationClose} size="sm">
                             Cancel
                         </Button>
-                        <Button 
-                            color="primary" 
+                        <Button
+                            color="primary"
                             onPress={handleSendNotification}
                             isDisabled={!notificationSubject || !notificationMessage}
+                            size="sm"
                         >
                             Send Notification
                         </Button>
@@ -1417,7 +1483,7 @@ const StudentsManagement: React.FC = () => {
             <Modal backdrop="opaque" isOpen={isActivityOpen} onClose={onActivityClose} size="lg">
                 <ModalContent>
                     <ModalHeader>
-                        <span className="font-ubuntu text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
+                        <span className="font-ubuntu text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
                             Activity Logs
                         </span>
                     </ModalHeader>
@@ -1427,10 +1493,10 @@ const StudentsManagement: React.FC = () => {
                                 <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg flex items-center gap-3">
                                     <div className="w-2 h-2 bg-green-500 rounded-full" />
                                     <div className="flex-1">
-                                        <p className="text-sm font-ubuntu text-gray-700 dark:text-gray-300">
+                                        <p className="text-xs sm:text-sm font-ubuntu text-gray-700 dark:text-gray-300">
                                             Account created
                                         </p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 font-ubuntu">
+                                        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-ubuntu">
                                             {new Date(selectedStudent.createdAt).toLocaleString()}
                                         </p>
                                     </div>
@@ -1439,10 +1505,10 @@ const StudentsManagement: React.FC = () => {
                                     <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg flex items-center gap-3">
                                         <div className="w-2 h-2 bg-blue-500 rounded-full" />
                                         <div className="flex-1">
-                                            <p className="text-sm font-ubuntu text-gray-700 dark:text-gray-300">
+                                            <p className="text-xs sm:text-sm font-ubuntu text-gray-700 dark:text-gray-300">
                                                 Email verified
                                             </p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 font-ubuntu">
+                                            <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-ubuntu">
                                                 Recently
                                             </p>
                                         </div>
@@ -1452,10 +1518,10 @@ const StudentsManagement: React.FC = () => {
                                     <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg flex items-center gap-3">
                                         <div className="w-2 h-2 bg-purple-500 rounded-full" />
                                         <div className="flex-1">
-                                            <p className="text-sm font-ubuntu text-gray-700 dark:text-gray-300">
+                                            <p className="text-xs sm:text-sm font-ubuntu text-gray-700 dark:text-gray-300">
                                                 Phone verified
                                             </p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 font-ubuntu">
+                                            <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-ubuntu">
                                                 Recently
                                             </p>
                                         </div>
@@ -1465,10 +1531,10 @@ const StudentsManagement: React.FC = () => {
                                     <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg flex items-center gap-3">
                                         <div className="w-2 h-2 bg-orange-500 rounded-full" />
                                         <div className="flex-1">
-                                            <p className="text-sm font-ubuntu text-gray-700 dark:text-gray-300">
+                                            <p className="text-xs sm:text-sm font-ubuntu text-gray-700 dark:text-gray-300">
                                                 Enrolled in {selectedStudent.enrolledIn.length} course(s)
                                             </p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 font-ubuntu">
+                                            <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-ubuntu">
                                                 Recently
                                             </p>
                                         </div>
@@ -1478,7 +1544,7 @@ const StudentsManagement: React.FC = () => {
                         )}
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="default" onPress={onActivityClose}>
+                        <Button color="default" onPress={onActivityClose} size="sm">
                             Close
                         </Button>
                     </ModalFooter>
@@ -1489,14 +1555,14 @@ const StudentsManagement: React.FC = () => {
             <Modal backdrop="opaque" isOpen={isNotesOpen} onClose={onNotesClose} size="lg">
                 <ModalContent>
                     <ModalHeader>
-                        <span className="font-ubuntu text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
+                        <span className="font-ubuntu text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
                             Student Notes
                         </span>
                     </ModalHeader>
                     <ModalBody>
                         {selectedStudent && (
                             <div className="flex flex-col gap-4">
-                                <p className="text-sm text-gray-600 dark:text-gray-400 font-ubuntu">
+                                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-ubuntu">
                                     Notes for <span className="font-bold text-purple-500">{selectedStudent.firstName} {selectedStudent.lastName}</span>
                                 </p>
                                 <Textarea
@@ -1505,19 +1571,148 @@ const StudentsManagement: React.FC = () => {
                                     onChange={(e) => setStudentNotes({ ...studentNotes, [selectedStudent._id]: e.target.value })}
                                     minRows={6}
                                     classNames={{
-                                        input: "font-ubuntu text-sm",
+                                        input: "font-ubuntu text-xs sm:text-sm",
                                         inputWrapper: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
                                     }}
+                                    size="sm"
                                 />
                             </div>
                         )}
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="default" onPress={onNotesClose}>
+                        <Button color="default" onPress={onNotesClose} size="sm">
                             Cancel
                         </Button>
-                        <Button color="primary" onPress={saveNotes}>
+                        <Button color="primary" onPress={saveNotes} size="sm">
                             Save Notes
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            {/* Add Student Modal */}
+            <Modal backdrop="opaque" isOpen={isAddOpen} onClose={onAddClose} size="lg">
+                <ModalContent>
+                    <ModalHeader>
+                        <span className="font-ubuntu text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
+                            Add New Student
+                        </span>
+                    </ModalHeader>
+
+                    <ModalBody>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <Input
+                                label="First Name *"
+                                value={addForm.firstName}
+                                onChange={(e) => setAddForm({ ...addForm, firstName: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                isRequired
+                                size="sm"
+                            />
+                            <Input
+                                label="Last Name"
+                                value={addForm.lastName}
+                                onChange={(e) => setAddForm({ ...addForm, lastName: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
+                            />
+                            <Input
+                                label="Username *"
+                                value={addForm.userName}
+                                onChange={(e) => setAddForm({ ...addForm, userName: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                isRequired
+                                size="sm"
+                            />
+                            <Input
+                                label="Email *"
+                                type="email"
+                                value={addForm.email}
+                                onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                isRequired
+                                size="sm"
+                            />
+                            <Input
+                                label="Password *"
+                                type="password"
+                                value={addForm.password}
+                                onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                isRequired
+                                size="sm"
+                            />
+                            <Input
+                                label="Date of Birth"
+                                type="date"
+                                value={addForm.userDob}
+                                onChange={(e) => setAddForm({ ...addForm, userDob: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
+                            />
+                            <Input
+                                label="Phone Code"
+                                placeholder="+91"
+                                value={addForm.phoneCode}
+                                onChange={(e) => setAddForm({ ...addForm, phoneCode: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
+                            />
+                            <Input
+                                label="Phone Number"
+                                placeholder="1234567890"
+                                value={addForm.phoneNumber}
+                                onChange={(e) => setAddForm({ ...addForm, phoneNumber: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
+                            />
+                            <Input
+                                label="Country"
+                                value={addForm.country}
+                                onChange={(e) => setAddForm({ ...addForm, country: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
+                            />
+                            <Input
+                                label="State"
+                                value={addForm.state}
+                                onChange={(e) => setAddForm({ ...addForm, state: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
+                            />
+                            <Input
+                                label="City"
+                                value={addForm.city}
+                                onChange={(e) => setAddForm({ ...addForm, city: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                size="sm"
+                            />
+                        </div>
+                        <div className="mt-4">
+                            <Textarea
+                                label="Bio"
+                                placeholder="Student bio..."
+                                value={addForm.bio}
+                                onChange={(e) => setAddForm({ ...addForm, bio: e.target.value })}
+                                classNames={{ input: "font-ubuntu text-sm" }}
+                                maxRows={3}
+                                size="sm"
+                            />
+                        </div>
+                    </ModalBody>
+
+                    <ModalFooter>
+                        <Button color="default" onPress={onAddClose} size="sm">
+                            Cancel
+                        </Button>
+                        <Button
+                            color="primary"
+                            variant="solid"
+                            onClick={handleAddStudent}
+                            isDisabled={!addForm.firstName || !addForm.userName || !addForm.email || !addForm.password}
+                            size="sm"
+                        >
+                            Add Student
                         </Button>
                     </ModalFooter>
                 </ModalContent>

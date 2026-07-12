@@ -14,6 +14,9 @@ const adminTest_controllers_1 = require("../controllers/test/adminTest.controlle
 const certificateVerification_controllers_1 = require("../controllers/test/certificateVerification.controllers");
 const certificateManagement_controllers_1 = require("../controllers/admin/certificateManagement.controllers");
 const aiTestGeneration_controllers_1 = require("../controllers/test/aiTestGeneration.controllers");
+const emailTest_controllers_1 = require("../controllers/test/emailTest.controllers");
+const smsTest_controllers_1 = require("../controllers/test/smsTest.controllers");
+const notificationTest_controllers_1 = require("../controllers/test/notificationTest.controllers");
 const testRoute = express_1.default.Router();
 // Test Management Routes (Admin/Instructor)
 testRoute.post("/create", auth_middleware_1.authenticateAdminToken, createTest_controllers_1.handleCreateTestFunction);
@@ -50,6 +53,10 @@ testRoute.get("/admin/marksheets", auth_middleware_1.authenticateAdminToken, adm
 testRoute.patch("/admin/revoke/:marksheetId", auth_middleware_1.authenticateAdminToken, adminTest_controllers_1.handleRevokeCertificateFunction);
 testRoute.put("/admin/gamification", auth_middleware_1.authenticateAdminToken, adminTest_controllers_1.handleUpdateGamificationSettingsFunction);
 testRoute.get("/admin/user-history/:userId", auth_middleware_1.authenticateAdminToken, adminTest_controllers_1.handleGetUserTestHistoryAdminFunction);
+testRoute.get("/admin/attempts", auth_middleware_1.authenticateAdminToken, adminTest_controllers_1.handleGetAllAttemptsAdminFunction);
+testRoute.delete("/admin/attempts/:attemptId", auth_middleware_1.authenticateAdminToken, adminTest_controllers_1.handleDeleteAttemptAdminFunction);
+testRoute.post("/admin/attempts", auth_middleware_1.authenticateAdminToken, adminTest_controllers_1.handleCreateAttemptAdminFunction);
+testRoute.put("/admin/attempts/:attemptId", auth_middleware_1.authenticateAdminToken, adminTest_controllers_1.handleUpdateAttemptAdminFunction);
 // Certificate Verification Routes (Public)
 testRoute.post("/verify/public", certificateVerification_controllers_1.handlePublicVerifyCertificateFunction);
 testRoute.get("/verify/:certificateId", auth_middleware_1.authenticateToken, certificateVerification_controllers_1.handleVerifyCertificateFunction);
@@ -69,4 +76,13 @@ testRoute.get("/admin/certificates/dropdown/users", auth_middleware_1.authentica
 testRoute.get("/admin/certificates/dropdown/tests", auth_middleware_1.authenticateAdminToken, certificateManagement_controllers_1.handleGetTestsForCertificate);
 testRoute.get("/admin/certificates/dropdown/courses", auth_middleware_1.authenticateAdminToken, certificateManagement_controllers_1.handleGetCoursesForCertificate);
 testRoute.post("/admin/certificates/:marksheetId/download", auth_middleware_1.authenticateAdminToken, certificateManagement_controllers_1.handleDownloadCertificate);
+// Email Test Routes (Admin only - for testing SMTP configuration)
+testRoute.get("/email/test-connection", auth_middleware_1.authenticateAdminToken, emailTest_controllers_1.testEmailConnection);
+testRoute.post("/email/send-test", auth_middleware_1.authenticateAdminToken, emailTest_controllers_1.sendTestEmail);
+// SMS Test Routes (Admin only - for testing SMS)
+testRoute.post("/sms/test-verification", auth_middleware_1.authenticateToken, smsTest_controllers_1.testSMSVerification);
+testRoute.post("/sms/test-password-reset", auth_middleware_1.authenticateToken, smsTest_controllers_1.testSMSPasswordReset);
+testRoute.post("/sms/test-notification", auth_middleware_1.authenticateToken, smsTest_controllers_1.testSMSNotification);
+// Notification Test Routes (for testing different notification types via email)
+testRoute.post("/notification/test", auth_middleware_1.authenticateAdminToken, notificationTest_controllers_1.sendTestNotification);
 exports.default = testRoute;

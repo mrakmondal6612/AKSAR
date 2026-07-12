@@ -16,7 +16,7 @@ interface NavbarProps {
 }
 const Navbar: React.FC<NavbarProps> = ({ isUserLoggedIn }) => {
   const [isOpen, isSetOpen] = React.useState<boolean>(false);
-  const {userData} = useAuthContext();
+  const { userData } = useAuthContext();
   const { theme } = useTheme();
   const navigate = useNavigate();
 
@@ -33,35 +33,28 @@ const Navbar: React.FC<NavbarProps> = ({ isUserLoggedIn }) => {
   return (
     <header className="fixed top-0 inset-x-0 z-50 bg-white/80 dark:bg-[#0b0f19]/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 transition-colors duration-300 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex xl:flex-row flex-col justify-between xl:pt-4 xl:pb-1 py-2 sm:py-4 items-center font-noto-sans xl:gap-20 md:gap-5 gap-2">
-        <div className="flex justify-between items-center font-noto-sans relative w-full sm:w-auto pr-12 sm:pr-0">
-          <Logo theme={theme} className="w-32 sm:w-40 md:w-52 flex-shrink-0" />
-          <button
-            onClick={toggleMenu}
-            className={`${styles["menu-btn"]} sm:hidden flex ${theme === 'dark' ? 'dark' : 'light'}`}
-            aria-label="Toggle Menu"
-          >
-            <div
-              className={`${styles["menu-btn__burger"]} ${isOpen ? styles.open : ""}`}
-            ></div>
-          </button>
-        </div>
-          <nav className={`sm:flex hidden font-bold`}>
-            <NavItems />
-          </nav>
-          <div className="flex gap-2 sm:gap-4 items-center">
+        <div className="flex justify-between items-center py-2 sm:py-3 font-noto-sans w-full">
+          <div className="flex items-center gap-6">
+            <div className="flex justify-between items-center font-noto-sans relative pr-0">
+              <Logo theme={theme} className="w-28 sm:w-36 md:w-44 flex-shrink-0" />
+            </div>
+            <nav className={`hidden lg:flex font-bold`}>
+              <NavItems />
+            </nav>
+          </div>
+          <div className="flex gap-1.5 sm:gap-2 items-center">
             {!isUserLoggedIn ? (
               <>
                 <motion.button
                   whileTap={{ scale: 0.8 }}
-                  className="hidden sm:block py-1.5 sm:py-2 px-3 sm:px-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all border-2 border-purple-500 text-xs sm:text-sm md:text-base"
+                  className="hidden lg:block py-1.5 sm:py-2 px-3 sm:px-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all border-2 border-purple-500 text-xs sm:text-sm md:text-base"
                   onClick={handleSignupClick}
                 >
                   Signup
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.8 }}
-                  className="py-1.5 sm:py-2 px-2 sm:px-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all border-2 border-purple-500 text-xs sm:text-sm md:text-base"
+                  className="hidden lg:block py-1.5 sm:py-2 px-2 sm:px-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all border-2 border-purple-500 text-xs sm:text-sm md:text-base"
                   onClick={handleLoginClick}
                 >
                   Login
@@ -71,14 +64,14 @@ const Navbar: React.FC<NavbarProps> = ({ isUserLoggedIn }) => {
               <>
                 <motion.button
                   whileTap={{ scale: 0.8 }}
-                  className="hidden sm:flex py-1.5 sm:py-2 px-3 sm:px-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all gap-2 border-2 border-purple-500 text-xs sm:text-sm md:text-base"
+                  className="hidden lg:flex py-1 sm:py-1.5 px-3 sm:px-4 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-semibold shadow-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-all gap-1.5 border-2 border-purple-500 text-xs"
                   onClick={() => navigate("/user/dashboard")}
                 >
                   <span className="font-ubuntu">Dashboard</span>
                   {theme === "dark" ? (
-                    <DashboardIcon fillColor="black" size={18} />
+                    <DashboardIcon fillColor="black" size={14} />
                   ) : (
-                    <DashboardIcon fillColor="white" size={18} />
+                    <DashboardIcon fillColor="white" size={14} />
                   )}
                 </motion.button>
                 <AvatarComponent
@@ -92,15 +85,26 @@ const Navbar: React.FC<NavbarProps> = ({ isUserLoggedIn }) => {
               </>
             )}
 
-            <div className="w-full rounded-3xl font-semibold shadow-md transition-all">
+            <div className="rounded-3xl font-semibold shadow-md transition-all">
               <ModeToggle />
             </div>
+
+            <button
+              onClick={toggleMenu}
+              className={`${styles["menu-btn"]} lg:hidden flex ${theme === 'dark' ? 'dark' : 'light'} shrink-0`}
+              style={{ position: "relative", top: 0, right: 0 }}
+              aria-label="Toggle Menu"
+            >
+              <div
+                className={`${styles["menu-btn__burger"]} ${isOpen ? styles.open : ""}`}
+              ></div>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Sidebar Menu */}
-      <div className={`nav-sidebar overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}>
+      <div className={`nav-sidebar lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}>
         <nav className="p-4 sm:p-5 text-center" onClick={toggleMenu}>
           <NavItems navListBgForSmallScreen="dark:bg-white/5 bg-black/5" />
           {!isUserLoggedIn && (

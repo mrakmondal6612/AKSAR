@@ -72,7 +72,7 @@ async function handleResendVerficationOTPFunction(req, res) {
                 .json({ success: false, message: "email already Verified exists" });
         }
         if (user?.emailSendTime) {
-            const emailTime = user.emailSendTime.getTime();
+            const emailTime = Number(user.emailSendTime);
             const currentTime = Date.now();
             const remainingTime = emailTime - currentTime;
             const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));

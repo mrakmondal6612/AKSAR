@@ -8,15 +8,11 @@ import { Select, SelectItem } from "@nextui-org/react";
 import { 
   MessageSquare, 
   Search, 
-  Eye, 
-  Check, 
-  X, 
-  Trash2,
-  Flag,
   RefreshCw,
   Heart,
   MessageCircle,
-  Clock
+  Clock,
+  Plus
 } from "lucide-react";
 import { getVerifiedToken } from "@/lib/cookieService";
 import { USER_API } from "@/lib/env";
@@ -69,6 +65,10 @@ const CommunityManagement: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [addForm, setAddForm] = useState({ content: "", tags: "", category: "General" });
+  const [editForm, setEditForm] = useState({ content: "", tags: "", category: "General", status: "APPROVED" });
 
   useEffect(() => {
     loadPosts();
@@ -220,6 +220,84 @@ const CommunityManagement: React.FC = () => {
     }
   };
 
+  const handleCreatePost = async () => {
+    try {
+      const jwt = getVerifiedToken();
+      const tagsArray = addForm.tags.split(",").map(tag => tag.trim()).filter(tag => tag);
+      
+      const response = await axios.post(
+        `${USER_API}/admin/community/posts`,
+        {
+          content: addForm.content,
+          tags: tagsArray,
+          category: addForm.category,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        SuccessToast("Post created successfully");
+        loadPosts();
+        loadStats();
+        setShowAddModal(false);
+        setAddForm({ content: "", tags: "", category: "General" });
+      }
+    } catch (error: any) {
+      ErrorToast(error?.response?.data?.message || "Failed to create post");
+    }
+  };
+
+  const handleUpdatePost = async () => {
+    if (!selectedPost) return;
+    
+    try {
+      const jwt = getVerifiedToken();
+      const tagsArray = editForm.tags.split(",").map(tag => tag.trim()).filter(tag => tag);
+      
+      const response = await axios.put(
+        `${USER_API}/admin/community/posts/${selectedPost.postId}`,
+        {
+          content: editForm.content,
+          tags: tagsArray,
+          category: editForm.category,
+          status: editForm.status,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        SuccessToast("Post updated successfully");
+        loadPosts();
+        loadStats();
+        setShowEditModal(false);
+        setSelectedPost(null);
+      }
+    } catch (error: any) {
+      ErrorToast(error?.response?.data?.message || "Failed to update post");
+    }
+  };
+
+  const openEditModal = (post: CommunityPost) => {
+    setSelectedPost(post);
+    setEditForm({
+      content: post.content,
+      tags: post.tags?.join(", ") || "",
+      category: post.category || "General",
+      status: post.status,
+    });
+    setShowEditModal(true);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -257,6 +335,10 @@ const CommunityManagement: React.FC = () => {
         <div className="flex justify-center items-center text-center gap-2 overflow-hidden">
           <TextFlipSmoothRevealEffect text="COMMUNITY MANAGEMENT" className="sm:text-5xl text-3xl" />
         </div>
+        <Button onClick={() => setShowAddModal(true)} className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Post
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -347,7 +429,7 @@ const CommunityManagement: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Posts List */}
+      {/* Posts List - Grid Layout */}
       <Card>
         <CardHeader>
           <CardTitle>Community Posts</CardTitle>
@@ -362,101 +444,139 @@ const CommunityManagement: React.FC = () => {
               No posts found
             </div>
           ) : (
-            <div className="space-y-4">
-              {posts.map((post) => (
-                <div
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {posts.map((post, index) => (
+                <motion.div
                   key={post._id}
-                  className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.04, duration: 0.3 }}
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 overflow-hidden"
                 >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
-                    {post.user.firstName.charAt(0)}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        {post.user.firstName} {post.user.lastName}
-                      </p>
-                      {getStatusBadge(post.status)}
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                      @{post.user.userName} • {formatDate(post.createdAt)}
-                    </p>
-                    <p className="text-gray-700 dark:text-gray-300 mb-3 line-clamp-3">
-                      {post.content}
-                    </p>
-                    {post.tags && post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {post.tags.map((tag, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            #{tag}
-                          </Badge>
-                        ))}
+                  <div className="flex flex-col gap-3 p-4">
+                    {/* Header with avatar and status */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                        {post.user.firstName.charAt(0)}
                       </div>
-                    )}
-                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-semibold text-gray-900 dark:text-white text-sm line-clamp-1">
+                            {post.user.firstName} {post.user.lastName}
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
+                          @{post.user.userName}
+                        </p>
+                        <div className="mt-1">
+                          {getStatusBadge(post.status)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="space-y-2">
+                      <p className="text-gray-700 dark:text-gray-300 text-sm line-clamp-3">
+                        {post.content}
+                      </p>
+                      {post.tags && post.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {post.tags.slice(0, 2).map((tag, tagIndex) => (
+                            <Badge key={tagIndex} variant="outline" className="text-[10px]">
+                              #{tag}
+                            </Badge>
+                          ))}
+                          {post.tags.length > 2 && (
+                            <Badge variant="outline" className="text-[10px]">
+                              +{post.tags.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
                       <span className="flex items-center gap-1">
-                        <Heart className="h-4 w-4" />
+                        <Heart className="h-3 w-3" />
                         {post.likes.length}
                       </span>
                       <span className="flex items-center gap-1">
-                        <MessageCircle className="h-4 w-4" />
+                        <MessageCircle className="h-3 w-3" />
                         {post.comments.length}
                       </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {new Date(post.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="font-ubuntu text-xs flex-1"
+                          onClick={() => {
+                            setSelectedPost(post);
+                            setShowDetailsModal(true);
+                          }}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="font-ubuntu text-xs flex-1"
+                          onClick={() => openEditModal(post)}
+                        >
+                          Edit
+                        </Button>
+                        {post.status === "PENDING" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="font-ubuntu text-xs flex-1 text-green-600 dark:text-green-400"
+                              onClick={() => handleApprove(post.postId)}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="font-ubuntu text-xs flex-1 text-red-600 dark:text-red-400"
+                              onClick={() => handleReject(post.postId)}
+                            >
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        {post.status !== "FLAGGED" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="font-ubuntu text-xs flex-1 text-orange-600 dark:text-orange-400"
+                            onClick={() => handleFlag(post.postId)}
+                          >
+                            Flag
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="font-ubuntu text-xs flex-1 text-red-600 dark:text-red-400"
+                          onClick={() => handleDelete(post.postId)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex gap-2 flex-shrink-0">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedPost(post);
-                        setShowDetailsModal(true);
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    {post.status === "PENDING" && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-green-600 dark:text-green-400"
-                          onClick={() => handleApprove(post.postId)}
-                        >
-                          <Check className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 dark:text-red-400"
-                          onClick={() => handleReject(post.postId)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                    {post.status !== "FLAGGED" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-orange-600 dark:text-orange-400"
-                        onClick={() => handleFlag(post.postId)}
-                      >
-                        <Flag className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-red-600 dark:text-red-400"
-                      onClick={() => handleDelete(post.postId)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
@@ -570,6 +690,140 @@ const CommunityManagement: React.FC = () => {
                   </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Add Post Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Add New Post</CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => setShowAddModal(false)}>
+                  ✕
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Content *</label>
+                <textarea
+                  value={addForm.content}
+                  onChange={(e) => setAddForm({ ...addForm, content: e.target.value })}
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  rows={4}
+                  placeholder="Write your post content..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Tags (comma separated)</label>
+                <Input
+                  value={addForm.tags}
+                  onChange={(e) => setAddForm({ ...addForm, tags: e.target.value })}
+                  placeholder="react, javascript, programming"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Category</label>
+                <Select
+                  selectedKeys={[addForm.category]}
+                  onSelectionChange={(keys) => setAddForm({ ...addForm, category: Array.from(keys)[0] as string })}
+                >
+                  <SelectItem key="General">General</SelectItem>
+                  <SelectItem key="Announcement">Announcement</SelectItem>
+                  <SelectItem key="Question">Question</SelectItem>
+                  <SelectItem key="Discussion">Discussion</SelectItem>
+                  <SelectItem key="Resource">Resource</SelectItem>
+                </Select>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button variant="outline" onClick={() => setShowAddModal(false)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleCreatePost} 
+                  className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+                  disabled={!addForm.content}
+                >
+                  Create Post
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit Post Modal */}
+      {showEditModal && selectedPost && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Edit Post</CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => setShowEditModal(false)}>
+                  ✕
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Content *</label>
+                <textarea
+                  value={editForm.content}
+                  onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  rows={4}
+                  placeholder="Write your post content..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Tags (comma separated)</label>
+                <Input
+                  value={editForm.tags}
+                  onChange={(e) => setEditForm({ ...editForm, tags: e.target.value })}
+                  placeholder="react, javascript, programming"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Category</label>
+                <Select
+                  selectedKeys={[editForm.category]}
+                  onSelectionChange={(keys) => setEditForm({ ...editForm, category: Array.from(keys)[0] as string })}
+                >
+                  <SelectItem key="General">General</SelectItem>
+                  <SelectItem key="Announcement">Announcement</SelectItem>
+                  <SelectItem key="Question">Question</SelectItem>
+                  <SelectItem key="Discussion">Discussion</SelectItem>
+                  <SelectItem key="Resource">Resource</SelectItem>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Status</label>
+                <Select
+                  selectedKeys={[editForm.status]}
+                  onSelectionChange={(keys) => setEditForm({ ...editForm, status: Array.from(keys)[0] as string })}
+                >
+                  <SelectItem key="PENDING">Pending</SelectItem>
+                  <SelectItem key="APPROVED">Approved</SelectItem>
+                  <SelectItem key="REJECTED">Rejected</SelectItem>
+                  <SelectItem key="FLAGGED">Flagged</SelectItem>
+                </Select>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button variant="outline" onClick={() => setShowEditModal(false)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleUpdatePost} 
+                  className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+                  disabled={!editForm.content}
+                >
+                  Update Post
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
