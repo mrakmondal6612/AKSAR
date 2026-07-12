@@ -79,17 +79,17 @@ const CommunityStatistics: React.FC = () => {
 
   const statistics = [
     {
-      number: 42000,
+      number: 40,
       label: "Happy Learners",
       icon: "👨‍🎓",
     },
     {
-      number: 2000,
+      number: 30,
       label: "Monthly Views",
       icon: "👁️",
     },
     {
-      number: 500,
+      number: 25,
       label: "New Monthly Subscribers",
       icon: "⭐",
     },
