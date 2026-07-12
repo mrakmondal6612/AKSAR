@@ -637,6 +637,7 @@ export const DashBoardAdminNavItems: DashboardNavItemProps[] = [
     { theme: "dark", Icon: CommunityIcon, title: "Community Manage", link: "/admin/community" },
     { theme: "dark", Icon: TeacherIcon, title: "Teacher Management", link: "/admin/teacher-management" },
     { theme: "dark", Icon: MailIcon, title: "Mail Templates", link: "/admin/mail-templates" },
+    { theme: "dark", Icon: AddIcon, title: "Requests", link: "/admin/requests" },
 ]
 
 export const DashBoardInstructorNavItems: DashboardNavItemProps[] = [

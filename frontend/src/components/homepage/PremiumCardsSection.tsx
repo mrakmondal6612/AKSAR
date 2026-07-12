@@ -1,7 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const PremiumCardsSection: React.FC = () => {
+  const navigate = useNavigate();
   const features = [
     "AI Study Recommendations",
     "Mock Tests & Quizzes",
@@ -163,7 +165,7 @@ const PremiumCardsSection: React.FC = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="px-8 md:px-10 py-3 md:py-4 bg-gradient-to-r from-purple-500 via-blue-500 to-purple-600 text-white font-semibold rounded-full shadow-lg hover:shadow-purple-500/50 transition-all duration-300"
-          onClick={() => window.location.href = '/courses'}
+          onClick={() => navigate("/courses")}
         >
           View All Courses →
         </motion.button>

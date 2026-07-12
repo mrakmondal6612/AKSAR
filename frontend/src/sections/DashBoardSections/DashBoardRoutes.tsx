@@ -37,6 +37,8 @@ const MailTemplatesManagement = lazy(() => import("@/sections/DashBoardSections/
 
 const BecomeInstructorPage = lazy(() => import("@/sections/DashBoardSections/BecomeInstructorPage"));
 
+const RequestsManagement = lazy(() => import("@/sections/DashBoardSections/RequestsManagement"));
+
 const DashboardRoutes: React.FC = () => {
   const { userData } = useAuthContext();
   const location = useLocation();
@@ -55,6 +57,7 @@ const DashboardRoutes: React.FC = () => {
           { path: "/certificate/:marksheetId", element: <CertificateView /> },
           { path: "/community", element: <CommunityManagement /> },
           { path: "/mail-templates", element: <MailTemplatesManagement /> },
+          { path: "/requests", element: <RequestsManagement /> },
         ];
       } else {
         return [];
