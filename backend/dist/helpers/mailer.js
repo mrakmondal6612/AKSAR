@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendCertificateIssuedEmail = exports.sendCourseEnrollmentEmail = exports.sendNotificationEmail = exports.sendGithubAuthPasswordMail = exports.sendGoogleAuthPasswordMail = exports.emailVerificationAlert = exports.sendResetPasswordVerification = exports.sendEmailVerification = void 0;
+exports.sendPasswordResetSuccessEmail = exports.sendCertificateIssuedEmail = exports.sendCourseEnrollmentEmail = exports.sendNotificationEmail = exports.sendGithubAuthPasswordMail = exports.sendGoogleAuthPasswordMail = exports.emailVerificationAlert = exports.sendResetPasswordVerification = exports.sendEmailVerification = void 0;
 const User_model_1 = __importDefault(require("../models/User.model"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const mail_config_1 = require("../utils/mail.config");
@@ -176,3 +176,24 @@ const sendCertificateIssuedEmail = async (email, courseName, certificateUrl) => 
     }
 };
 exports.sendCertificateIssuedEmail = sendCertificateIssuedEmail;
+/**
+ * Send Password Reset Success Email
+ */
+const sendPasswordResetSuccessEmail = async (email) => {
+    try {
+        const mailOptions = {
+            from: `"AKSAR" <${process.env.PUBLIC_GMAIL}>`,
+            to: email,
+            subject: "Password Reset Successful - AKSAR",
+            html: emailTemplates_1.EMAIL_TEMPLATES.PASSWORD_RESET_SUCCESS(),
+        };
+        await mail_config_1.transporter.sendMail(mailOptions);
+        console.log(`✅ Password reset success email sent to: ${email}`);
+        return { success: true, message: "Password reset success email sent successfully" };
+    }
+    catch (error) {
+        console.error('Error sending password reset success email:', error);
+        throw new Error('Failed to send password reset success email');
+    }
+};
+exports.sendPasswordResetSuccessEmail = sendPasswordResetSuccessEmail;

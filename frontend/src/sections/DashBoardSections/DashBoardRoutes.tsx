@@ -45,7 +45,10 @@ const DashboardRoutes: React.FC = () => {
 
   const routes = useMemo(() => {
     if (location.pathname.startsWith("/admin")) {
-      if (userData.role === "ADMIN" || userData.role === "MASTER" || userData.role === "INSTRUCTOR") {
+      const isAdminOrMaster = userData.role === "ADMIN" || userData.role === "MASTER";
+      const isInstructor = userData.role === "INSTRUCTOR";
+
+      if (isAdminOrMaster) {
         return [
           { path: "/courses-management", element: <CoursesManagement /> },
           { path: "/student-management", element: <StudentsManagement /> },
@@ -58,6 +61,10 @@ const DashboardRoutes: React.FC = () => {
           { path: "/community", element: <CommunityManagement /> },
           { path: "/mail-templates", element: <MailTemplatesManagement /> },
           { path: "/requests", element: <RequestsManagement /> },
+        ];
+      } else if (isInstructor) {
+        return [
+          { path: "/courses-management", element: <CoursesManagement /> },
         ];
       } else {
         return [];

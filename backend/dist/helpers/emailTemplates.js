@@ -57,7 +57,7 @@ exports.EMAIL_TEMPLATES = {
           </p>
         </div>
         <div class="footer">
-          <p style="margin: 0;">&copy; 2024 AKSAR. All rights reserved.</p>
+          <p style="margin: 0;">&copy; 2026 AKSAR. All rights reserved.</p>
           <p style="margin: 10px 0 0 0;">
             <a href="${FRONTEND_DOMAIN}" style="color: #ffffff; text-decoration: none;">AKSAR</a> | 
             <a href="${FRONTEND_DOMAIN}/privacy" style="color: #ffffff; text-decoration: none;">Privacy Policy</a> | 
@@ -112,7 +112,7 @@ exports.EMAIL_TEMPLATES = {
           </p>
         </div>
         <div class="footer">
-          <p style="margin: 0;">&copy; 2024 AKSAR. All rights reserved.</p>
+          <p style="margin: 0;">&copy; 2026 AKSAR. All rights reserved.</p>
           <p style="margin: 10px 0 0 0;">
             <a href="${FRONTEND_DOMAIN}" style="color: #ffffff; text-decoration: none;">AKSAR</a> | 
             <a href="${FRONTEND_DOMAIN}/privacy" style="color: #ffffff; text-decoration: none;">Privacy Policy</a>
@@ -170,7 +170,7 @@ exports.EMAIL_TEMPLATES = {
           </p>
         </div>
         <div class="footer">
-          <p style="margin: 0;">&copy; 2024 AKSAR. All rights reserved.</p>
+          <p style="margin: 0;">&copy; 2026 AKSAR. All rights reserved.</p>
           <p style="margin: 10px 0 0 0;">
             <a href="${FRONTEND_DOMAIN}" style="color: #ffffff; text-decoration: none;">AKSAR</a> | 
             <a href="${FRONTEND_DOMAIN}/privacy" style="color: #ffffff; text-decoration: none;">Privacy Policy</a>
@@ -234,7 +234,7 @@ exports.EMAIL_TEMPLATES = {
           </p>
         </div>
         <div class="footer">
-          <p style="margin: 0;">&copy; 2024 AKSAR. All rights reserved.</p>
+          <p style="margin: 0;">&copy; 2026 AKSAR. All rights reserved.</p>
           <p style="margin: 10px 0 0 0;">
             <a href="${FRONTEND_DOMAIN}" style="color: #ffffff; text-decoration: none;">AKSAR</a> | 
             <a href="${FRONTEND_DOMAIN}/privacy" style="color: #ffffff; text-decoration: none;">Privacy Policy</a>
@@ -294,7 +294,7 @@ exports.EMAIL_TEMPLATES = {
           </p>
         </div>
         <div class="footer">
-          <p style="margin: 0;">&copy; 2024 AKSAR. All rights reserved.</p>
+          <p style="margin: 0;">&copy; 2026 AKSAR. All rights reserved.</p>
           <p style="margin: 10px 0 0 0;">
             <a href="${FRONTEND_DOMAIN}" style="color: #ffffff; text-decoration: none;">AKSAR</a> | 
             <a href="${FRONTEND_DOMAIN}/privacy" style="color: #ffffff; text-decoration: none;">Privacy Policy</a>
@@ -356,7 +356,7 @@ exports.EMAIL_TEMPLATES = {
           </p>
         </div>
         <div class="footer">
-          <p style="margin: 0;">&copy; 2024 AKSAR. All rights reserved.</p>
+          <p style="margin: 0;">&copy; 2026 AKSAR. All rights reserved.</p>
           <p style="margin: 10px 0 0 0;">
             <a href="${FRONTEND_DOMAIN}" style="color: #ffffff; text-decoration: none;">AKSAR</a> | 
             <a href="${FRONTEND_DOMAIN}/privacy" style="color: #ffffff; text-decoration: none;">Privacy Policy</a>
@@ -415,7 +415,71 @@ exports.EMAIL_TEMPLATES = {
           </p>
         </div>
         <div class="footer">
-          <p style="margin: 0;">&copy; 2024 AKSAR. All rights reserved.</p>
+          <p style="margin: 0;">&copy; 2026 AKSAR. All rights reserved.</p>
+          <p style="margin: 10px 0 0 0;">
+            <a href="${FRONTEND_DOMAIN}" style="color: #ffffff; text-decoration: none;">AKSAR</a> | 
+            <a href="${FRONTEND_DOMAIN}/privacy" style="color: #ffffff; text-decoration: none;">Privacy Policy</a>
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
+    /**
+     * Password Reset Success Template
+     */
+    PASSWORD_RESET_SUCCESS: () => `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Password Reset Successful - AKSAR</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #1a1a2e; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #16213e 0%, #0f3460 100%); padding: 40px 30px; text-align: center; }
+        .logo { max-width: 180px; height: auto; margin-bottom: 20px; }
+        .content { padding: 40px 30px; background-color: #ffffff; }
+        .success-box { background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); padding: 30px; text-align: center; border-radius: 10px; margin: 30px 0; border: 3px solid #0f3460; }
+        .success-icon { font-size: 64px; margin-bottom: 15px; }
+        .button { display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #0f3460 0%, #16213e 100%); color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+        .warning { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; }
+        .footer { background-color: #16213e; padding: 30px; text-align: center; font-size: 12px; color: #e0e0e0; }
+        a { color: #0f3460; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <img src="${LOGO_URL}" alt="AKSAR Logo" class="logo">
+          <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Password Reset Successful!</h1>
+        </div>
+        <div class="content">
+          <div class="success-box">
+            <div class="success-icon">✅</div>
+            <h2 style="color: #0f3460; margin: 0 0 15px 0;">Your Password Has Been Changed</h2>
+            <p style="color: #333; line-height: 1.6; margin: 0;">
+              Your password has been successfully reset. You can now log in with your new password.
+            </p>
+          </div>
+          <div class="warning">
+            <p style="margin: 0; color: #856404; font-size: 14px;">
+              <strong>🔒 Security Notice:</strong> If you did not request this password change, please contact us immediately at <a href="mailto:support@aksar.com" style="color: #856404;">support@aksar.com</a>
+            </p>
+          </div>
+          <p style="font-size: 16px; color: #333; line-height: 1.6; margin-top: 30px;">
+            Ready to log in? Click the button below:
+          </p>
+          <div style="text-align: center; margin-top: 20px;">
+            <a href="${FRONTEND_DOMAIN}/login" class="button">Log In Now</a>
+          </div>
+          <p style="font-size: 14px; color: #666; margin-top: 30px;">
+            Need help? Contact us at <a href="mailto:support@aksar.com" style="color: #0f3460;">support@aksar.com</a>
+          </p>
+        </div>
+        <div class="footer">
+          <p style="margin: 0;">&copy; 2026 AKSAR. All rights reserved.</p>
           <p style="margin: 10px 0 0 0;">
             <a href="${FRONTEND_DOMAIN}" style="color: #ffffff; text-decoration: none;">AKSAR</a> | 
             <a href="${FRONTEND_DOMAIN}/privacy" style="color: #ffffff; text-decoration: none;">Privacy Policy</a>

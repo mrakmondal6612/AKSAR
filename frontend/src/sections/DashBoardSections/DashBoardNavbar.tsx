@@ -89,7 +89,7 @@ const DashBoardNavbar: React.FC = () => {
             </nav>
           </div>
 
-          {(userData.role === "ADMIN" || userData.role === "MASTER" || userData.role === "INSTRUCTOR") ? (
+          {(userData.role === "ADMIN" || userData.role === "MASTER") ? (
               <div className="flex flex-col gap-2">
                 <div className={`my-0 py-2 flex flex-col ${isSideBarOpen ? "items-start w-full" : "items-center w-full"}`}>
                   {isSideBarOpen && (
