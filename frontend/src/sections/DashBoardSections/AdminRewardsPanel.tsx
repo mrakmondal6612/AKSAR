@@ -734,11 +734,11 @@ const AdminRewardsPanel: React.FC = () => {
               {/* Popular Redemption counts */}
               <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 shadow-md">
                 <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-6">Popular Store Items</h3>
-                {analytics?.redemptionCounts.length === 0 ? (
+                {(!analytics || !analytics.redemptionCounts || analytics.redemptionCounts.length === 0) ? (
                   <div className="text-center py-8 text-gray-400">No redemptions recorded yet.</div>
                 ) : (
                   <div className="space-y-4">
-                    {analytics?.redemptionCounts.map((item, idx) => (
+                    {analytics.redemptionCounts.map((item, idx) => (
                       <div key={idx} className="flex justify-between items-center bg-gray-50 dark:bg-gray-950 p-4 rounded-2xl border border-gray-100 dark:border-gray-900">
                         <div>
                           <span className="text-sm font-bold text-gray-800 dark:text-white">{item.name}</span>
@@ -760,14 +760,14 @@ const AdminRewardsPanel: React.FC = () => {
                   <AlertTriangle className="text-rose-500" size={20} />
                   <h3 className="text-lg font-bold text-gray-800 dark:text-white">Abuse & Farming Alerts</h3>
                 </div>
-                {analytics?.farmingAlerts.length === 0 ? (
+                {(!analytics || !analytics.farmingAlerts || analytics.farmingAlerts.length === 0) ? (
                   <div className="text-center py-8 text-gray-400 flex flex-col items-center gap-1">
                     <CheckCircle2 className="text-emerald-500" size={32} />
                     <span>No suspicious point accumulation detected today.</span>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {analytics?.farmingAlerts.map((user, idx) => (
+                    {analytics.farmingAlerts.map((user, idx) => (
                       <div key={idx} className="flex justify-between items-center bg-rose-500/5 border border-rose-500/20 p-4 rounded-2xl">
                         <div>
                           <span className="text-sm font-bold text-gray-800 dark:text-white">{user.username}</span>
