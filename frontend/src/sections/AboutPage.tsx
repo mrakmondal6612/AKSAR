@@ -191,7 +191,7 @@ const AboutPage: React.FC = () => {
               },
               {
                 name: "Samadrita Himaktar",
-                role: "Business Administrator",
+                role: "Front End Developer",
                 image: "/images/Samadrita.jpg",
                 github: "https://github.com/Samadrita-04",
                 linkedin: "https://www.linkedin.com/in/samadrita-himaktar-2796b3256/"
@@ -205,8 +205,8 @@ const AboutPage: React.FC = () => {
               },
               {
                 name: "Rohan Pratihar",
-                role: "Head of Marketing",
-                image: "/images/Rohan.jpg",
+                role: "Supporting Member",
+                image: "/images/Rohan.jpeg",
                 github: "https://github.com/imkumarkuntalkundu",
                 linkedin: "https://www.linkedin.com/in/rohan-pratihar-5528a8276?trk=blended-typeahead"
               }
