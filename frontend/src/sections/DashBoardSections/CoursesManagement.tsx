@@ -15,7 +15,7 @@ import {
     Select,
     SelectItem,
 } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { COURSE_API } from "@/lib/env";
 import { getVerifiedToken } from "@/lib/cookieService";
@@ -55,6 +55,7 @@ const CourseTypeChip: React.FC<{ type: string }> = ({ type }) => {
 // ─── Main Component ───────────────────────────────────────────────────────────
 const CoursesManagement: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [courses, setCourses] = React.useState<ICourseExtended[]>([]);
     const [filtered, setFiltered] = React.useState<ICourseExtended[]>([]);
     const [loading, setLoading] = React.useState(true);
@@ -413,6 +414,18 @@ const CoursesManagement: React.FC = () => {
                                         onClick={() => navigate(`/course-intro-page?c=${course.courseId}`)}
                                     >
                                         Edit
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="flat"
+                                        color="secondary"
+                                        className="font-ubuntu text-xs flex-1"
+                                        onClick={() => {
+                                            const prefix = location.pathname.startsWith("/admin") ? "/admin" : "/user";
+                                            navigate(`${prefix}/add-videos?c=${course.courseId}&name=${encodeURIComponent(course.courseName)}`);
+                                        }}
+                                    >
+                                        Videos
                                     </Button>
                                     <Button
                                         size="sm"
