@@ -228,8 +228,68 @@ export const handleGetAdminStats = async (req: AuthenticatedAdminRequest, res: R
       Redemption.countDocuments({ status: RedemptionStatus.PENDING }),
     ]);
 
-    const completedRedemptions = await Redemption.find({ status: RedemptionStatus.COMPLETED });
+    const completedRedemptions = await Redemption.find({ status: RedemptionStatus.COMPLETED }).populate("reward");
     const totalPointsSpent = completedRedemptions.reduce((sum, r) => sum + r.pointsSpent, 0);
+
+    // Group redemptions by reward to get item metrics
+    const itemMap: { [key: string]: { name: string; type: string; count: number; pointsSpent: number } } = {};
+    for (const redemption of completedRedemptions) {
+      const reward = redemption.reward as any;
+      if (reward) {
+        if (!itemMap[reward.rewardId]) {
+          itemMap[reward.rewardId] = {
+            name: reward.name,
+            type: reward.type,
+            count: 0,
+            pointsSpent: 0
+          };
+        }
+        itemMap[reward.rewardId].count += 1;
+        itemMap[reward.rewardId].pointsSpent += redemption.pointsSpent;
+      }
+    }
+    const redemptionCounts = Object.values(itemMap);
+
+    // Suspicious farming alert logic: students who earned >= 300 points in the last 24h
+    const dayAgo = new Date();
+    dayAgo.setDate(dayAgo.getDate() - 1);
+
+    const transactions = await Transaction.find({
+      type: TransactionType.EARNED,
+      createdAt: { $gte: dayAgo }
+    });
+
+    const userPointsMap: { [key: string]: number } = {};
+    for (const tx of transactions) {
+      userPointsMap[tx.user] = (userPointsMap[tx.user] || 0) + tx.points;
+    }
+
+    const farmingAlerts: any[] = [];
+    for (const [userId, points] of Object.entries(userPointsMap)) {
+      if (points >= 300) {
+        const u = await User.findOne({ uniqueId: userId });
+        if (u) {
+          farmingAlerts.push({
+            _id: u._id.toString(),
+            username: u.userName,
+            email: u.email,
+            todayEarned: points
+          });
+        }
+      }
+    }
+
+    // Calculate total earned/spent points in system
+    const allTransactions = await Transaction.find({});
+    const totalEarnedPoints = allTransactions
+      .filter((t) => t.type === TransactionType.EARNED || (t.type === TransactionType.ADMIN_ADJUSTMENT && t.points > 0))
+      .reduce((sum, t) => sum + t.points, 0);
+    
+    const totalSpentPoints = Math.abs(
+      allTransactions
+        .filter((t) => t.type === TransactionType.SPENT || (t.type === TransactionType.ADMIN_ADJUSTMENT && t.points < 0))
+        .reduce((sum, t) => sum + t.points, 0)
+    );
 
     return res.status(200).json({
       success: true,
@@ -238,6 +298,10 @@ export const handleGetAdminStats = async (req: AuthenticatedAdminRequest, res: R
         totalRedeemed,
         pendingRedeemed,
         totalPointsSpent,
+        totalEarnedPoints,
+        totalSpentPoints,
+        redemptionCounts,
+        farmingAlerts
       },
     });
   } catch (error) {
