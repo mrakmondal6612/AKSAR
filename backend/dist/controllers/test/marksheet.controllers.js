@@ -12,16 +12,17 @@ const TestAttempt_model_1 = __importDefault(require("../../models/TestAttempt.mo
 const handleGetUserMarksheetsFunction = async (req, res) => {
     try {
         const userId = req.userUniqueId || req.user?.uniqueId;
+        const mongoUserId = req.userId; // MongoDB _id
         const { courseId } = req.query;
-        console.log("Fetching marksheets for userId:", userId);
-        console.log("userUniqueId from req:", req.userUniqueId);
-        const filter = { user: userId };
+        console.log("Fetching marksheets for userId:", userId, "mongoUserId:", mongoUserId);
+        // Admin-created certificates may store user.uniqueId OR user._id.toString()
+        // So we must query for both to ensure all certificates are shown
+        const userValues = [userId, mongoUserId].filter(Boolean);
+        const filter = { user: { $in: userValues } };
         if (courseId)
             filter.course = courseId;
         const marksheets = await Marksheet_model_1.default.find(filter).sort({ completionDate: -1 });
-        const allMarksheets = await Marksheet_model_1.default.find({}).limit(5);
-        console.log("Found marksheets for user:", marksheets.length);
-        console.log("Sample marksheet users in DB:", allMarksheets.map(m => m.user));
+        console.log(`[Marksheet] Found ${marksheets.length} marksheets for user: ${userId}`);
         // Manually populate test & course details by matching custom string IDs
         const testIds = marksheets.map((m) => m.test).filter(Boolean);
         const courseIds = marksheets.map((m) => m.course).filter(Boolean);
@@ -125,7 +126,8 @@ exports.handleGetMarksheetByIdFunction = handleGetMarksheetByIdFunction;
 const handleDownloadCertificateFunction = async (req, res) => {
     try {
         const { marksheetId } = req.params;
-        const userId = req.user?.uniqueId || req.userUniqueId;
+        const userId = req.userUniqueId || req.user?.uniqueId;
+        const mongoUserId = req.userId; // MongoDB _id
         const marksheet = await Marksheet_model_1.default.findOne({ marksheetId });
         if (!marksheet) {
             return res.status(404).json({
@@ -133,7 +135,9 @@ const handleDownloadCertificateFunction = async (req, res) => {
                 message: "Marksheet not found",
             });
         }
-        if (marksheet.user !== userId) {
+        // Allow validation against both uniqueId and MongoDB _id
+        const userValues = [userId, mongoUserId].filter(Boolean);
+        if (!userValues.includes(marksheet.user)) {
             return res.status(403).json({
                 success: false,
                 message: "You don't have permission to download this certificate",

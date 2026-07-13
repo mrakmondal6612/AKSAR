@@ -739,8 +739,8 @@ const CertificateManagement: React.FC = () => {
                       className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm mt-1"
                     >
                       <option value="COURSE_COMPLETE">Course Completion</option>
-                      <option value="TEST_PASS">Test Pass</option>
-                      <option value="ACHIEVEMENT">Achievement</option>
+                      <option value="TEST_RESULT">Test Pass</option>
+                      <option value="OTHERS">Achievement / Others</option>
                     </select>
                   </div>
 

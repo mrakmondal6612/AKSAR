@@ -1,11 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Award, Download, Calendar, User, CheckCircle, Printer } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getMarksheetById, downloadCertificate } from "@/lib/testService";
+import {
+  Download,
+  Linkedin,
+  Twitter,
+  Link2,
+  ArrowLeft
+} from "lucide-react";
+import { getMarksheetById } from "@/lib/testService";
 import LoadingScreen from "@/components/LoadingScreen";
+import { SuccessToast, ErrorToast } from "@/lib/toasts";
+import CertificateTemplate from "@/components/CertificateTemplate";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface CertificateData {
   marksheetId: string;
@@ -13,16 +22,17 @@ interface CertificateData {
     firstName: string;
     lastName: string;
     email: string;
+    userName: string;
   };
-  test: {
+  test?: {
     title: string;
     description: string;
     difficulty: string;
-  };
-  course: {
+  } | null;
+  course?: {
     courseName: string;
     thumbnail: string;
-  };
+  } | null;
   score: number;
   totalPoints: number;
   percentage: number;
@@ -43,9 +53,12 @@ const CertificateView: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
+  const certificateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadCertificate();
+    if (marksheetId) {
+      loadCertificate();
+    }
   }, [marksheetId]);
 
   const loadCertificate = async () => {
@@ -55,40 +68,93 @@ const CertificateView: React.FC = () => {
       setCertificate(data);
     } catch (error: any) {
       console.error("Failed to load certificate:", error);
-      console.error("Error details:", error.response?.data);
+      ErrorToast("Failed to load certificate details");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDownload = async () => {
+  const handleExportAsPDF = async () => {
+    if (!certificateRef.current || !certificate) return;
+
     try {
-      await downloadCertificate(marksheetId!);
+      const canvas = await html2canvas(certificateRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("landscape", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = (pdfHeight - imgHeight * ratio) / 2;
+
+      pdf.addImage(imgData, "PNG", imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      pdf.save(`${certificate.user.firstName}_${certificate.user.lastName}_certificate.pdf`);
+      SuccessToast("Certificate exported as PDF");
     } catch (error) {
-      console.error("Failed to download certificate:", error);
+      ErrorToast("Failed to export certificate as PDF");
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleExportAsImage = async () => {
+    if (!certificateRef.current || !certificate) return;
+
+    try {
+      const canvas = await html2canvas(certificateRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+
+      const link = document.createElement("a");
+      link.download = `${certificate.user.firstName}_${certificate.user.lastName}_certificate.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      SuccessToast("Certificate exported as image");
+    } catch (error) {
+      ErrorToast("Failed to export certificate as image");
+    }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const handleShareLinkedIn = () => {
+    if (!certificate) return;
+    const certificateUrl = `${window.location.origin}/certificateView/${certificate.marksheetId}`;
+    const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(certificateUrl)}`;
+    window.open(shareUrl, "_blank", "width=600,height=400");
+  };
+
+  const handleShareTwitter = () => {
+    if (!certificate) return;
+    const courseName = certificate.course?.courseName ?? "Course";
+    const text = `I just completed ${courseName} on AKSAR! 🎓`;
+    const certificateUrl = `${window.location.origin}/certificateView/${certificate.marksheetId}`;
+    const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(certificateUrl)}`;
+    window.open(shareUrl, "_blank", "width=600,height=400");
+  };
+
+  const handleCopyLink = () => {
+    if (!certificate) return;
+    const certificateUrl = `${window.location.origin}/certificateView/${certificate.marksheetId}`;
+    navigator.clipboard.writeText(certificateUrl);
+    SuccessToast("Certificate link copied to clipboard");
   };
 
   if (loading) return <LoadingScreen />;
+
   if (!certificate) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardContent className="py-12 text-center">
-            <p className="text-slate-600 dark:text-slate-400">Certificate not found</p>
-            <Button onClick={() => navigate("/marksheet")} className="mt-4">
+            <p className="text-slate-600 dark:text-slate-400 mb-4">Certificate not found</p>
+            <Button onClick={() => navigate("/user/marksheet")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
               Go Back
             </Button>
           </CardContent>
@@ -97,139 +163,70 @@ const CertificateView: React.FC = () => {
     );
   }
 
-  if (!certificate.passed) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md shadow-lg">
-          <CardContent className="py-12 text-center">
-            <Award className="h-16 w-16 mx-auto mb-4 text-slate-400" />
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
-              Certificate Not Available
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-4">
-              Certificates are only issued for passed tests
-            </p>
-            <Button onClick={() => navigate("/marksheet")}>Back to Marksheets</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Actions */}
-        <div className="flex justify-end gap-3 mb-6">
-          <Button variant="outline" onClick={() => navigate("/marksheet")}>
-            Back
-          </Button>
-          <Button variant="outline" onClick={handlePrint}>
-            <Printer className="h-4 w-4 mr-2" />
-            Print
-          </Button>
-          <Button onClick={handleDownload} className="bg-blue-600 hover:bg-blue-700">
-            <Download className="h-4 w-4 mr-2" />
-            Download
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900/40 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex justify-between items-center">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/user/marksheet")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Marksheets
           </Button>
         </div>
 
-        {/* Certificate */}
-        <Card className="shadow-2xl overflow-hidden" id="certificate">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white text-center">
-            <Award className="h-16 w-16 mx-auto mb-4" />
-            <h1 className="text-4xl font-bold mb-2">Certificate of Completion</h1>
-            <p className="text-blue-100">This certifies that</p>
-          </div>
-
-          <CardContent className="p-8 space-y-8">
-            {/* User Name */}
-            <div className="text-center space-y-2">
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-                {certificate.user.firstName} {certificate.user.lastName}
-              </h2>
-              <p className="text-slate-600 dark:text-slate-400">{certificate.user.email}</p>
-            </div>
-
-            {/* Course Info */}
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-6 text-center">
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                has successfully completed the test
-              </p>
-              <h3 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                {certificate.test.title}
-              </h3>
-              <p className="text-slate-600 dark:text-slate-400">{certificate.course.courseName}</p>
-            </div>
-
-            {/* Score & Grade */}
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-                <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                  {certificate.percentage.toFixed(0)}%
-                </div>
-                <div className="text-sm text-green-700 dark:text-green-300">Score</div>
-              </div>
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                  {certificate.grade}
-                </div>
-                <div className="text-sm text-blue-700 dark:text-blue-300">Grade</div>
-              </div>
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                  {certificate.pointsEarned}
-                </div>
-                <div className="text-sm text-purple-700 dark:text-purple-300">Points</div>
-              </div>
-            </div>
-
-            {/* Details */}
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                <Calendar className="h-4 w-4" />
-                <span>Completed: {formatDate(certificate.completionDate)}</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                <User className="h-4 w-4" />
-                <span>Rank: #{certificate.rank || "N/A"}</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                <span>Score: {certificate.score}/{certificate.totalPoints}</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                <span>Percentile: {certificate.percentile?.toFixed(0) || "N/A"}%</span>
-              </div>
-            </div>
-
-            {/* Skills */}
-            {certificate.skillsDemonstrated && certificate.skillsDemonstrated.length > 0 && (
-              <div>
-                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">
-                  Skills Demonstrated
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {certificate.skillsDemonstrated.map((skill, index) => (
-                    <Badge key={index} variant="outline" className="bg-slate-100 dark:bg-slate-800">
-                      {skill}
-                    </Badge>
-                  ))}
+        <Card className="border-2 border-slate-200 dark:border-slate-800 shadow-xl">
+          <CardContent className="p-4 md:p-8 space-y-6">
+            <div className="bg-white p-2 md:p-4 rounded-xl overflow-x-auto shadow-inner border border-slate-100 dark:border-slate-800">
+              <div className="min-w-[800px] md:min-w-full">
+                <div ref={certificateRef}>
+                  <CertificateTemplate certificate={certificate as any} />
                 </div>
               </div>
-            )}
-
-            {/* Verification */}
-            <div className="border-t border-slate-200 dark:border-slate-700 pt-6 text-center">
-              <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
-                <CheckCircle className="h-5 w-5" />
-                <span className="font-semibold">Verified Certificate</span>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Certificate ID: {certificate.marksheetId}
-              </p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Issued by AKSAR Learning Platform
-              </p>
+            </div>
+            
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={handleExportAsPDF}
+                className="bg-white dark:bg-slate-800 shadow-sm border-slate-200 hover:border-blue-400 dark:border-slate-700"
+              >
+                <Download className="h-4 w-4 mr-2 text-blue-500" />
+                Export as PDF
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleExportAsImage}
+                className="bg-white dark:bg-slate-800 shadow-sm border-slate-200 hover:border-green-400 dark:border-slate-700"
+              >
+                <Download className="h-4 w-4 mr-2 text-green-500" />
+                Export as Image
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleShareLinkedIn}
+                className="bg-white dark:bg-slate-800 shadow-sm border-slate-200 hover:border-blue-600 dark:border-slate-700"
+              >
+                <Linkedin className="h-4 w-4 mr-2 text-blue-700" />
+                Share on LinkedIn
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleShareTwitter}
+                className="bg-white dark:bg-slate-800 shadow-sm border-slate-200 hover:border-sky-400 dark:border-slate-700"
+              >
+                <Twitter className="h-4 w-4 mr-2 text-sky-400" />
+                Share on Twitter
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCopyLink}
+                className="bg-white dark:bg-slate-800 shadow-sm border-slate-200 hover:border-purple-400 dark:border-slate-700"
+              >
+                <Link2 className="h-4 w-4 mr-2 text-purple-500" />
+                Copy Link
+              </Button>
             </div>
           </CardContent>
         </Card>

@@ -64,6 +64,7 @@ async function handleCreateOrderFunction(req, res) {
             courseName: course.courseName,
             amount: course.sellingPrice,
             currency: course.currency || "INR",
+            keyId: process.env.RAZORPAY_KEY_ID, // Send the configured Key ID dynamically
         });
     }
     catch (error) {

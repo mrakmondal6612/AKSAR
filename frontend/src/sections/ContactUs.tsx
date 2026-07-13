@@ -189,8 +189,8 @@ const ContactUs: React.FC = () => {
                   </span>
                   <div>
                     <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">Support Email</p>
-                    <a href="mailto:support@aksar.com" className="text-sm font-medium hover:underline text-neutral-800 dark:text-white">
-                      support@aksar.com
+                    <a href="mailto:mr.aktv2529@gmail.com" className="text-sm font-medium hover:underline text-neutral-800 dark:text-white">
+                      mr.aktv2529@gmail.com
                     </a>
                   </div>
                 </div>
@@ -201,9 +201,21 @@ const ContactUs: React.FC = () => {
                   </span>
                   <div>
                     <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">Phone Hotline</p>
-                    <a href="tel:+15551234567" className="text-sm font-medium hover:underline text-neutral-800 dark:text-white">
-                      +1 (555) 123-4567
+                    <a href="tel:+919547558322" className="text-sm font-medium hover:underline text-neutral-800 dark:text-white">
+                      +91 95475 58322
                     </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/40 text-teal-650 dark:text-teal-400 shrink-0 text-sm">
+                    📍
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">Address</p>
+                    <p className="text-sm font-medium text-neutral-800 dark:text-white">
+                      Hoogly, West Bengal, India
+                    </p>
                   </div>
                 </div>
 

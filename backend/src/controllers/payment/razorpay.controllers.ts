@@ -73,6 +73,7 @@ export async function handleCreateOrderFunction(req: AuthenticatedRequest, res: 
       courseName: course.courseName,
       amount: course.sellingPrice,
       currency: course.currency || "INR",
+      keyId: process.env.RAZORPAY_KEY_ID, // Send the configured Key ID dynamically
     });
   } catch (error) {
     console.error("Error creating Razorpay order:", error);

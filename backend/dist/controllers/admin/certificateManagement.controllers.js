@@ -292,13 +292,7 @@ const handleCreateCertificate = async (req, res) => {
                 message: "Invalid certificate type",
             });
         }
-        // For TEST_RESULT type, testId is required
-        if (certificateType === Marksheet_model_2.CertificateType.TEST_RESULT && !testId) {
-            return res.status(400).json({
-                success: false,
-                message: "testId is required for TEST_RESULT certificate type",
-            });
-        }
+        // testId is optional even for TEST_RESULT – admin may create manually
         // Dropdown sends MongoDB _id for user — look up by _id
         const user = await User_model_1.default.findById(userId);
         if (!user) {

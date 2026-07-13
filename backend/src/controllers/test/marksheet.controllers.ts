@@ -11,18 +11,19 @@ export const handleGetUserMarksheetsFunction = async (
 ) => {
   try {
     const userId = (req as any).userUniqueId || (req as any).user?.uniqueId;
+    const mongoUserId = (req as any).userId; // MongoDB _id
     const { courseId } = req.query;
 
-    console.log("Fetching marksheets for userId:", userId);
-    console.log("userUniqueId from req:", (req as any).userUniqueId);
+    console.log("Fetching marksheets for userId:", userId, "mongoUserId:", mongoUserId);
 
-    const filter: any = { user: userId };
+    // Admin-created certificates may store user.uniqueId OR user._id.toString()
+    // So we must query for both to ensure all certificates are shown
+    const userValues = [userId, mongoUserId].filter(Boolean);
+    const filter: any = { user: { $in: userValues } };
     if (courseId) filter.course = courseId;
 
     const marksheets = await Marksheet.find(filter).sort({ completionDate: -1 });
-    const allMarksheets = await Marksheet.find({}).limit(5);
-    console.log("Found marksheets for user:", marksheets.length);
-    console.log("Sample marksheet users in DB:", allMarksheets.map(m => m.user));
+    console.log(`[Marksheet] Found ${marksheets.length} marksheets for user: ${userId}`);
 
     // Manually populate test & course details by matching custom string IDs
     const testIds = marksheets.map((m) => m.test).filter(Boolean);
@@ -145,7 +146,8 @@ export const handleDownloadCertificateFunction = async (
 ) => {
   try {
     const { marksheetId } = req.params;
-    const userId = (req as any).user?.uniqueId || (req as any).userUniqueId;
+    const userId = (req as any).userUniqueId || (req as any).user?.uniqueId;
+    const mongoUserId = (req as any).userId; // MongoDB _id
 
     const marksheet = await Marksheet.findOne({ marksheetId });
     if (!marksheet) {
@@ -155,7 +157,9 @@ export const handleDownloadCertificateFunction = async (
       });
     }
 
-    if (marksheet.user !== userId) {
+    // Allow validation against both uniqueId and MongoDB _id
+    const userValues = [userId, mongoUserId].filter(Boolean);
+    if (!userValues.includes(marksheet.user)) {
       return res.status(403).json({
         success: false,
         message: "You don't have permission to download this certificate",

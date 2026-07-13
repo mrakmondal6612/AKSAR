@@ -270,9 +270,9 @@ const CourseIntroPage: React.FC = () => {
       );
 
       if (response.data.success) {
-        const { order, courseName } = response.data;
-        const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
-        console.log("Razorpay key:", razorpayKey);
+        const { order, courseName, keyId } = response.data;
+        const razorpayKey = keyId || import.meta.env.VITE_RAZORPAY_KEY_ID;
+        console.log("Razorpay key used:", razorpayKey);
         
         if (!razorpayKey) {
           ErrorToast("Razorpay key not configured. Please check environment variables.");

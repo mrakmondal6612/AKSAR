@@ -11,15 +11,15 @@ interface Marksheet {
   _id: string;
   marksheetId: string;
   user: string;
-  test: {
+  test?: {
     title: string;
     description: string;
     difficulty: string;
-  };
-  course: {
+  } | null;
+  course?: {
     courseName: string;
     thumbnail: string;
-  };
+  } | null;
   score: number;
   totalPoints: number;
   percentage: number;
@@ -148,10 +148,10 @@ const MarksheetPortal: React.FC = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-lg mb-1">
-                        {marksheet.test.title}
+                        {marksheet.test?.title ?? marksheet.course?.courseName ?? "Certificate"}
                       </CardTitle>
                       <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {marksheet.course.courseName}
+                        {marksheet.course?.courseName ?? ""}
                       </p>
                     </div>
                     <Badge className={getGradeColor(marksheet.grade)} variant="outline">
@@ -206,7 +206,7 @@ const MarksheetPortal: React.FC = () => {
                       className="flex-1"
                       onClick={() => {
                         console.log("Navigating to marksheet:", marksheet.marksheetId);
-                        navigate(`/marksheet/${marksheet.marksheetId}`);
+                        navigate(`/user/marksheet/${marksheet.marksheetId}`);
                       }}
                     >
                       View Details
@@ -215,7 +215,7 @@ const MarksheetPortal: React.FC = () => {
                       <Button
                         size="sm"
                         className="flex-1 bg-blue-600 hover:bg-blue-700"
-                        onClick={() => handleDownloadCertificate(marksheet.marksheetId)}
+                        onClick={() => navigate(`/user/marksheet/${marksheet.marksheetId}`)}
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Certificate
