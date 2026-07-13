@@ -4,7 +4,7 @@ import { FileText, Download, Calendar, Award, TrendingUp, Filter, ArrowLeft } fr
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getUserMarksheets, downloadCertificate } from "@/lib/testService";
+import { getUserMarksheets } from "@/lib/testService";
 import LoadingScreen from "@/components/LoadingScreen";
 
 interface Marksheet {
@@ -61,14 +61,6 @@ const MarksheetPortal: React.FC = () => {
       console.error("Failed to load marksheets:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDownloadCertificate = async (marksheetId: string) => {
-    try {
-      await downloadCertificate(marksheetId);
-    } catch (error) {
-      console.error("Failed to download certificate:", error);
     }
   };
 
