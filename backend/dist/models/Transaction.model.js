@@ -33,37 +33,26 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.TransactionType = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+var TransactionType;
+(function (TransactionType) {
+    TransactionType["EARNED"] = "EARNED";
+    TransactionType["SPENT"] = "SPENT";
+    TransactionType["ADMIN_ADJUSTMENT"] = "ADMIN_ADJUSTMENT";
+})(TransactionType || (exports.TransactionType = TransactionType = {}));
 const transactionSchema = new mongoose_1.Schema({
     transactionId: { type: String, required: true, unique: true },
     user: { type: String, ref: "User", required: true },
     points: { type: Number, required: true },
     type: {
         type: String,
-        enum: ["EARNED", "SPENT", "ADMIN_ADJUSTMENT"],
+        enum: Object.values(TransactionType),
         required: true,
     },
-    activityType: {
-        type: String,
-        enum: [
-            "DAILY_LOGIN",
-            "LESSON_COMPLETE",
-            "QUIZ_COMPLETE",
-            "QUIZ_BONUS",
-            "MOCK_TEST",
-            "STREAK_BONUS",
-            "DOUBT_ANSWER",
-            "NOTE_UPLOAD",
-            "COURSE_COMPLETE",
-            "REFERRAL",
-            "REDEEM_REWARD",
-            "ADMIN_ADJUST",
-        ],
-        required: true,
-    },
+    activityType: { type: String, required: true },
     description: { type: String, required: true },
-    idempotencyKey: { type: String, required: true, unique: true },
 }, { timestamps: true });
-const Transaction = mongoose_1.default.models.Transaction ||
+const TransactionModel = mongoose_1.default.models.Transaction ||
     mongoose_1.default.model("Transaction", transactionSchema);
-exports.default = Transaction;
+exports.default = TransactionModel;

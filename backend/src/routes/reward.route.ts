@@ -1,32 +1,45 @@
 import express from "express";
 import { authenticateToken, authenticateAdminToken } from "../middleware/auth.middleware";
 import {
-  handleGetStoreRewards,
-  handleClaimDailyLogin,
+  handleClaimDaily,
+  handleGetStore,
   handleRedeemReward,
   handleGetMyRewards,
-  handleGetTransactionHistory,
-  handleAdminAdjustPoints,
-  handleAdminGetAnalytics,
-  handleAdminAddReward,
-  handleAdminUpdateReward,
-  handleAdminDeleteReward,
-} from "../controllers/user/reward.controllers";
+  handleGetHistory,
+  handleCreatePointsOrder,
+  handleVerifyPointsPurchase,
+} from "../controllers/rewards/rewards.controllers";
+import {
+  handleGetAdminRewards,
+  handleCreateRewardItem,
+  handleUpdateRewardItem,
+  handleDeleteRewardItem,
+  handleGetAllRedemptionsAdmin,
+  handleProcessRedemption,
+  handleGetAdminStats,
+  handleAdjustPointsAdmin,
+} from "../controllers/rewards/adminRewards.controllers";
 
 const rewardRoute = express.Router();
 
-// User Reward Routes
-rewardRoute.get("/store", authenticateToken, handleGetStoreRewards);
-rewardRoute.post("/claim-daily", authenticateToken, handleClaimDailyLogin);
-rewardRoute.post("/redeem", authenticateToken, handleRedeemReward);
+// ── User Rewards System Routes ──
+rewardRoute.get("/store", authenticateToken, handleGetStore);
 rewardRoute.get("/my-rewards", authenticateToken, handleGetMyRewards);
-rewardRoute.get("/history", authenticateToken, handleGetTransactionHistory);
+rewardRoute.get("/history", authenticateToken, handleGetHistory);
+rewardRoute.post("/claim-daily", authenticateToken, handleClaimDaily);
+rewardRoute.post("/redeem", authenticateToken, handleRedeemReward);
+rewardRoute.post("/purchase-points", authenticateToken, handleCreatePointsOrder);
+rewardRoute.post("/verify-points", authenticateToken, handleVerifyPointsPurchase);
 
-// Admin Reward Routes
-rewardRoute.post("/admin/adjust", authenticateAdminToken, handleAdminAdjustPoints);
-rewardRoute.get("/admin/analytics", authenticateAdminToken, handleAdminGetAnalytics);
-rewardRoute.post("/admin/add-reward", authenticateAdminToken, handleAdminAddReward);
-rewardRoute.put("/admin/rewards/:rewardId", authenticateAdminToken, handleAdminUpdateReward);
-rewardRoute.delete("/admin/rewards/:rewardId", authenticateAdminToken, handleAdminDeleteReward);
+// ── Admin Rewards System Routes ──
+rewardRoute.get("/admin/store", authenticateAdminToken, handleGetAdminRewards);
+rewardRoute.get("/admin/stats", authenticateAdminToken, handleGetAdminStats);
+rewardRoute.get("/admin/analytics", authenticateAdminToken, handleGetAdminStats);
+rewardRoute.get("/admin/redemptions", authenticateAdminToken, handleGetAllRedemptionsAdmin);
+rewardRoute.post("/admin/create", authenticateAdminToken, handleCreateRewardItem);
+rewardRoute.put("/admin/update/:rewardId", authenticateAdminToken, handleUpdateRewardItem);
+rewardRoute.delete("/admin/delete/:rewardId", authenticateAdminToken, handleDeleteRewardItem);
+rewardRoute.put("/admin/process/:redemptionId", authenticateAdminToken, handleProcessRedemption);
+rewardRoute.post("/admin/adjust", authenticateAdminToken, handleAdjustPointsAdmin);
 
 export default rewardRoute;

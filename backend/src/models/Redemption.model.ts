@@ -1,14 +1,23 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+export enum RedemptionStatus {
+  PENDING = "PENDING",
+  COMPLETED = "COMPLETED",
+  REJECTED = "REJECTED",
+}
+
 export interface IRedemption extends Document {
   redemptionId: string;
-  user: string; // references User uniqueId
-  reward: mongoose.Types.ObjectId; // references Reward model
+  user: string; // User uniqueId (string)
+  reward: mongoose.Types.ObjectId; // Reference to Reward model
   pointsSpent: number;
-  status: "COMPLETED" | "EXPIRED" | "FAILED";
-  benefitDetails?: any;
-  createdAt: Date;
-  updatedAt: Date;
+  status: RedemptionStatus;
+  benefitDetails?: {
+    couponCode?: string;
+    badgeName?: string;
+    premiumExpiry?: Date;
+    description?: string;
+  };
 }
 
 const redemptionSchema = new Schema<IRedemption>(
@@ -16,19 +25,25 @@ const redemptionSchema = new Schema<IRedemption>(
     redemptionId: { type: String, required: true, unique: true },
     user: { type: String, ref: "User", required: true },
     reward: { type: Schema.Types.ObjectId, ref: "Reward", required: true },
-    pointsSpent: { type: Number, required: true },
+    pointsSpent: { type: Number, required: true, min: 0 },
     status: {
       type: String,
-      enum: ["COMPLETED", "EXPIRED", "FAILED"],
+      enum: Object.values(RedemptionStatus),
+      default: RedemptionStatus.PENDING,
       required: true,
-      default: "COMPLETED",
     },
-    benefitDetails: { type: Schema.Types.Mixed },
+    benefitDetails: {
+      couponCode: { type: String },
+      badgeName: { type: String },
+      premiumExpiry: { type: Date },
+      description: { type: String },
+    },
   },
   { timestamps: true }
 );
 
-const Redemption =
+const RedemptionModel =
   mongoose.models.Redemption ||
   mongoose.model<IRedemption>("Redemption", redemptionSchema);
-export default Redemption;
+
+export default RedemptionModel;

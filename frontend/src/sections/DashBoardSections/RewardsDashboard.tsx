@@ -53,8 +53,79 @@ const RewardsDashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [claimingDaily, setClaimingDaily] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<string>("");
+  const [showBuyModal, setShowBuyModal] = useState<boolean>(false);
+  const [purchaseLoading, setPurchaseLoading] = useState<boolean>(false);
 
   const jwt = getVerifiedToken();
+
+  const purchasePackages = [
+    { points: 500, price: 50, badge: "Starter" },
+    { points: 1000, price: 100, badge: "Popular" },
+    { points: 2500, price: 230, badge: "Super Value" },
+    { points: 5000, price: 450, badge: "Best Value" },
+  ];
+
+  const handlePurchasePoints = async (pointsAmount: number) => {
+    try {
+      setPurchaseLoading(true);
+      const res = await axios.post(
+        `${REWARDS_API}/purchase-points`,
+        { pointsAmount },
+        { headers: { Authorization: `Bearer ${jwt}` } }
+      );
+
+      if (res.data.success) {
+        const { order, keyId, points } = res.data;
+
+        const options = {
+          key: keyId,
+          amount: order.amount,
+          currency: order.currency,
+          name: "AKSAR",
+          description: `Purchase ${points} Reward Points`,
+          order_id: order.id,
+          handler: async function (response: any) {
+            try {
+              const verifyRes = await axios.post(
+                `${REWARDS_API}/verify-points`,
+                {
+                  orderId: order.id,
+                  paymentId: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                  pointsAmount: points,
+                },
+                { headers: { Authorization: `Bearer ${jwt}` } }
+              );
+
+              if (verifyRes.data.success) {
+                SuccessToast(`Successfully purchased ${points} points!`);
+                setShowBuyModal(false);
+                fetchDashboardData();
+              } else {
+                ErrorToast("Payment verification failed");
+              }
+            } catch (err) {
+              ErrorToast("Failed to verify payment");
+            }
+          },
+          prefill: {
+            name: userData?.firstName ? `${userData.firstName} ${userData.lastName || ""}` : "",
+            email: userData?.email || "",
+          },
+          theme: {
+            color: "#8b5cf6",
+          },
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      }
+    } catch (error: any) {
+      ErrorToast(error.response?.data?.message || "Failed to initiate payment");
+    } finally {
+      setPurchaseLoading(false);
+    }
+  };
 
   const fetchDashboardData = async () => {
     if (!jwt) return;
@@ -195,6 +266,15 @@ const RewardsDashboard: React.FC = () => {
               <span>Premium active until {getPremiumExpiry()}</span>
             </div>
           )}
+          <div className="mt-5 flex gap-2">
+            <button
+              onClick={() => setShowBuyModal(true)}
+              className="w-full bg-white/20 hover:bg-white/30 text-white font-semibold py-2.5 px-4 rounded-xl border border-white/20 hover:border-white/40 transition-all flex items-center justify-center gap-1.5 backdrop-blur-md shadow-md text-xs sm:text-sm"
+            >
+              <Coins size={16} className="text-yellow-300 animate-spin-slow" />
+              + Buy Points
+            </button>
+          </div>
         </div>
 
         {/* Streak Flame Card */}
@@ -369,14 +449,22 @@ const RewardsDashboard: React.FC = () => {
                           </span>
                         </div>
                         <button
-                          onClick={() => handleRedeem(reward.rewardId)}
-                          disabled={cannotAfford || isOutOfStock}
+                          onClick={() => {
+                            if (cannotAfford) {
+                              setShowBuyModal(true);
+                            } else {
+                              handleRedeem(reward.rewardId);
+                            }
+                          }}
+                          disabled={isOutOfStock}
                           className={`py-2.5 px-5 rounded-2xl text-sm font-semibold tracking-wide shadow transition-all duration-300 active:scale-95
-                            ${cannotAfford || isOutOfStock
+                            ${isOutOfStock
                               ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed shadow-none border border-gray-200 dark:border-gray-800"
-                              : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/10 hover:shadow-indigo-500/20"}`}
+                              : cannotAfford
+                              ? "bg-transparent border border-purple-500 hover:bg-purple-500/5 text-purple-600 dark:text-purple-400 hover:shadow-purple-500/5"
+                              : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/10 hover:shadow-indigo-600/20"}`}
                         >
-                          {isOutOfStock ? "Sold Out" : cannotAfford ? "Needs Points" : "Redeem"}
+                          {isOutOfStock ? "Sold Out" : cannotAfford ? "Buy Points" : "Redeem"}
                         </button>
                       </div>
                     </div>
@@ -532,6 +620,57 @@ const RewardsDashboard: React.FC = () => {
         )}
 
       </AnimatePresence>
+
+      {/* 4. Buy Points Modal */}
+      {showBuyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 relative">
+            <button
+              onClick={() => setShowBuyModal(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold"
+            >
+              &times;
+            </button>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="bg-purple-100 dark:bg-purple-950/30 p-2.5 rounded-2xl">
+                <Coins className="text-purple-600 dark:text-purple-400" size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-850 dark:text-white">Buy Reward Points</h3>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              Manually purchase points using Razorpay to claim your favourite gift cards, vouchers, and rewards instantly.
+            </p>
+
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {purchasePackages.map((pkg) => (
+                <button
+                  key={pkg.points}
+                  disabled={purchaseLoading}
+                  onClick={() => handlePurchasePoints(pkg.points)}
+                  className="bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700/80 rounded-2xl p-4 text-center hover:border-purple-500 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-all flex flex-col justify-between items-center gap-2 relative group"
+                >
+                  {pkg.points >= 2500 && (
+                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-rose-600 text-white text-[9px] font-bold py-0.5 px-2 rounded-full shadow-sm">
+                      SAVE MONEY
+                    </span>
+                  )}
+                  <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">{pkg.badge}</span>
+                  <div className="text-2xl font-extrabold text-gray-850 dark:text-white flex items-center gap-1">
+                    {pkg.points} <span className="text-xs font-normal text-gray-500">pts</span>
+                  </div>
+                  <div className="bg-purple-600 hover:bg-purple-700 text-white w-full rounded-xl py-2 px-3 font-semibold text-sm mt-2 transition-colors">
+                    ₹{pkg.price}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="text-xs text-gray-400 text-center">
+              Secured payments powered by Razorpay. Conversion Rate: ₹1 = 10 Points.
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

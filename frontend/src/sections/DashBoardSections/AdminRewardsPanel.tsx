@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, CheckCircle2, XCircle, BarChart3, AlertTriangle, UserCheck, ShieldAlert, Coins, RefreshCw } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, XCircle, BarChart3, AlertTriangle, UserCheck, ShieldAlert, Coins, RefreshCw, Gift } from "lucide-react";
 import { getVerifiedToken } from "@/lib/cookieService";
 import { REWARDS_API, USER_API } from "@/lib/env";
 import { SuccessToast, ErrorToast } from "@/lib/toasts";
@@ -17,6 +17,30 @@ interface RewardItem {
   isActive: boolean;
   durationDays?: number;
   badgeUrl?: string;
+}
+
+interface RedemptionItem {
+  redemptionId: string;
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    userName: string;
+  };
+  reward: {
+    name: string;
+    pointCost: number;
+    type: string;
+  };
+  pointsSpent: number;
+  status: "PENDING" | "COMPLETED" | "REJECTED";
+  benefitDetails?: {
+    couponCode?: string;
+    badgeName?: string;
+    premiumExpiry?: string;
+    description?: string;
+  };
+  createdAt: string;
 }
 
 interface PendingPost {
@@ -56,8 +80,10 @@ const AdminRewardsPanel: React.FC = () => {
   const [pendingPosts, setPendingPosts] = useState<PendingPost[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   
-  // Tabs: inventory, approvals, adjustments, analytics
-  const [activeTab, setActiveTab] = useState<"inventory" | "approvals" | "adjustments" | "analytics">("inventory");
+  const [redemptions, setRedemptions] = useState<RedemptionItem[]>([]);
+  
+  // Tabs: inventory, approvals, adjustments, analytics, redemptions
+  const [activeTab, setActiveTab] = useState<"inventory" | "approvals" | "adjustments" | "analytics" | "redemptions">("inventory");
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -86,18 +112,57 @@ const AdminRewardsPanel: React.FC = () => {
     if (!jwt) return;
     try {
       setLoading(true);
-      const [rewardsRes, pendingPostsRes, analyticsRes] = await Promise.all([
+      const [rewardsRes, pendingPostsRes, analyticsRes, redemptionsRes] = await Promise.all([
         axios.get(`${REWARDS_API}/store`, { headers: { Authorization: `Bearer ${jwt}` } }),
         axios.get(`${USER_API}/admin/community/posts?status=PENDING`, { headers: { Authorization: `Bearer ${jwt}` } }),
         axios.get(`${REWARDS_API}/admin/analytics`, { headers: { Authorization: `Bearer ${jwt}` } }),
+        axios.get(`${REWARDS_API}/admin/redemptions`, { headers: { Authorization: `Bearer ${jwt}` } }),
       ]);
 
       if (rewardsRes.data.success) setRewards(rewardsRes.data.data);
       if (pendingPostsRes.data.success) setPendingPosts(pendingPostsRes.data.data);
       if (analyticsRes.data.success) setAnalytics(analyticsRes.data.data);
+      if (redemptionsRes.data.success) setRedemptions(redemptionsRes.data.data);
     } catch (error: any) {
       console.error("Error loading admin rewards panel data:", error);
       ErrorToast("Failed to sync rewards admin dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleProcessRedemption = async (redemptionId: string, status: "COMPLETED" | "REJECTED") => {
+    if (!jwt) return;
+    let remarks = "";
+    let couponCode = "";
+    
+    if (status === "REJECTED") {
+      const input = window.prompt("Provide a reason for rejecting this order:");
+      if (input === null) return; // cancelled
+      remarks = input || "Order rejected by administrator";
+    } else {
+      const input = window.prompt("Enter manual coupon code (cancel/leave blank for auto-generating standard code):");
+      if (input === null) return; // cancelled
+      couponCode = input;
+      remarks = "Claim approved and processed by administrator";
+    }
+    
+    try {
+      setLoading(true);
+      const res = await axios.put(`${REWARDS_API}/admin/process/${redemptionId}`, {
+        status,
+        remarks,
+        couponCode: couponCode || undefined
+      }, {
+        headers: { Authorization: `Bearer ${jwt}` }
+      });
+      
+      if (res.data.success) {
+        SuccessToast(res.data.message || `Redemption order ${status.toLowerCase()} successfully!`);
+        loadAdminData();
+      }
+    } catch (error: any) {
+      ErrorToast(error.response?.data?.message || "Failed to process redemption order");
     } finally {
       setLoading(false);
     }
@@ -112,7 +177,7 @@ const AdminRewardsPanel: React.FC = () => {
     if (!jwt || submitting) return;
     setSubmitting(true);
     try {
-      const res = await axios.post(`${REWARDS_API}/admin/add-reward`, rewardForm, {
+      const res = await axios.post(`${REWARDS_API}/admin/create`, rewardForm, {
         headers: { Authorization: `Bearer ${jwt}` }
       });
       if (res.data.success) {
@@ -140,7 +205,7 @@ const AdminRewardsPanel: React.FC = () => {
     if (!jwt) return;
     if (!window.confirm("Are you sure you want to disable this reward? It will not be viewable by students.")) return;
     try {
-      const res = await axios.delete(`${REWARDS_API}/admin/rewards/${rewardId}`, {
+      const res = await axios.delete(`${REWARDS_API}/admin/delete/${rewardId}`, {
         headers: { Authorization: `Bearer ${jwt}` }
       });
       if (res.data.success) {
@@ -277,6 +342,21 @@ const AdminRewardsPanel: React.FC = () => {
         >
           <BarChart3 size={18} />
           <span>Earning Analytics</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("redemptions")}
+          className={`py-4 px-6 font-semibold border-b-2 text-base transition-all duration-300 flex items-center gap-2 relative
+            ${activeTab === "redemptions"
+              ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+              : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
+        >
+          <Gift size={18} />
+          <span>Voucher Claims</span>
+          {redemptions.filter(r => r.status === "PENDING").length > 0 && (
+            <span className="absolute right-0 top-2.5 bg-rose-500 text-white font-extrabold text-xxs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-950 animate-bounce">
+              {redemptions.filter(r => r.status === "PENDING").length}
+            </span>
+          )}
         </button>
       </div>
 
@@ -702,6 +782,114 @@ const AdminRewardsPanel: React.FC = () => {
                 )}
               </div>
 
+            </div>
+          </motion.div>
+        )}
+
+        {/* Tab 5: Voucher Claim Requests */}
+        {activeTab === "redemptions" && (
+          <motion.div
+            key="redemptions-tab"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="space-y-6"
+          >
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 shadow-md">
+              <h3 className="text-xl font-bold text-gray-850 dark:text-white mb-6">Student Voucher & Gift Claim Orders</h3>
+              {redemptions.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <Gift className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={48} />
+                  <span>No reward redemptions requests recorded in the system.</span>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 text-gray-400 text-xs font-bold uppercase tracking-wider">
+                        <th className="py-4 px-6">Order Details</th>
+                        <th className="py-4 px-6">User/Student</th>
+                        <th className="py-4 px-6">Points Cost</th>
+                        <th className="py-4 px-6">Claim Status</th>
+                        <th className="py-4 px-6">Claim Code / Benefit Info</th>
+                        <th className="py-4 px-6 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60 text-sm text-gray-750 dark:text-gray-300">
+                      {redemptions.map((item) => (
+                        <tr key={item.redemptionId} className="hover:bg-gray-50/40 dark:hover:bg-gray-800/20 transition-colors">
+                          <td className="py-4 px-6">
+                            <span className="font-extrabold block text-gray-850 dark:text-white">{item.reward?.name || "Deleted Catalog Reward"}</span>
+                            <span className="text-[10px] text-gray-450 tracking-wider font-semibold block uppercase mt-0.5">{item.reward?.type?.replace("_", " ")}</span>
+                            <span className="text-xxs text-gray-400 block mt-1">ID: {item.redemptionId} | {new Date(item.createdAt).toLocaleDateString()}</span>
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className="font-semibold block">{item.user?.firstName} {item.user?.lastName || ""}</span>
+                            <span className="text-xs text-gray-400 block">@{item.user?.userName}</span>
+                          </td>
+                          <td className="py-4 px-6 font-bold text-yellow-600 dark:text-yellow-400">
+                            {item.pointsSpent} pts
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xxs font-bold border ${
+                              item.status === "PENDING"
+                                ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 border-amber-200 dark:border-amber-900/50"
+                                : item.status === "COMPLETED"
+                                ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
+                                : "bg-rose-50 dark:bg-rose-950/20 text-rose-600 border-rose-200 dark:border-rose-900/50"
+                            }`}>
+                              {item.status}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6">
+                            {item.status === "COMPLETED" ? (
+                              <div className="space-y-1">
+                                {item.benefitDetails?.couponCode && (
+                                  <span className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 font-mono text-xs text-purple-600 dark:text-purple-400 font-semibold block w-fit">
+                                    {item.benefitDetails.couponCode}
+                                  </span>
+                                )}
+                                {item.benefitDetails?.premiumExpiry && (
+                                  <span className="text-xxs text-emerald-600 dark:text-emerald-400 block">
+                                    Expiry: {new Date(item.benefitDetails.premiumExpiry).toLocaleDateString()}
+                                  </span>
+                                )}
+                                <span className="text-xxs text-gray-400 block">{item.benefitDetails?.description}</span>
+                              </div>
+                            ) : item.status === "REJECTED" ? (
+                              <span className="text-xs text-rose-500 font-semibold italic">{item.benefitDetails?.description || "Rejected by admin"}</span>
+                            ) : (
+                              <span className="text-xs text-gray-400 italic">Waiting for processing...</span>
+                            )}
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            {item.status === "PENDING" ? (
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={() => handleProcessRedemption(item.redemptionId, "COMPLETED")}
+                                  className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white transition-all"
+                                  title="Approve Order"
+                                >
+                                  <CheckCircle2 size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleProcessRedemption(item.redemptionId, "REJECTED")}
+                                  className="p-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500 text-rose-600 dark:text-rose-400 hover:text-white transition-all"
+                                  title="Reject & Refund Points"
+                                >
+                                  <XCircle size={16} />
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-xxs text-gray-400 font-medium">Processed</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

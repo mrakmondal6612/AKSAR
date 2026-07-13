@@ -1,27 +1,18 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+export enum TransactionType {
+  EARNED = "EARNED",
+  SPENT = "SPENT",
+  ADMIN_ADJUSTMENT = "ADMIN_ADJUSTMENT",
+}
+
 export interface ITransaction extends Document {
   transactionId: string;
-  user: string; // references User uniqueId
+  user: string; // User uniqueId (string)
   points: number;
-  type: "EARNED" | "SPENT" | "ADMIN_ADJUSTMENT";
-  activityType:
-    | "DAILY_LOGIN"
-    | "LESSON_COMPLETE"
-    | "QUIZ_COMPLETE"
-    | "QUIZ_BONUS"
-    | "MOCK_TEST"
-    | "STREAK_BONUS"
-    | "DOUBT_ANSWER"
-    | "NOTE_UPLOAD"
-    | "COURSE_COMPLETE"
-    | "REFERRAL"
-    | "REDEEM_REWARD"
-    | "ADMIN_ADJUST";
+  type: TransactionType;
+  activityType: string; // e.g. "DAILY_CLAIM", "REDEEM", "TEST_COMPLETED", etc.
   description: string;
-  idempotencyKey: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 const transactionSchema = new Schema<ITransaction>(
@@ -31,36 +22,17 @@ const transactionSchema = new Schema<ITransaction>(
     points: { type: Number, required: true },
     type: {
       type: String,
-      enum: ["EARNED", "SPENT", "ADMIN_ADJUSTMENT"],
+      enum: Object.values(TransactionType),
       required: true,
     },
-    activityType: {
-      type: String,
-      enum: [
-        "DAILY_LOGIN",
-        "LESSON_COMPLETE",
-        "QUIZ_COMPLETE",
-        "QUIZ_BONUS",
-        "MOCK_TEST",
-        "STREAK_BONUS",
-        "DOUBT_ANSWER",
-        "NOTE_UPLOAD",
-        "COURSE_COMPLETE",
-        "REFERRAL",
-        "REDEEM_REWARD",
-        "ADMIN_ADJUST",
-      ],
-      required: true,
-    },
+    activityType: { type: String, required: true },
     description: { type: String, required: true },
-    idempotencyKey: { type: String, required: true, unique: true },
   },
   { timestamps: true }
 );
 
-
-
-const Transaction =
+const TransactionModel =
   mongoose.models.Transaction ||
   mongoose.model<ITransaction>("Transaction", transactionSchema);
-export default Transaction;
+
+export default TransactionModel;

@@ -33,23 +33,31 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.RewardType = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+var RewardType;
+(function (RewardType) {
+    RewardType["DIGITAL_ACCESS"] = "DIGITAL_ACCESS";
+    RewardType["COUPON"] = "COUPON";
+    RewardType["FEATURE_UNLOCK"] = "FEATURE_UNLOCK";
+    RewardType["BADGE"] = "BADGE";
+    RewardType["CUSTOMIZATION"] = "CUSTOMIZATION";
+})(RewardType || (exports.RewardType = RewardType = {}));
 const rewardSchema = new mongoose_1.Schema({
     rewardId: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
-    pointCost: { type: Number, required: true },
+    pointCost: { type: Number, required: true, min: 0 },
     type: {
         type: String,
-        enum: ["DIGITAL_ACCESS", "COUPON", "FEATURE_UNLOCK", "BADGE", "CUSTOMIZATION"],
+        enum: Object.values(RewardType),
         required: true,
     },
-    stock: { type: Number, required: true, default: 0 },
-    maxStock: { type: Number, required: true, default: 0 },
-    isActive: { type: Boolean, default: true },
+    stock: { type: Number, required: true, min: 0 },
+    maxStock: { type: Number, required: true, min: 0 },
     badgeUrl: { type: String },
-    couponCode: { type: String },
     durationDays: { type: Number },
+    isDeleted: { type: Boolean, default: false },
 }, { timestamps: true });
-const Reward = mongoose_1.default.models.Reward || mongoose_1.default.model("Reward", rewardSchema);
-exports.default = Reward;
+const RewardModel = mongoose_1.default.models.Reward || mongoose_1.default.model("Reward", rewardSchema);
+exports.default = RewardModel;

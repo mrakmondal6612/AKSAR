@@ -33,20 +33,32 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.RedemptionStatus = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+var RedemptionStatus;
+(function (RedemptionStatus) {
+    RedemptionStatus["PENDING"] = "PENDING";
+    RedemptionStatus["COMPLETED"] = "COMPLETED";
+    RedemptionStatus["REJECTED"] = "REJECTED";
+})(RedemptionStatus || (exports.RedemptionStatus = RedemptionStatus = {}));
 const redemptionSchema = new mongoose_1.Schema({
     redemptionId: { type: String, required: true, unique: true },
     user: { type: String, ref: "User", required: true },
     reward: { type: mongoose_1.Schema.Types.ObjectId, ref: "Reward", required: true },
-    pointsSpent: { type: Number, required: true },
+    pointsSpent: { type: Number, required: true, min: 0 },
     status: {
         type: String,
-        enum: ["COMPLETED", "EXPIRED", "FAILED"],
+        enum: Object.values(RedemptionStatus),
+        default: RedemptionStatus.PENDING,
         required: true,
-        default: "COMPLETED",
     },
-    benefitDetails: { type: mongoose_1.Schema.Types.Mixed },
+    benefitDetails: {
+        couponCode: { type: String },
+        badgeName: { type: String },
+        premiumExpiry: { type: Date },
+        description: { type: String },
+    },
 }, { timestamps: true });
-const Redemption = mongoose_1.default.models.Redemption ||
+const RedemptionModel = mongoose_1.default.models.Redemption ||
     mongoose_1.default.model("Redemption", redemptionSchema);
-exports.default = Redemption;
+exports.default = RedemptionModel;
