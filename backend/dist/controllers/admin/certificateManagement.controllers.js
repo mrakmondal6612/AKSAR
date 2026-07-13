@@ -32,12 +32,20 @@ const handleGetAllCertificates = async (req, res) => {
         const userIds = certificates.map((c) => c.user).filter(Boolean);
         const testIds = certificates.map((c) => c.test).filter(Boolean);
         const courseIds = certificates.map((c) => c.course).filter(Boolean);
-        const [users, tests, courses] = await Promise.all([
-            User_model_1.default.find({ _id: { $in: userIds } }),
+        const [usersByUniqueId, usersByMongoId, tests, courses] = await Promise.all([
+            User_model_1.default.find({ uniqueId: { $in: userIds } }),
+            User_model_1.default.find({ _id: { $in: userIds.filter(id => /^[a-f\d]{24}$/i.test(id)) } }),
             Test_model_1.default.find({ testId: { $in: testIds } }),
             Course_model_1.default.find({ courseId: { $in: courseIds } }),
         ]);
-        const userMap = new Map(users.map((u) => [u._id.toString(), u]));
+        const users = [...usersByUniqueId, ...usersByMongoId];
+        // Build map keyed by both uniqueId and _id for flexible lookup
+        const userMap = new Map();
+        users.forEach(u => {
+            userMap.set(u._id.toString(), u);
+            if (u.uniqueId)
+                userMap.set(u.uniqueId, u);
+        });
         const testMap = new Map(tests.map((t) => [t.testId, t]));
         const courseMap = new Map(courses.map((c) => [c.courseId, c]));
         const populatedCertificates = certificates.map((cert) => {
@@ -217,8 +225,11 @@ const handleGetCertificateById = async (req, res) => {
             });
         }
         // Manually populate related fields
+        // user field may be uniqueId (from test submissions) OR MongoDB _id (legacy admin certs)
         const [userDoc, testDoc, courseDoc, attemptDoc] = await Promise.all([
-            marksheet.user ? User_model_1.default.findById(marksheet.user) : null,
+            marksheet.user
+                ? User_model_1.default.findOne({ uniqueId: marksheet.user }).then(u => u || User_model_1.default.findById(marksheet.user).catch(() => null))
+                : null,
             marksheet.test ? Test_model_1.default.findOne({ testId: marksheet.test }) : null,
             marksheet.course ? Course_model_1.default.findOne({ courseId: marksheet.course }) : null,
             marksheet.testAttempt ? TestAttempt_model_1.default.findOne({ attemptId: marksheet.testAttempt }) : null,
@@ -288,7 +299,7 @@ const handleCreateCertificate = async (req, res) => {
                 message: "testId is required for TEST_RESULT certificate type",
             });
         }
-        // Check if user exists
+        // Dropdown sends MongoDB _id for user — look up by _id
         const user = await User_model_1.default.findById(userId);
         if (!user) {
             return res.status(404).json({
@@ -296,7 +307,8 @@ const handleCreateCertificate = async (req, res) => {
                 message: "User not found",
             });
         }
-        // Check if test exists (if provided)
+        // Dropdown sends MongoDB _id for test — look up by _id
+        let resolvedTestId;
         if (testId) {
             const test = await Test_model_1.default.findById(testId);
             if (!test) {
@@ -305,8 +317,9 @@ const handleCreateCertificate = async (req, res) => {
                     message: "Test not found",
                 });
             }
+            resolvedTestId = test.testId; // store the custom testId string
         }
-        // Check if course exists
+        // Dropdown sends MongoDB _id for course — look up by _id to get custom courseId
         const course = await Course_model_1.default.findById(courseId);
         if (!course) {
             return res.status(404).json({
@@ -315,12 +328,14 @@ const handleCreateCertificate = async (req, res) => {
             });
         }
         // Generate unique marksheet ID
-        const marksheetId = `CERT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const marksheetId = `AKSAR-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
         // Create new marksheet/certificate
+        // Store uniqueId for user and custom string IDs for course/test
+        // (consistent with how test submissions store references)
         const marksheetData = {
             marksheetId,
-            user: userId,
-            course: courseId,
+            user: user.uniqueId || user._id.toString(),
+            course: course.courseId, // store custom courseId string
             certificateType,
             score: score || 0,
             totalPoints: score || 0,
@@ -330,21 +345,29 @@ const handleCreateCertificate = async (req, res) => {
             skillsDemonstrated: skillsDemonstrated || [],
             certificateStatus: Marksheet_model_2.CertificateStatus.GENERATED,
             issuedDate: new Date(),
+            completionDate: new Date(),
         };
-        // Only add test if provided
-        if (testId) {
-            marksheetData.test = testId;
+        if (resolvedTestId) {
+            marksheetData.test = resolvedTestId;
         }
         const marksheet = await Marksheet_model_1.default.create(marksheetData);
-        // Populate the created marksheet
-        const populatedMarksheet = await Marksheet_model_1.default.findById(marksheet._id)
-            .populate("user", "firstName lastName email userName")
-            .populate("test", "title difficulty")
-            .populate("course", "courseName");
+        // Manually populate since fields are custom string IDs, not ObjectId refs
+        const marksheetObj = marksheet.toObject();
+        marksheetObj.user = {
+            _id: user._id.toString(),
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            userName: user.userName,
+        };
+        marksheetObj.course = {
+            _id: course._id.toString(),
+            courseName: course.courseName,
+        };
         res.status(201).json({
             success: true,
             message: "Certificate created successfully",
-            data: populatedMarksheet,
+            data: marksheetObj,
         });
     }
     catch (error) {
@@ -475,10 +498,7 @@ exports.handleGetCoursesForCertificate = handleGetCoursesForCertificate;
 const handleDownloadCertificate = async (req, res) => {
     try {
         const { marksheetId } = req.params;
-        const marksheet = await Marksheet_model_1.default.findOne({ marksheetId })
-            .populate("user", "firstName lastName email userName")
-            .populate("test", "title difficulty")
-            .populate("course", "courseName");
+        const marksheet = await Marksheet_model_1.default.findOne({ marksheetId });
         if (!marksheet) {
             return res.status(404).json({
                 success: false,
@@ -494,10 +514,28 @@ const handleDownloadCertificate = async (req, res) => {
         // Update certificate status to DOWNLOADED
         marksheet.certificateStatus = Marksheet_model_2.CertificateStatus.DOWNLOADED;
         await marksheet.save();
+        // Manually populate since user/course/test are stored as custom string IDs
+        const [userDoc, testDoc, courseDoc] = await Promise.all([
+            marksheet.user
+                ? User_model_1.default.findOne({ uniqueId: marksheet.user }).then(u => u || User_model_1.default.findById(marksheet.user).catch(() => null))
+                : null,
+            marksheet.test ? Test_model_1.default.findOne({ testId: marksheet.test }) : null,
+            marksheet.course ? Course_model_1.default.findOne({ courseId: marksheet.course }) : null,
+        ]);
+        const marksheetObj = marksheet.toObject();
+        marksheetObj.user = userDoc
+            ? { _id: userDoc._id.toString(), firstName: userDoc.firstName, lastName: userDoc.lastName, email: userDoc.email, userName: userDoc.userName }
+            : null;
+        marksheetObj.test = testDoc
+            ? { _id: testDoc._id.toString(), title: testDoc.title, difficulty: testDoc.difficulty }
+            : null;
+        marksheetObj.course = courseDoc
+            ? { _id: courseDoc._id.toString(), courseName: courseDoc.courseName }
+            : null;
         res.status(200).json({
             success: true,
             message: "Certificate marked as downloaded",
-            data: marksheet,
+            data: marksheetObj,
         });
     }
     catch (error) {

@@ -14,6 +14,7 @@ const User_model_1 = __importDefault(require("../../models/User.model"));
 const ContactMessage_model_1 = __importDefault(require("../../models/ContactMessage.model"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const nanoid_1 = require("nanoid");
+const notificationHelper_1 = require("../../helpers/notificationHelper");
 // ── Student: Submit instructor request ────────────────────────────────────────
 async function handleSubmitInstructorRequestFunction(req, res) {
     const userId = req.userId;
@@ -52,6 +53,12 @@ async function handleSubmitInstructorRequestFunction(req, res) {
             status: "PENDING",
         });
         await newRequest.save();
+        await (0, notificationHelper_1.notifyAdmins)({
+            type: "new_instructor_request",
+            title: "📥 New Instructor Request",
+            message: `${user.firstName} ${user.lastName} (@${user.userName}) has requested to become an instructor.`,
+            link: "/user/admin/requests",
+        });
         return res.status(201).json({
             success: true,
             message: "Instructor request submitted successfully. Admin will review it shortly.",
@@ -133,6 +140,12 @@ async function handleApproveInstructorRequestFunction(req, res) {
         request.reviewedAt = new Date();
         request.reviewedBy = adminId;
         await request.save();
+        await (0, notificationHelper_1.createNotification)({
+            userId: user._id.toString(),
+            type: "instructor_request_approved",
+            title: "✅ Instructor Request Approved!",
+            message: "Congratulations! Your instructor request has been approved.",
+        });
         const token = jsonwebtoken_1.default.sign({ id: user._id, role: user.role, uniqueId: user.uniqueId }, process.env.JWT_SECRET, { expiresIn: "15d" });
         return res.status(200).json({
             success: true,
@@ -167,6 +180,15 @@ async function handleRejectInstructorRequestFunction(req, res) {
         request.reviewedBy = adminId;
         request.rejectionReason = rejectionReason || "Not specified";
         await request.save();
+        const rejectedUser = await User_model_1.default.findOne({ uniqueId: request.userId });
+        if (rejectedUser) {
+            await (0, notificationHelper_1.createNotification)({
+                userId: rejectedUser._id.toString(),
+                type: "instructor_request_rejected",
+                title: "❌ Instructor Request Rejected",
+                message: `Your instructor request was rejected. Reason: ${rejectionReason || "Not specified"}. You can re-apply after 7 days.`,
+            });
+        }
         return res.status(200).json({
             success: true,
             message: "Request rejected",

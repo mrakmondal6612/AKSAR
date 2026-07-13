@@ -9,7 +9,9 @@ exports.handleMarkAllAsRead = handleMarkAllAsRead;
 exports.handleDeleteNotification = handleDeleteNotification;
 exports.handleGetCourseTimeline = handleGetCourseTimeline;
 exports.handleCreateCourseEnrollment = handleCreateCourseEnrollment;
+exports.handleSendAnnouncementFunction = handleSendAnnouncementFunction;
 const Notification_model_1 = __importDefault(require("../../models/Notification.model"));
+const notificationHelper_1 = require("../../helpers/notificationHelper");
 async function handleGetNotifications(req, res) {
     try {
         const userId = req.userId;
@@ -69,6 +71,7 @@ async function handleDeleteNotification(req, res) {
 async function handleGetCourseTimeline(req, res) {
     try {
         const userId = req.userId;
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const CourseEnrollment = require('../../models/CourseEnrollment.model').default;
         const enrollments = await CourseEnrollment.find({ user: userId, status: 'active' })
             .populate('course', 'name')
@@ -86,6 +89,7 @@ async function handleCreateCourseEnrollment(req, res) {
         if (!courseId || !startDate) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const CourseEnrollment = require('../../models/CourseEnrollment.model').default;
         const enrollment = await CourseEnrollment.create({
             user: userId,
@@ -97,5 +101,32 @@ async function handleCreateCourseEnrollment(req, res) {
     }
     catch (error) {
         return res.status(500).json({ success: false, message: 'Failed to create enrollment' });
+    }
+}
+// ── Admin: Send announcement to all users of a role ───────────────────────────
+async function handleSendAnnouncementFunction(req, res) {
+    const { title, message, targetRole } = req.body;
+    if (!title || !message) {
+        return res.status(400).json({ success: false, message: "Title and message are required" });
+    }
+    const validRoles = ["ALL", "STUDENT", "INSTRUCTOR", "ADMIN", "MASTER"];
+    if (targetRole && !validRoles.includes(targetRole)) {
+        return res.status(400).json({ success: false, message: "Invalid target role" });
+    }
+    try {
+        await (0, notificationHelper_1.createNotificationForRole)({
+            role: targetRole || "ALL",
+            type: "admin_announcement",
+            title: `📢 ${title}`,
+            message,
+        });
+        return res.status(200).json({
+            success: true,
+            message: `Announcement sent to ${targetRole || "ALL"} users`,
+        });
+    }
+    catch (error) {
+        console.error("Send announcement error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }

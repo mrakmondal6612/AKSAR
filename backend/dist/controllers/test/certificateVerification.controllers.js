@@ -16,13 +16,21 @@ const findMarksheetByIdOrNo = async (input) => {
     if (!marksheet) {
         marksheet = await Marksheet_model_1.default.findOne({ marksheetId: { $regex: new RegExp("^" + cleanInput.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "$", "i") } });
     }
-    // 3. Try parsing AKSAR-YYYY-SUFFIX format
-    if (!marksheet && cleanInput.toUpperCase().startsWith("AKSAR-")) {
-        const parts = cleanInput.split("-");
-        if (parts.length >= 3) {
-            const suffix = parts.slice(2).join("-");
-            const escapedSuffix = suffix.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-            marksheet = await Marksheet_model_1.default.findOne({ marksheetId: { $regex: new RegExp(escapedSuffix + "$", "i") } });
+    // 3. Try parsing AKSAR-YYYY-SUFFIX or CERT-TIMESTAMP-SUFFIX format
+    if (!marksheet) {
+        const upperInput = cleanInput.toUpperCase();
+        const knownPrefixes = ["AKSAR-", "CERT-"];
+        for (const prefix of knownPrefixes) {
+            if (upperInput.startsWith(prefix)) {
+                const parts = cleanInput.split("-");
+                if (parts.length >= 3) {
+                    const suffix = parts.slice(2).join("-");
+                    const escapedSuffix = suffix.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                    marksheet = await Marksheet_model_1.default.findOne({ marksheetId: { $regex: new RegExp(escapedSuffix + "$", "i") } });
+                    if (marksheet)
+                        break;
+                }
+            }
         }
     }
     // 4. Try suffix match if input is at least 6 characters
@@ -33,8 +41,11 @@ const findMarksheetByIdOrNo = async (input) => {
     if (!marksheet)
         return null;
     // Manually populate user, test, course
+    // user field may contain uniqueId (from test submissions) OR MongoDB _id (from admin-created certs)
     const [userDoc, testDoc, courseDoc] = await Promise.all([
-        User_model_1.default.findOne({ uniqueId: marksheet.user }),
+        marksheet.user
+            ? User_model_1.default.findOne({ uniqueId: marksheet.user }).then(u => u || User_model_1.default.findById(marksheet.user).catch(() => null))
+            : null,
         marksheet.test ? Test_model_1.default.findOne({ testId: marksheet.test }) : null,
         Course_model_1.default.findOne({ courseId: marksheet.course }),
     ]);
@@ -107,8 +118,10 @@ const handleVerifyCertificateFunction = async (req, res) => {
             data: {
                 certificateId: marksheet.marksheetId,
                 student: {
-                    name: `${marksheet.user.firstName} ${marksheet.user.lastName}`,
-                    userName: marksheet.user.userName,
+                    name: marksheet.user
+                        ? `${marksheet.user.firstName} ${marksheet.user.lastName}`
+                        : "Unknown",
+                    userName: marksheet.user?.userName || "",
                 },
                 test: marksheet.test ? {
                     title: marksheet.test.title,
@@ -116,7 +129,7 @@ const handleVerifyCertificateFunction = async (req, res) => {
                     difficulty: marksheet.test.difficulty,
                 } : undefined,
                 course: {
-                    name: marksheet.course.courseName,
+                    name: marksheet.course?.courseName || "Unknown Course",
                 },
                 performance: {
                     score: marksheet.score,
@@ -192,9 +205,11 @@ const handlePublicVerifyCertificateFunction = async (req, res) => {
             verified: true,
             message: "Certificate is valid",
             data: {
-                studentName: `${marksheet.user.firstName} ${marksheet.user.lastName}`,
+                studentName: marksheet.user
+                    ? `${marksheet.user.firstName} ${marksheet.user.lastName}`
+                    : "Unknown",
                 testName: marksheet.test?.title || "N/A",
-                courseName: marksheet.course.courseName,
+                courseName: marksheet.course?.courseName || "Unknown Course",
                 grade: marksheet.grade,
                 percentage: marksheet.percentage,
                 completionDate: marksheet.completionDate,

@@ -17,7 +17,6 @@ const userEmailVerification_controllers_1 = require("../controllers/user/userEma
 const userGetData_controllers_1 = require("../controllers/user/userGetData.controllers");
 const todo_controllers_1 = require("../controllers/user/todo.controllers");
 const todo_production_controllers_1 = require("../controllers/user/todo.production.controllers");
-const notification_controllers_1 = require("../controllers/user/notification.controllers");
 const userProfileUpdate_controllers_1 = require("../controllers/user/userProfileUpdate.controllers");
 const userResetPassword_controllers_1 = require("../controllers/user/userResetPassword.controllers");
 const userCourseHandlers_controllers_1 = require("../controllers/user/userCourseHandlers.controllers");
@@ -33,6 +32,7 @@ const rateLimiters_1 = require("../validchecks/rateLimiters");
 const multer_1 = __importDefault(require("multer"));
 const requests_controllers_1 = require("../controllers/user/requests.controllers");
 const contactMessage_controllers_1 = require("../controllers/user/contactMessage.controllers");
+const notification_controllers_1 = require("../controllers/user/notification.controllers");
 const userRoute = express_1.default.Router();
 const storage = multer_1.default.memoryStorage();
 exports.upload = (0, multer_1.default)({ storage: storage });
@@ -157,4 +157,5 @@ userRoute.post("/contact", contactMessage_controllers_1.handleSubmitContactMessa
 userRoute.get("/admin/contact-messages", auth_middleware_1.authenticateAdminOrInstructorToken, contactMessage_controllers_1.handleGetContactMessagesFunction);
 userRoute.patch("/admin/contact-messages/:messageId/read", auth_middleware_1.authenticateAdminOrInstructorToken, contactMessage_controllers_1.handleMarkMessageReadFunction);
 userRoute.delete("/admin/contact-messages/:messageId", auth_middleware_1.authenticateAdminOrInstructorToken, contactMessage_controllers_1.handleDeleteContactMessageFunction);
+userRoute.post("/admin/send-announcement", auth_middleware_1.authenticateAdminToken, notification_controllers_1.handleSendAnnouncementFunction);
 exports.default = userRoute;

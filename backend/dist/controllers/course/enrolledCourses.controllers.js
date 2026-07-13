@@ -8,6 +8,7 @@ exports.handleGetAllCoursesEnrolledByUser = handleGetAllCoursesEnrolledByUser;
 const Course_model_1 = __importDefault(require("../../models/Course.model"));
 const User_model_1 = __importDefault(require("../../models/User.model"));
 const youtube_config_1 = require("../../utils/youtube.config");
+const notificationHelper_1 = require("../../helpers/notificationHelper");
 const getSuggestedCourses_controllers_1 = require("./getSuggestedCourses.controllers");
 async function handleUserEnrolledCourseFunction(req, res) {
     const userId = req.userId;
@@ -69,11 +70,39 @@ async function handleUserEnrolledCourseFunction(req, res) {
             course.enrolledBy.push(user.uniqueId);
             await course.save();
             console.log("✅ Updated course enrolledBy");
+            // ── Notify student ───────────────────────────────────────────────
+            await (0, notificationHelper_1.createNotification)({
+                userId,
+                type: "course_enrolled",
+                title: "🎉 Enrolled Successfully!",
+                message: `You have successfully enrolled in "${course.courseName}". Start learning now!`,
+                courseId: course.courseId,
+                link: `/user/view-course?c=${course.courseId}`,
+            });
+            // ── Notify instructor ────────────────────────────────────────────
+            if (course.uploadedBy) {
+                const instructor = await User_model_1.default.findOne({ uniqueId: course.uploadedBy }).select("_id");
+                if (instructor) {
+                    await (0, notificationHelper_1.createNotification)({
+                        userId: instructor._id.toString(),
+                        type: "new_enrollment",
+                        title: "👤 New Student Enrolled",
+                        message: `${user.firstName} ${user.lastName} enrolled in your course "${course.courseName}"`,
+                        courseId: course.courseId,
+                    });
+                }
+            }
         }
         else {
             console.log("📌 No database course found - treating as YouTube course (courseId: " + courseId + ")");
+            // ── Notify student for YouTube course ────────────────────────────
+            await (0, notificationHelper_1.createNotification)({
+                userId,
+                type: "course_enrolled",
+                title: "🎉 YouTube Course Added!",
+                message: `YouTube course has been added to your learning list.`,
+            });
         }
-        // If courseId starts with 'PL', it's a YouTube course - just add to user's enrolledIn without database course
         user.enrolledIn.push(courseId);
         await user.save();
         console.log("✅ User enrollment saved successfully");
