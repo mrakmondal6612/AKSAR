@@ -6,25 +6,32 @@ import Course from "../../models/Course.model";
 
 const findMarksheetByIdOrNo = async (input: string) => {
   const cleanInput = input.trim();
-  
+
   // 1. Try exact match
   let marksheet = await Marksheet.findOne({ marksheetId: cleanInput });
-  
+
   // 2. Try case-insensitive exact match
   if (!marksheet) {
     marksheet = await Marksheet.findOne({ marksheetId: { $regex: new RegExp("^" + cleanInput.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "$", "i") } });
   }
-  
-  // 3. Try parsing AKSAR-YYYY-SUFFIX format
-  if (!marksheet && cleanInput.toUpperCase().startsWith("AKSAR-")) {
-    const parts = cleanInput.split("-");
-    if (parts.length >= 3) {
-      const suffix = parts.slice(2).join("-");
-      const escapedSuffix = suffix.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      marksheet = await Marksheet.findOne({ marksheetId: { $regex: new RegExp(escapedSuffix + "$", "i") } });
+
+  // 3. Try parsing AKSAR-YYYY-SUFFIX or CERT-TIMESTAMP-SUFFIX format
+  if (!marksheet) {
+    const upperInput = cleanInput.toUpperCase();
+    const knownPrefixes = ["AKSAR-", "CERT-"];
+    for (const prefix of knownPrefixes) {
+      if (upperInput.startsWith(prefix)) {
+        const parts = cleanInput.split("-");
+        if (parts.length >= 3) {
+          const suffix = parts.slice(2).join("-");
+          const escapedSuffix = suffix.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+          marksheet = await Marksheet.findOne({ marksheetId: { $regex: new RegExp(escapedSuffix + "$", "i") } });
+          if (marksheet) break;
+        }
+      }
     }
   }
-  
+
   // 4. Try suffix match if input is at least 6 characters
   if (!marksheet && cleanInput.length >= 6) {
     const escapedSuffix = cleanInput.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -34,8 +41,11 @@ const findMarksheetByIdOrNo = async (input: string) => {
   if (!marksheet) return null;
 
   // Manually populate user, test, course
+  // user field may contain uniqueId (from test submissions) OR MongoDB _id (from admin-created certs)
   const [userDoc, testDoc, courseDoc] = await Promise.all([
-    User.findOne({ uniqueId: marksheet.user }),
+    marksheet.user
+        ? User.findOne({ uniqueId: marksheet.user }).then(u => u || User.findById(marksheet.user).catch(() => null))
+        : null,
     marksheet.test ? Test.findOne({ testId: marksheet.test }) : null,
     Course.findOne({ courseId: marksheet.course }),
   ]);
@@ -64,8 +74,8 @@ const findMarksheetByIdOrNo = async (input: string) => {
 };
 
 export const handleVerifyCertificateFunction = async (
-  req: Request,
-  res: Response
+    req: Request,
+    res: Response
 ) => {
   try {
     const { certificateId } = req.params;
@@ -123,8 +133,10 @@ export const handleVerifyCertificateFunction = async (
       data: {
         certificateId: marksheet.marksheetId,
         student: {
-          name: `${marksheet.user.firstName} ${marksheet.user.lastName}`,
-          userName: marksheet.user.userName,
+          name: marksheet.user
+              ? `${marksheet.user.firstName} ${marksheet.user.lastName}`
+              : "Unknown",
+          userName: marksheet.user?.userName || "",
         },
         test: marksheet.test ? {
           title: marksheet.test.title,
@@ -132,7 +144,7 @@ export const handleVerifyCertificateFunction = async (
           difficulty: marksheet.test.difficulty,
         } : undefined,
         course: {
-          name: marksheet.course.courseName,
+          name: marksheet.course?.courseName || "Unknown Course",
         },
         performance: {
           score: marksheet.score,
@@ -165,8 +177,8 @@ export const handleVerifyCertificateFunction = async (
 };
 
 export const handlePublicVerifyCertificateFunction = async (
-  req: Request,
-  res: Response
+    req: Request,
+    res: Response
 ) => {
   try {
     const { certificateId } = req.body;
@@ -216,9 +228,11 @@ export const handlePublicVerifyCertificateFunction = async (
       verified: true,
       message: "Certificate is valid",
       data: {
-        studentName: `${marksheet.user.firstName} ${marksheet.user.lastName}`,
+        studentName: marksheet.user
+            ? `${marksheet.user.firstName} ${marksheet.user.lastName}`
+            : "Unknown",
         testName: marksheet.test?.title || "N/A",
-        courseName: marksheet.course.courseName,
+        courseName: marksheet.course?.courseName || "Unknown Course",
         grade: marksheet.grade,
         percentage: marksheet.percentage,
         completionDate: marksheet.completionDate,
