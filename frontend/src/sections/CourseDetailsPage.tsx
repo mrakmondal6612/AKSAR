@@ -10,6 +10,7 @@ import { getUserData } from "@/lib/authService";
 import RatingComponent from "@/components/RatingComponent";
 import { Clock, Users, BarChart, Lock, Play, Trophy, Calendar } from "lucide-react";
 
+
 const CourseDetailsPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
