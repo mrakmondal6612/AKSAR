@@ -87,6 +87,11 @@ const testSchema = new mongoose_1.Schema({
         enum: Object.values(TestStatus),
         default: TestStatus.DRAFT,
     },
+    testType: {
+        type: String,
+        enum: ["QUIZ", "MOCK_TEST"],
+        default: "QUIZ",
+    },
     instructions: { type: String },
     allowRetake: { type: Boolean, default: false },
     maxAttempts: { type: Number, default: 1 },

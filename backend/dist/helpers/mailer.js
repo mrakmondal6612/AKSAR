@@ -8,7 +8,79 @@ const User_model_1 = __importDefault(require("../models/User.model"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const mail_config_1 = require("../utils/mail.config");
 const emailTemplates_1 = require("./emailTemplates");
+const https_1 = __importDefault(require("https"));
 dotenv_1.default.config();
+/**
+ * Native helper to make HTTPS POST requests without external dependencies (like fetch or axios).
+ */
+const postRequest = (url, headers, body) => {
+    return new Promise((resolve, reject) => {
+        const parsedUrl = new URL(url);
+        const options = {
+            hostname: parsedUrl.hostname,
+            path: parsedUrl.pathname,
+            method: "POST",
+            headers: {
+                ...headers,
+                "Content-Type": "application/json",
+            },
+        };
+        const req = https_1.default.request(options, (res) => {
+            let data = "";
+            res.on("data", (chunk) => {
+                data += chunk;
+            });
+            res.on("end", () => {
+                if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+                    try {
+                        resolve(JSON.parse(data));
+                    }
+                    catch {
+                        resolve(data);
+                    }
+                }
+                else {
+                    reject(new Error(`HTTP Error ${res.statusCode}: ${data}`));
+                }
+            });
+        });
+        req.on("error", (err) => {
+            reject(err);
+        });
+        req.write(JSON.stringify(body));
+        req.end();
+    });
+};
+/**
+ * Universal mailer helper supporting Brevo API, Resend API, and Nodemailer SMTP.
+ */
+const sendMail = async (mailOptions) => {
+    if (process.env.BREVO_API_KEY) {
+        const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.PUBLIC_GMAIL || "mrakmondal6612@gmail.com";
+        return await postRequest("https://api.brevo.com/v3/smtp/email", {
+            "api-key": process.env.BREVO_API_KEY,
+        }, {
+            sender: { name: "AKSAR", email: senderEmail },
+            to: [{ email: mailOptions.to }],
+            subject: mailOptions.subject,
+            htmlContent: mailOptions.html,
+        });
+    }
+    else if (process.env.RESEND_API_KEY) {
+        const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+        return await postRequest("https://api.resend.com/emails", {
+            "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+        }, {
+            from: `AKSAR <${fromEmail}>`,
+            to: mailOptions.to,
+            subject: mailOptions.subject,
+            html: mailOptions.html,
+        });
+    }
+    else {
+        return await mail_config_1.transporter.sendMail(mailOptions);
+    }
+};
 const sendEmailVerification = async (email, userId) => {
     try {
         const emailVerificationOTP = Math.floor(100000 + Math.random() * 900000).toString();
@@ -27,7 +99,12 @@ const sendEmailVerification = async (email, userId) => {
             subject: "Verify Your Email - AKSAR",
             html: emailTemplates_1.EMAIL_TEMPLATES.VERIFICATION_OTP(emailVerificationOTP),
         };
-        await mail_config_1.transporter.sendMail(mailOptions);
+        try {
+            await sendMail(mailOptions);
+        }
+        catch (mailError) {
+            console.warn(`⚠️ failed to send verification email to ${email}. You can check the OTP in the console log above.`, mailError);
+        }
         return { success: true, message: "Verification OTP sent successfully" };
     }
     catch (error) {
@@ -54,7 +131,12 @@ const sendResetPasswordVerification = async (email, userId) => {
             subject: "Reset Your Password - AKSAR",
             html: emailTemplates_1.EMAIL_TEMPLATES.PASSWORD_RESET_OTP(passwordResetOTP),
         };
-        await mail_config_1.transporter.sendMail(mailOptions);
+        try {
+            await sendMail(mailOptions);
+        }
+        catch (mailError) {
+            console.warn(`⚠️ SMTP failed to send password reset email to ${email}. You can check the OTP in the console log.`, mailError);
+        }
         return { success: true, message: "Password reset OTP sent successfully" };
     }
     catch (error) {
@@ -71,13 +153,18 @@ const emailVerificationAlert = async (email) => {
             subject: "Email Verified Successfully - AKSAR",
             html: emailTemplates_1.EMAIL_TEMPLATES.VERIFICATION_SUCCESS(),
         };
-        await mail_config_1.transporter.sendMail(mailOptions);
-        console.log(`✅ Email Verification Alert sent to: ${email}`);
+        try {
+            await sendMail(mailOptions);
+            console.log(`✅ Email Verification Alert sent to: ${email}`);
+        }
+        catch (mailError) {
+            console.warn(`⚠️ SMTP failed to send email verification alert to ${email}.`, mailError);
+        }
         return { success: true, message: "Verification alert sent successfully" };
     }
     catch (error) {
         console.error("Error:", error);
-        throw new Error("Failed to send verification alert");
+        return { success: false, message: "Failed to send verification alert" };
     }
 };
 exports.emailVerificationAlert = emailVerificationAlert;
@@ -89,7 +176,7 @@ const sendGoogleAuthPasswordMail = async (email, password) => {
             subject: "Welcome to AKSAR - Your Temporary Password",
             html: emailTemplates_1.EMAIL_TEMPLATES.WELCOME_WITH_PASSWORD(password),
         };
-        await mail_config_1.transporter.sendMail(mailOptions);
+        await sendMail(mailOptions);
         console.log(`🔐 Google Auth - Temporary Password sent to ${email}`);
         return { success: true, message: "Password sent successfully" };
     }
@@ -107,7 +194,7 @@ const sendGithubAuthPasswordMail = async (email, password) => {
             subject: "Welcome to AKSAR - Your Temporary Password",
             html: emailTemplates_1.EMAIL_TEMPLATES.WELCOME_WITH_PASSWORD(password),
         };
-        await mail_config_1.transporter.sendMail(mailOptions);
+        await sendMail(mailOptions);
         console.log(`🔐 GitHub Auth - Temporary Password sent to ${email}`);
         return { success: true, message: "Password sent successfully" };
     }
@@ -125,7 +212,7 @@ const sendNotificationEmail = async (email, subject, message, actionUrl) => {
             subject: subject,
             html: emailTemplates_1.EMAIL_TEMPLATES.GENERAL_NOTIFICATION(subject, message, actionUrl),
         };
-        const mailResponse = await mail_config_1.transporter.sendMail(mailOptions);
+        const mailResponse = await sendMail(mailOptions);
         return mailResponse;
     }
     catch (error) {
@@ -145,7 +232,7 @@ const sendCourseEnrollmentEmail = async (email, courseName, courseUrl) => {
             subject: "Course Enrolled Successfully - AKSAR",
             html: emailTemplates_1.EMAIL_TEMPLATES.COURSE_ENROLLMENT(courseName, courseUrl),
         };
-        await mail_config_1.transporter.sendMail(mailOptions);
+        await sendMail(mailOptions);
         console.log(`✅ Course enrollment email sent to: ${email}`);
         return { success: true, message: "Course enrollment email sent successfully" };
     }
@@ -166,7 +253,7 @@ const sendCertificateIssuedEmail = async (email, courseName, certificateUrl) => 
             subject: "Certificate Earned - AKSAR",
             html: emailTemplates_1.EMAIL_TEMPLATES.CERTIFICATE_ISSUED(courseName, certificateUrl),
         };
-        await mail_config_1.transporter.sendMail(mailOptions);
+        await sendMail(mailOptions);
         console.log(`✅ Certificate email sent to: ${email}`);
         return { success: true, message: "Certificate email sent successfully" };
     }
@@ -187,7 +274,7 @@ const sendPasswordResetSuccessEmail = async (email) => {
             subject: "Password Reset Successful - AKSAR",
             html: emailTemplates_1.EMAIL_TEMPLATES.PASSWORD_RESET_SUCCESS(),
         };
-        await mail_config_1.transporter.sendMail(mailOptions);
+        await sendMail(mailOptions);
         console.log(`✅ Password reset success email sent to: ${email}`);
         return { success: true, message: "Password reset success email sent successfully" };
     }

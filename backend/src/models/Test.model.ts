@@ -46,6 +46,7 @@ export interface ITest extends Document {
   shuffleQuestions: boolean;
   showResults: boolean;
   tags?: string[];
+  testType?: "QUIZ" | "MOCK_TEST";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -89,6 +90,11 @@ const testSchema = new Schema<ITest>(
       type: String,
       enum: Object.values(TestStatus),
       default: TestStatus.DRAFT,
+    },
+    testType: {
+      type: String,
+      enum: ["QUIZ", "MOCK_TEST"],
+      default: "QUIZ",
     },
     instructions: { type: String },
     allowRetake: { type: Boolean, default: false },

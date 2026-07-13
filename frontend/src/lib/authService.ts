@@ -51,6 +51,16 @@ export const getUserData = async (): Promise<UserDataProps | null> => {
         learningGoal: responseData.learningGoal,
         experienceLevel: responseData.experienceLevel,
         onboardingCompleted: responseData.onboardingCompleted || false,
+        points: responseData.points || 0,
+        bonusPoints: responseData.bonusPoints || 0,
+        lifetimePoints: responseData.lifetimePoints || 0,
+        currentStreak: responseData.currentStreak || 0,
+        lastActivityDate: responseData.lastActivityDate || "",
+        badges: responseData.badges || [],
+        unlockedUpgrades: responseData.unlockedUpgrades || [],
+        premiumExpiry: responseData.premiumExpiry || "",
+        referredBy: responseData.referredBy || "",
+        referralCode: responseData.referralCode || "",
       };
 
       return userData;

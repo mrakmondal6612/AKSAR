@@ -233,6 +233,48 @@ export const handleSubmitTestAttemptFunction = async (
 
     await newMarksheet.save();
 
+    // Award points and update streak
+    try {
+      const todayStr = new Date().toISOString().split("T")[0];
+      const { awardPoints, updateStreakAndAwardPoints } = await import("../../services/reward.service");
+
+      if (test.testType === "MOCK_TEST" || test.title?.toLowerCase().includes("mock")) {
+        // Complete a mock test: 25 points
+        await awardPoints(
+          userId,
+          25,
+          "MOCK_TEST",
+          `Completed mock test: ${test.title}`,
+          `mock_test_${userId}_${attemptId}`
+        );
+      } else {
+        // Complete a quiz: 15 points
+        await awardPoints(
+          userId,
+          15,
+          "QUIZ_COMPLETE",
+          `Completed quiz: ${test.title}`,
+          `quiz_${userId}_${attemptId}`
+        );
+
+        // Quiz score above 80%: +10 performance bonus
+        if (attempt.percentage >= 80) {
+          await awardPoints(
+            userId,
+            10,
+            "QUIZ_BONUS",
+            `Performance bonus (>=80%) on quiz: ${test.title}`,
+            `quiz_bonus_${userId}_${attemptId}`
+          );
+        }
+      }
+
+      // Update user streak
+      await updateStreakAndAwardPoints(userId, todayStr);
+    } catch (rewardError) {
+      console.error("Failed to award points/streak for test completion:", rewardError);
+    }
+
     // Update user's bookmarks to include this test
     await User.findOneAndUpdate(
       { uniqueId: userId },

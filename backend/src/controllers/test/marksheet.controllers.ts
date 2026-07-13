@@ -10,17 +10,19 @@ export const handleGetUserMarksheetsFunction = async (
   res: Response
 ) => {
   try {
-    const userId = (req as any).user?._id?.toString() || (req as any).userUniqueId;
+    const userId = (req as any).userUniqueId || (req as any).user?.uniqueId;
     const { courseId } = req.query;
 
     console.log("Fetching marksheets for userId:", userId);
-    console.log("Request user object:", (req as any).user);
+    console.log("userUniqueId from req:", (req as any).userUniqueId);
 
     const filter: any = { user: userId };
     if (courseId) filter.course = courseId;
 
     const marksheets = await Marksheet.find(filter).sort({ completionDate: -1 });
-    console.log("Found marksheets:", marksheets.length);
+    const allMarksheets = await Marksheet.find({}).limit(5);
+    console.log("Found marksheets for user:", marksheets.length);
+    console.log("Sample marksheet users in DB:", allMarksheets.map(m => m.user));
 
     // Manually populate test & course details by matching custom string IDs
     const testIds = marksheets.map((m) => m.test).filter(Boolean);
@@ -79,7 +81,7 @@ export const handleGetMarksheetByIdFunction = async (
 ) => {
   try {
     const { marksheetId } = req.params;
-    const userId = (req as any).user?.uniqueId;
+    const userId = (req as any).userUniqueId || (req as any).user?.uniqueId;
 
     const marksheet = await Marksheet.findOne({ marksheetId });
 
@@ -212,18 +214,18 @@ export const handleGetLeaderboardFunction = async (
     const courseIds = leaderboard.map((l) => l.course).filter(Boolean);
 
     const [users, tests, courses] = await Promise.all([
-      User.find({ _id: { $in: userIds } }),
+      User.find({ uniqueId: { $in: userIds } }),
       Test.find({ testId: { $in: testIds } }),
       Course.find({ courseId: { $in: courseIds } }),
     ]);
 
-    const userMap = new Map(users.map((u) => [u._id.toString(), u]));
+    const userMap = new Map(users.map((u) => [u.uniqueId, u]));
     const testMap = new Map(tests.map((t) => [t.testId, t]));
     const courseMap = new Map(courses.map((c) => [c.courseId, c]));
 
     const populatedLeaderboard = leaderboard.map((l) => {
       const obj = l.toObject();
-      const userDoc = userMap.get(l.user?.toString() || "");
+      const userDoc = userMap.get(l.user || "");
       const testDoc = testMap.get(l.test || "");
       const courseDoc = courseMap.get(l.course);
 

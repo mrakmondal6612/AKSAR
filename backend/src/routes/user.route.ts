@@ -30,7 +30,8 @@ import {
   handleGetApprovedPosts,
   handleCreateUserPost,
   handleToggleLikePost,
-  handleAddCommentPost
+  handleAddCommentPost,
+  handleApproveComment
 } from "../controllers/user/community.controllers";
 import {
   handleCreateFeedback,
@@ -218,6 +219,7 @@ userRoute.get("/community/posts", handleGetApprovedPosts);
 userRoute.post("/community/posts", authenticateToken, handleCreateUserPost);
 userRoute.patch("/community/posts/:postId/like", authenticateToken, handleToggleLikePost);
 userRoute.post("/community/posts/:postId/comment", authenticateToken, handleAddCommentPost);
+userRoute.post("/community/posts/:postId/comment/:commentId/approve", authenticateToken, handleApproveComment);
 
 // User Feedback/Testimonial routes
 userRoute.post("/feedback", authenticateToken, handleCreateFeedback);

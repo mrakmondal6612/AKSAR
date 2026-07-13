@@ -50,6 +50,16 @@ export interface IUser extends Document {
   learningGoal?: string;          // "get a job" | "upskill" | "academic" | "hobby"
   experienceLevel?: string;       // "beginner" | "intermediate" | "advanced"
   onboardingCompleted?: boolean;  // true once onboarding modal is submitted
+  points?: number;
+  bonusPoints?: number;
+  lifetimePoints?: number;
+  currentStreak?: number;
+  lastActivityDate?: Date;
+  badges?: string[];
+  unlockedUpgrades?: string[];
+  premiumExpiry?: Date;
+  referredBy?: string;
+  referralCode?: string;
 }
 
 const userSchema = new mongoose.Schema<IUser>(
@@ -115,6 +125,16 @@ const userSchema = new mongoose.Schema<IUser>(
       learningGoal: { type: String },
       experienceLevel: { type: String },
       onboardingCompleted: { type: Boolean, default: false },
+      points: { type: Number, default: 0 },
+      bonusPoints: { type: Number, default: 0 },
+      lifetimePoints: { type: Number, default: 0 },
+      currentStreak: { type: Number, default: 0 },
+      lastActivityDate: { type: Date },
+      badges: [{ type: String }],
+      unlockedUpgrades: [{ type: String }],
+      premiumExpiry: { type: Date },
+      referredBy: { type: String, default: "" },
+      referralCode: { type: String, default: "" },
     },
     {
       timestamps: true,

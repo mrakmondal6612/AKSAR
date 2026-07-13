@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleUpdateInterestsFunction = handleUpdateInterestsFunction;
 const User_model_1 = __importDefault(require("../../models/User.model"));
+const getSuggestedCourses_controllers_1 = require("../course/getSuggestedCourses.controllers");
 /**
  * PUT /api/v1/user/update-interests
  * Save user interests, learning goal, experience level.
@@ -39,6 +40,8 @@ async function handleUpdateInterestsFunction(req, res) {
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
+        // Invalidate suggestion cache so suggestions are updated
+        (0, getSuggestedCourses_controllers_1.invalidateSuggestionCache)(userId);
         return res.status(200).json({
             success: true,
             message: "Interests updated successfully",

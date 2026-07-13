@@ -8,6 +8,7 @@ import courseRoute from "./routes/course.route";
 import videoRoute from "./routes/video.route";
 import testRoute from "./routes/test.route";
 import newsRoute from "./routes/news.route";
+import rewardRoute from "./routes/reward.route";
 import { startNotificationScheduler } from "./services/notificationJob.service";
 import { startRecurringTodoScheduler } from "./services/recurringTodoJob.service";
 
@@ -36,6 +37,7 @@ app.use("/api/v1/course", courseRoute);
 app.use("/api/v1/video", videoRoute);
 app.use("/api/v1/test", testRoute);
 app.use("/api/v1/news", newsRoute);
+app.use("/api/v1/rewards", rewardRoute);
 
 async function startServer() {
     try {

@@ -47,9 +47,9 @@ const AboutPage: React.FC = () => {
           transition={{ delay: 0.5, duration: 0.6 }}
         >
           {[
-            { value: "42K+", label: "Happy Learners", color: "text-purple-650 dark:text-purple-400" },
-            { value: "500+", label: "Premium Courses", color: "text-teal-650 dark:text-teal-400" },
-            { value: "10K+", label: "Study Resources", color: "text-blue-650 dark:text-blue-400" },
+            { value: "40+", label: "Happy Learners", color: "text-purple-650 dark:text-purple-400" },
+            { value: "15+", label: "Premium Courses", color: "text-teal-650 dark:text-teal-400" },
+            { value: "35+", label: "Study Resources", color: "text-blue-650 dark:text-blue-400" },
             { value: "24/7", label: "Peer Community Support", color: "text-pink-650 dark:text-pink-400" }
           ].map((stat, sIdx) => (
             <div key={sIdx} className="text-center">
@@ -177,38 +177,38 @@ const AboutPage: React.FC = () => {
             {[
               {
                 name: "Ajay",
-                role: "Founder & MD",
+                role: "Software Architect",
                 image: "/images/Ajay-Photo-1.png",
-                github: "https://github.com",
+                github: "https://github.com/mrakmondal6612",
                 linkedin: "https://www.linkedin.com/in/mr-ak/"
               },
               {
                 name: "Arnab Mandal",
-                role: "Co-Founder & CEO",
+                role: "Full Stack Developer",
                 image: "/images/Arnab.jpg",
-                github: "https://github.com",
+                github: "https://github.com/Arnab-Mandal1",
                 linkedin: "https://www.linkedin.com/in/arnab-mandal-004680265/"
               },
               {
                 name: "Samadrita Himaktar",
-                role: "Co-Founder & CTO",
-                image: "",
-                github: "https://github.com",
-                linkedin: "https://linkedin.com"
+                role: "Front End Developer",
+                image: "/images/Samadrita.jpg",
+                github: "https://github.com/Samadrita-04",
+                linkedin: "https://www.linkedin.com/in/samadrita-himaktar-2796b3256/"
               },
               {
                 name: "Kumar Kuntal Kundu",
-                role: "Co-Founder Manager",
+                role: "Front End Developer",
                 image: "/images/Kuntal.png",
-                github: "https://github.com",
+                github: "https://github.com/imkumarkuntalkundu",
                 linkedin: "https://www.linkedin.com/in/imkumarkuntalkundu/"
               },
               {
                 name: "Rohan Pratihar",
-                role: "Co-Founder & HR",
-                image: "",
-                github: "https://github.com",
-                linkedin: "https://linkedin.com"
+                role: "Supporting Member",
+                image: "/images/Rohan.jpeg",
+                github: "https://github.com/imkumarkuntalkundu",
+                linkedin: "https://www.linkedin.com/in/rohan-pratihar-5528a8276?trk=blended-typeahead"
               }
             ].map((member, index) => (
               <motion.div
