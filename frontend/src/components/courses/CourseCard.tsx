@@ -6,6 +6,7 @@ import { useCourseContext } from "@/context/courseContext";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "@/context/authContext";
 
+
 const cardVariants = {
   hidden: (_i: number) => ({
     opacity: 0,
