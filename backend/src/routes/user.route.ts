@@ -21,7 +21,6 @@ import {
   handleImportTodos,
 } from "../controllers/user/todo.production.controllers";
 
-import { handleGetNotifications, handleMarkAsRead, handleMarkAllAsRead, handleDeleteNotification, handleGetCourseTimeline, handleCreateCourseEnrollment } from "../controllers/user/notification.controllers";
 import { handleUpdateUserImageFunction } from "../controllers/user/userProfileUpdate.controllers";
 import { handleResetPasswordFunction, handleResetPasswordVerificationOTP } from "../controllers/user/userResetPassword.controllers";
 import { handleRemoveHistoryVideo, handleRemoveUserEntireHistory, handleRemoveHistoryByDateRange, handleUserCourseBookmarkfunction , handleUserCourseProgress, handleUserHistoryVideoOrder, handleUserUnenrolledCourseFunction, handleUserVideoBookmarkfunction} from "../controllers/user/userCourseHandlers.controllers";
@@ -85,7 +84,7 @@ import {
   handleMarkMessageReadFunction,
   handleDeleteContactMessageFunction,
 } from "../controllers/user/contactMessage.controllers";
-
+import { handleGetNotifications, handleMarkAsRead, handleMarkAllAsRead, handleDeleteNotification, handleGetCourseTimeline, handleCreateCourseEnrollment, handleSendAnnouncementFunction } from "../controllers/user/notification.controllers";
 
 const userRoute = express.Router();
 
@@ -241,5 +240,8 @@ userRoute.post("/contact", handleSubmitContactMessageFunction);
 userRoute.get("/admin/contact-messages", authenticateAdminOrInstructorToken, handleGetContactMessagesFunction);
 userRoute.patch("/admin/contact-messages/:messageId/read", authenticateAdminOrInstructorToken, handleMarkMessageReadFunction);
 userRoute.delete("/admin/contact-messages/:messageId", authenticateAdminOrInstructorToken, handleDeleteContactMessageFunction);
+
+
+userRoute.post("/admin/send-announcement", authenticateAdminToken, handleSendAnnouncementFunction);
 
 export default userRoute;
